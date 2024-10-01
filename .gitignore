@@ -1,0 +1,12 @@
+
+# IDE
+*.swp
+.vscode
+.vs
+
+# Build
+bin
+obj
+
+# Environment
+.DS_Store
