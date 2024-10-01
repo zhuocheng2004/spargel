@@ -1,6 +1,7 @@
 
 # IDE
 *.swp
+.idea
 .vscode
 .vs
 
