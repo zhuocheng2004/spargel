@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Core", "Sparg
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Core.Tests", "SpargelEngine.Core.Tests\SpargelEngine.Core.Tests.csproj", "{7EAC9195-D171-40F3-8A63-82B4C8CE85D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Demos.MacWindow", "SpargelEngine.Demos.MacWindow\SpargelEngine.Demos.MacWindow.csproj", "{DEAB448E-14D6-4C60-936C-A9B6FFC9F54E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{7EAC9195-D171-40F3-8A63-82B4C8CE85D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EAC9195-D171-40F3-8A63-82B4C8CE85D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7EAC9195-D171-40F3-8A63-82B4C8CE85D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEAB448E-14D6-4C60-936C-A9B6FFC9F54E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEAB448E-14D6-4C60-936C-A9B6FFC9F54E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEAB448E-14D6-4C60-936C-A9B6FFC9F54E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEAB448E-14D6-4C60-936C-A9B6FFC9F54E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
