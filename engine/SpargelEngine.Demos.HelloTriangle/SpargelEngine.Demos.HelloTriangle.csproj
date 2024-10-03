@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SpargelEngine.Graphics.Vulkan\SpargelEngine.Graphics.Vulkan.csproj" />
+    <ProjectReference Include="..\SpargelEngine.GUI.Window.GLFW\SpargelEngine.GUI.Window.GLFW.csproj" />
+    <ProjectReference Include="..\SpargelEngine.GUI.Window\SpargelEngine.GUI.Window.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

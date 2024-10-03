@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Graphics.Vulk
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Demos.HelloTriangle", "SpargelEngine.Demos.HelloTriangle\SpargelEngine.Demos.HelloTriangle.csproj", "{99A0E1F3-0BBA-4A87-967C-0C819863563F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.GUI.Window", "SpargelEngine.GUI.Window\SpargelEngine.GUI.Window.csproj", "{9B15346D-4E76-4355-8676-BDB2AB5CB6DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.GUI.Window.GLFW", "SpargelEngine.GUI.Window.GLFW\SpargelEngine.GUI.Window.GLFW.csproj", "{B924038A-F785-41FA-AC5E-8B8716A63197}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{99A0E1F3-0BBA-4A87-967C-0C819863563F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99A0E1F3-0BBA-4A87-967C-0C819863563F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99A0E1F3-0BBA-4A87-967C-0C819863563F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B15346D-4E76-4355-8676-BDB2AB5CB6DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B15346D-4E76-4355-8676-BDB2AB5CB6DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B15346D-4E76-4355-8676-BDB2AB5CB6DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B15346D-4E76-4355-8676-BDB2AB5CB6DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B924038A-F785-41FA-AC5E-8B8716A63197}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B924038A-F785-41FA-AC5E-8B8716A63197}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B924038A-F785-41FA-AC5E-8B8716A63197}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B924038A-F785-41FA-AC5E-8B8716A63197}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
