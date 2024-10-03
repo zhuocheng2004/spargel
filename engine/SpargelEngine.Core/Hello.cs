@@ -1,11 +1,10 @@
-﻿
-namespace SpargelEngine.Core
+﻿namespace SpargelEngine.Core;
+
+
+public static class Hello
 {
-    public static class Hello
+    public static string SayHello()
     {
-        public static string SayHello()
-        {
-            return "Hello!";
-        }
+        return "Hello!";
     }
 }

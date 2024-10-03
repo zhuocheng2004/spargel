@@ -1,12 +1,11 @@
-﻿
-namespace SpargelEngine.Core.Tests
+﻿namespace SpargelEngine.Core.Tests;
+
+
+public class HelloTests
 {
-    public class HelloTests
+    [Fact]
+    public void ShouldSayHello()
     {
-        [Fact]
-        public void ShouldSayHello()
-        {
-            Assert.Equal("Hello!", Hello.SayHello());
-        }
+        Assert.Equal("Hello!", Hello.SayHello());
     }
 }
