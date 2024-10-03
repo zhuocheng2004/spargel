@@ -5,7 +5,7 @@ public partial class Vulkan
 {
     public struct ExtensionProperties
     {
-        public unsafe fixed byte ExtensionName[(int) MaxExtensionNameSize];
-        public uint SpecVersion;
+        public unsafe fixed byte extensionName[(int) MaxExtensionNameSize];
+        public uint specVersion;
     }
 }
