@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\SpargelEngine.Graphics.Vulkan\SpargelEngine.Graphics.Vulkan.csproj" />
     <ProjectReference Include="..\SpargelEngine.GUI.Window.GLFW\SpargelEngine.GUI.Window.GLFW.csproj" />
+    <ProjectReference Include="..\SpargelEngine.Graphics.OpenGL\SpargelEngine.Graphics.OpenGL.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,7 +10,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
 </Project>

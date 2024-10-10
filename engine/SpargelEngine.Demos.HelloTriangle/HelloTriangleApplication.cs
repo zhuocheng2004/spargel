@@ -11,7 +11,7 @@ public class HelloTriangleApplication
     private const uint Width = 800;
     private const uint Height = 600;
     
-    private readonly GlfwWindowSystem _windowSystem = new GlfwWindowSystem();
+    private readonly GlfwWindowSystem _windowSystem = new();
     private readonly Vulkan _vulkan = new VulkanLinux();
     
     private GlfwWindow? _window;
@@ -29,8 +29,8 @@ public class HelloTriangleApplication
     {
         _windowSystem.Init();
         
-        GlfwWindowSystem.WindowHint(GlfwWindowSystem.ClientApi, GlfwWindowSystem.NoApi);
-        GlfwWindowSystem.WindowHint(GlfwWindowSystem.Resizable, GlfwWindowSystem.False);
+        Glfw.glfwWindowHint(Glfw.ClientApi, Glfw.NoApi);
+        Glfw.glfwWindowHint(Glfw.Resizable, Glfw.False);
         
         _window = _windowSystem.Create(Width, Height, "Vulkan");
     }
@@ -80,9 +80,9 @@ public class HelloTriangleApplication
             for (var i = 0; i < extensionCount; i++)
             {
                 var extension = extensions[i];
-                var pName = extension.extensionName;
+                var pName = extension.ExtensionName;
                 var name = Marshal.PtrToStringAnsi((nint)pName) ?? "<null>";
-                Console.WriteLine($"\t#{i}:\t{name} ({extension.specVersion})");
+                Console.WriteLine($"\t#{i}:\t{name} ({extension.SpecVersion})");
             }
         }
     }
@@ -92,26 +92,26 @@ public class HelloTriangleApplication
         unsafe
         {
             Vulkan.ApplicationInfo appInfo;
-            appInfo.sType = Vulkan.StructureType.ApplicationInfo;
-            appInfo.pApplicationName = (byte*) Marshal.StringToHGlobalAnsi("Hello Triangle");
-            appInfo.applicationVersion = Vulkan.MakeVersion(1, 0, 0);
-            appInfo.pEngineName = (byte*) Marshal.StringToHGlobalAnsi("No Engine");
-            appInfo.engineVersion = Vulkan.MakeVersion(1, 0, 0);
-            appInfo.apiVersion = Vulkan.ApiVersion_1_0;
+            appInfo.Type = Vulkan.StructureType.ApplicationInfo;
+            appInfo.ApplicationName = (byte*) Marshal.StringToHGlobalAnsi("Hello Triangle");
+            appInfo.ApplicationVersion = Vulkan.MakeVersion(1, 0, 0);
+            appInfo.EngineName = (byte*) Marshal.StringToHGlobalAnsi("No Engine");
+            appInfo.EngineVersion = Vulkan.MakeVersion(1, 0, 0);
+            appInfo.ApiVersion = Vulkan.ApiVersion_1_0;
             
             Vulkan.InstanceCreateInfo createInfo;
-            createInfo.sType = Vulkan.StructureType.InstanceCreateInfo;
-            createInfo.pApplicationInfo = &appInfo;
+            createInfo.Type = Vulkan.StructureType.InstanceCreateInfo;
+            createInfo.ApplicationInfo = &appInfo;
 
             uint glfwExtensionCount = 0;
             byte** glfwExtensions;
             
-            glfwExtensions = GlfwWindowSystem.GetRequiredInstanceExtensions(&glfwExtensionCount);
+            glfwExtensions = Glfw.glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
             
-            createInfo.enabledExtensionCount = glfwExtensionCount;
-            createInfo.ppEnabledExtensionNames = glfwExtensions;
+            createInfo.EnabledExtensionCount = glfwExtensionCount;
+            createInfo.EnabledExtensionNames = glfwExtensions;
 
-            createInfo.enabledLayerCount = 0;
+            createInfo.EnabledLayerCount = 0;
 
             fixed (Vulkan.Instance* pInstance = &_instance)
             {
