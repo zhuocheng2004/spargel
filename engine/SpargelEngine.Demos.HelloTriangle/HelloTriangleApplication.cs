@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using SpargelEngine.Graphics.Vulkan;
-using SpargelEngine.Graphics.Vulkan.Linux;
 using SpargelEngine.GUI.Window.GLFW;
 
 namespace SpargelEngine.Demos.HelloTriangle;
@@ -12,7 +11,7 @@ public class HelloTriangleApplication
     private const uint Height = 600;
     
     private readonly GlfwWindowSystem _windowSystem = new();
-    private readonly Vulkan _vulkan = new VulkanLinux();
+    private readonly Vulkan _vulkan = new VulkanGeneric();
     
     private GlfwWindow? _window;
     private Vulkan.Instance _instance;
@@ -37,6 +36,8 @@ public class HelloTriangleApplication
 
     private void InitVulkan()
     {
+        _vulkan.Initialize();
+        
         ShowExtensions();
         CreateInstance();
     }
@@ -52,6 +53,8 @@ public class HelloTriangleApplication
     private void Cleanup()
     {
         _vulkan.DestroyInstance(_instance, nint.Zero);
+        
+        _vulkan.Terminate();
             
         _window?.Destroy();
         

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace SpargelEngine.GUI.Window.GLFW;
@@ -6,15 +7,15 @@ namespace SpargelEngine.GUI.Window.GLFW;
 public static class Glfw
 {
     public delegate void GlfwFramebufferSizeCallback(nint window, int width, int height);
-
     
-    public const string GlfwLibName = "libglfw.so.3";
+    private const string GlfwLibName = "glfw";
 
     public const int False = 0;
     
     public const int ClientApi = 0x00022001;
     public const int ContextVersionMajor = 0x00022002;
     public const int ContextVersionMinor = 0x00022003;
+    public const int OpenGLForwardCompat = 0x00022006;
     public const int OpenGLProfile = 0x00022008;
     public const int NoApi = 0;
     public const int Resizable = 0x00020003;
@@ -63,7 +64,25 @@ public static class Glfw
     public const int KeyZ = 90;
     public const int KeyEscape = 256;
     public const int KeyEnter = 257;
-    
+
+    static Glfw()
+    {
+        NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
+    }
+
+    private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        if (libraryName != "glfw") return IntPtr.Zero;
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return NativeLibrary.Load("glfw3.dll");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            return NativeLibrary.Load("libglfw.3.dylib");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return NativeLibrary.Load("libglfw.so.3");
+            
+        return IntPtr.Zero;
+    }
     
     [DllImport(GlfwLibName)]
     public static extern nint glfwCreateWindow(int width, int height, string title, nint monitor, nint share);

@@ -1,5 +1,5 @@
-﻿using SpargelEngine.Graphics.OpenGL;
-using SpargelEngine.Graphics.OpenGL.Linux;
+﻿using System.Runtime.InteropServices;
+using SpargelEngine.Graphics.OpenGL;
 using SpargelEngine.GUI.Window;
 using SpargelEngine.GUI.Window.GLFW;
 
@@ -35,7 +35,8 @@ public static class Program
         }
         """;
 
-    private static readonly OpenGL Gl = new OpenGLLinux();
+    private static readonly OpenGL Gl = 
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new OpenGLWindows() : new OpenGLGeneric();
     private static readonly GlfwWindowSystem WindowSystem = new();
     private static GlfwWindow? _window;
     
@@ -49,11 +50,16 @@ public static class Program
         Glfw.glfwWindowHint(Glfw.ContextVersionMinor, 3);
         Glfw.glfwWindowHint(Glfw.OpenGLProfile, Glfw.OpenGLCoreProfile);
         
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            Glfw.glfwWindowHint(Glfw.OpenGLForwardCompat, 1);
+        
         _window = WindowSystem.Create(ScreenWidth, ScreenHeight, "LearnOpenGL");
         
         _window.MakeContextCurrent();
         
         _window.SetFramebufferSizeCallback(FramebufferSizeCallback);
+        
+        Gl.Initialize();
         
         
         // build and compile shader program
@@ -88,9 +94,9 @@ public static class Program
         Gl.DeleteShader(fragmentShader);
 
         float[] vertices = [
-             0.5f, -0.5f,  0.0f,  1.0f, 0.0f, 0.0f,     // top right
+             0.5f, -0.5f,  0.0f,  1.0f, 0.0f, 0.0f,     // bottom right
             -0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 0.0f,     // bottom left
-             0.0f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f      // bottom left
+             0.0f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f      // top
         ];
 
         var vao = Gl.GenVertexArray();
@@ -137,6 +143,8 @@ public static class Program
         Gl.DeleteVertexArray(vao);
         Gl.DeleteBuffer(vbo);
         Gl.DeleteProgram(program);
+        
+        Gl.Terminate();
         
         _window.Destroy();
         WindowSystem.Terminate();

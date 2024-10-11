@@ -1,11 +1,36 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace SpargelEngine.Graphics.OpenGL.Linux;
+namespace SpargelEngine.Graphics.OpenGL;
 
 
-public class OpenGLLinux : OpenGL
+public class OpenGLGeneric : OpenGL
 {
-    private const string GlLibName = "libGL.so.1";
+    private const string GlLibName = "opengl";
+    
+    static OpenGLGeneric()
+    {
+        NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
+    }
+
+    private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        if (libraryName != "opengl") return IntPtr.Zero;
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return NativeLibrary.Load("opengl32.dll");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            return NativeLibrary.Load("OpenGL.framework");  // TODO
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return NativeLibrary.Load("libGL.so.1");
+
+        return IntPtr.Zero;
+    }
+    
+
+    public override void Initialize() { }
+
+    public override void Terminate() { }
 
     public override void AttachShader(uint program, uint shader)
     {
@@ -106,15 +131,15 @@ public class OpenGLLinux : OpenGL
     {
         glGetProgramInfoLog(program, bufSize, length, infoLog);
     }
+    
+    public override unsafe void GetShaderiv(uint shader, uint pname, int* @params)
+    {
+        glGetShaderiv(shader, pname, @params);
+    }
 
     public override unsafe void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog)
     {
        glGetShaderInfoLog(shader, bufSize, length, infoLog);
-    }
-
-    public override unsafe void GetShaderiv(uint shader, uint pname, int* @params)
-    {
-        glGetShaderiv(shader, pname, @params);
     }
 
     public override void LinkProgram(uint program)
@@ -202,12 +227,12 @@ public class OpenGLLinux : OpenGL
     
     [DllImport(GlLibName)]
     private static extern unsafe void glGetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog);
-    
-    [DllImport(GlLibName)]
-    private static extern unsafe void glGetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog);
 
     [DllImport(GlLibName)]
     private static extern unsafe void glGetShaderiv(uint shader, uint pname, int* @params);
+    
+    [DllImport(GlLibName)]
+    private static extern unsafe void glGetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog);
     
     [DllImport(GlLibName)]
     private static extern void glLinkProgram(uint program);

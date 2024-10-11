@@ -5,6 +5,10 @@ namespace SpargelEngine.Graphics.OpenGL;
 
 public abstract partial class OpenGL
 {
+    public abstract void Initialize();
+    
+    public abstract void Terminate();
+    
     public void DeleteBuffer(uint buffer)
     {
         unsafe { DeleteBuffers(1, &buffer); }
