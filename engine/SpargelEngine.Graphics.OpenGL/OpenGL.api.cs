@@ -13,13 +13,16 @@ public abstract partial class OpenGL
      */
     public const byte False = 0;
     public const byte True = 1;
+    public const uint Less = 0x0201;
     public const uint UnsignedInt = 0x1405;
     public const uint Float = 0x1406;
 
     public const uint Triangles = 0x0004;
 
+    public const uint DepthBufferBit = 0x00000100;
     public const uint ColorBufferBit = 0x00004000;
 
+    public const uint DepthTest = 0x0B71;
     public const uint ArrayBuffer = 0x8892;
     public const uint ElementArrayBuffer = 0x8893;
     public const uint StaticDraw = 0x88E4;
@@ -54,10 +57,14 @@ public abstract partial class OpenGL
     public abstract void DeleteShader(uint shader);
 
     public abstract unsafe void DeleteVertexArrays(uint n, uint* arrays);
+
+    public abstract void DepthFunc(uint func);
     
     public abstract void DrawArrays(uint mode, int first, uint count);
     
     public abstract unsafe void DrawElements(uint mode, uint count, uint type, void* indices);
+
+    public abstract void Enable(uint target);
     
     public abstract void EnableVertexAttribArray(uint index);
     
@@ -65,17 +72,23 @@ public abstract partial class OpenGL
     
     public abstract unsafe void GenVertexArrays(uint n, uint* arrays);
 
-    public abstract unsafe void GetProgramiv(uint program, uint pname, int* @params);
-    
     public abstract unsafe void GetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog);
+    
+    public abstract unsafe void GetProgramiv(uint program, uint pname, int* @params);
     
     public abstract unsafe void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog);
     
     public abstract unsafe void GetShaderiv(uint shader, uint pname, int* @params);
 
+    public abstract unsafe int GetUniformLocation(uint program, byte* name);
+    
     public abstract void LinkProgram(uint program);
     
     public abstract unsafe void ShaderSource(uint shader, uint count, byte** @string, int* length);
+
+    public abstract void Uniform4f(int location, float v0, float v1, float v2, float v3);
+    
+    public abstract unsafe void UniformMatrix4fv(int location, uint count, bool transpose, float* value);
     
     public abstract void UseProgram(uint program);
     

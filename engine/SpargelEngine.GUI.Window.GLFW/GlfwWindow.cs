@@ -5,9 +5,31 @@ public class GlfwWindow(nint handle) : Window
 {
     private FramebufferSizeCallback? _framebufferSizeCallback;
 
+    private int _width, _height;
+
+
+    public void Initialize()
+    {
+        unsafe
+        {
+            fixed (int* pw = &_width, ph = &_height)
+                Glfw.glfwGetWindowSize(handle, pw, ph);
+        }
+    }
+
     public override bool ShouldClose()
     {
         return Glfw.glfwWindowShouldClose(handle) != 0;
+    }
+
+    public override int GetWidth()
+    {
+        return _width;
+    }
+
+    public override int GetHeight()
+    {
+        return _height;
     }
 
     public override void SetShouldClose(bool value)
@@ -36,7 +58,11 @@ public class GlfwWindow(nint handle) : Window
     {
         var oldCallback = _framebufferSizeCallback;
         _framebufferSizeCallback = callback;
-        Glfw.glfwSetFramebufferSizeCallback(handle, (_, width, height) => _framebufferSizeCallback(this, width, height));
+        Glfw.glfwSetFramebufferSizeCallback(handle, (_, width, height) =>
+        {
+            DefaultFramebufferSizeCallback(width, height);
+            _framebufferSizeCallback(this, width, height);
+        });
         return oldCallback;
     }
 
@@ -48,5 +74,11 @@ public class GlfwWindow(nint handle) : Window
     public void SwapBuffers()
     {
         Glfw.glfwSwapBuffers(handle);
+    }
+
+    private void DefaultFramebufferSizeCallback(int width, int height)
+    {
+        _width = width;
+        _height = height;
     }
 }

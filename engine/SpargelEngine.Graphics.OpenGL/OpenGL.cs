@@ -86,12 +86,39 @@ public abstract partial class OpenGL
         }
     }
 
+    public int GetUniformLocation(uint program, string name)
+    {
+        unsafe
+        {
+            return GetUniformLocation(program, (byte*) Marshal.StringToHGlobalAnsi(name));
+        }
+    }
+
     public void ShaderSource(uint shader, string source)
     {
         unsafe
         {
             var @string = (byte*) Marshal.StringToHGlobalAnsi(source);
             ShaderSource(shader, 1, &@string, (int*) 0);
+        }
+    }
+
+    public void Uniform(int location, float v0, float v1, float v2, float v3)
+    {
+        Uniform4f(location, v0, v1, v2, v3);
+    }
+
+    public void UniformMatrix4(int location, float[] value, bool transpose = false)
+    {
+        if (value.Length < 16)
+            throw new ArgumentException($"not enough values (expect 16, found {value.Length})");
+        
+        unsafe
+        {
+            fixed (float* ptr = value)
+            {
+                UniformMatrix4fv(location, 1, transpose, ptr);
+            }
         }
     }
     

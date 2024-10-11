@@ -98,6 +98,9 @@ public static class Glfw
 
     [DllImport(GlfwLibName)]
     public static extern void glfwInit();
+
+    [DllImport(GlfwLibName)]
+    public static extern unsafe void glfwGetWindowSize(nint window, int* width, int* height);
     
     [DllImport(GlfwLibName)]
     public static extern void glfwMakeContextCurrent(nint window);

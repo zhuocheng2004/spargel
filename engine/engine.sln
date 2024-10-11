@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Graphics.Open
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Demos.LearnOpenGL", "SpargelEngine.Demos.LearnOpenGL\SpargelEngine.Demos.LearnOpenGL.csproj", "{5EF5172F-3731-495B-89C7-6C833922233A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpargelEngine.Demos.SimpleShot", "SpargelEngine.Demos.SimpleShot\SpargelEngine.Demos.SimpleShot.csproj", "{3FE67E79-DA5C-4140-AAFC-EC40D169189F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +68,9 @@ Global
 		{5EF5172F-3731-495B-89C7-6C833922233A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EF5172F-3731-495B-89C7-6C833922233A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EF5172F-3731-495B-89C7-6C833922233A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FE67E79-DA5C-4140-AAFC-EC40D169189F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FE67E79-DA5C-4140-AAFC-EC40D169189F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FE67E79-DA5C-4140-AAFC-EC40D169189F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FE67E79-DA5C-4140-AAFC-EC40D169189F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

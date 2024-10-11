@@ -19,12 +19,15 @@ public class OpenGLWindows : OpenGLGeneric
     private delegate void EnableVertexAttribArrayDelegate(uint index);
     private unsafe delegate void GenBuffersDelegate(uint n, uint* buffers);
     private unsafe delegate void GenVertexArraysDelegate(uint n, uint* arrays);
-    private unsafe delegate void GetProgramivDelegate(uint program, uint pname, int* @params);
     private unsafe delegate void GetProgramInfoLogDelegate(uint program, uint bufSize, uint* length, byte* infoLog);
-    private unsafe delegate void GetShaderivDelegate(uint shader, uint pname, int* @params);
+    private unsafe delegate void GetProgramivDelegate(uint program, uint pname, int* @params);
     private unsafe delegate void GetShaderInfoLogDelegate(uint shader, uint bufSize, uint* length, byte* infoLog);
+    private unsafe delegate void GetShaderivDelegate(uint shader, uint pname, int* @params);
+    private unsafe delegate int GetUniformLocationDelegate(uint program, byte* name);
     private delegate void LinkProgramDelegate(uint program);
     private unsafe delegate void ShaderSourceDelegate(uint shader, uint count, byte** @string, int* length);
+    private unsafe delegate void Uniform4fDelegate(int location, float v0, float v1, float v2, float v3);
+    private unsafe delegate void UniformMatrix4fvDelegate(int location, uint count, bool transpose, float* value);
     private delegate void UseProgramDelegate(uint program);
     private unsafe delegate void VertexAttribPointerDelegate(uint index, int size, uint type, byte normalized, uint stride,
         void* pointer);
@@ -56,12 +59,15 @@ public class OpenGLWindows : OpenGLGeneric
     private EnableVertexAttribArrayDelegate? _enableVertexAttribArray;
     private GenBuffersDelegate? _genBuffers;
     private GenVertexArraysDelegate? _genVertexArrays;
-    private GetProgramivDelegate? _getProgramiv;
     private GetProgramInfoLogDelegate? _getProgramInfoLog;
-    private GetShaderivDelegate? _getShaderiv;
+    private GetProgramivDelegate? _getProgramiv;
     private GetShaderInfoLogDelegate? _getShaderInfoLog;
+    private GetShaderivDelegate? _getShaderiv;
+    private GetUniformLocationDelegate? _getUniformLocation;
     private LinkProgramDelegate? _linkProgram;
     private ShaderSourceDelegate? _shaderSource;
+    private Uniform4fDelegate? _uniform4f;
+    private UniformMatrix4fvDelegate? _uniformMatrix4fv;
     private UseProgramDelegate? _useProgram;
     private VertexAttribPointerDelegate? _vertexAttribPointer;
     
@@ -81,12 +87,15 @@ public class OpenGLWindows : OpenGLGeneric
         _enableVertexAttribArray = GetMethod<EnableVertexAttribArrayDelegate>("glEnableVertexAttribArray");
         _genBuffers = GetMethod<GenBuffersDelegate>("glGenBuffers");
         _genVertexArrays = GetMethod<GenVertexArraysDelegate>("glGenVertexArrays");
-        _getProgramiv = GetMethod<GetProgramivDelegate>("glGetProgramiv");
         _getProgramInfoLog = GetMethod<GetProgramInfoLogDelegate>("glGetProgramInfoLog");
-        _getShaderiv = GetMethod<GetShaderivDelegate>("glGetShaderiv");
+        _getProgramiv = GetMethod<GetProgramivDelegate>("glGetProgramiv");
         _getShaderInfoLog = GetMethod<GetShaderInfoLogDelegate>("glGetShaderInfoLog");
+        _getUniformLocation = GetMethod<GetUniformLocationDelegate>("glGetUniformLocation");
+        _getShaderiv = GetMethod<GetShaderivDelegate>("glGetShaderiv");
         _linkProgram = GetMethod<LinkProgramDelegate>("glLinkProgram");
         _shaderSource = GetMethod<ShaderSourceDelegate>("glShaderSource");
+        _uniform4f = GetMethod<Uniform4fDelegate>("glUniform4f");
+        _uniformMatrix4fv = GetMethod<UniformMatrix4fvDelegate>("glUniformMatrix4fv");
         _useProgram = GetMethod<UseProgramDelegate>("glUseProgram");
         _vertexAttribPointer = GetMethod<VertexAttribPointerDelegate>("glVertexAttribPointer");
     }
@@ -178,16 +187,22 @@ public class OpenGLWindows : OpenGLGeneric
         _genVertexArrays(n, arrays);
     }
 
+    public override unsafe void GetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog)
+    {
+        if (_getProgramInfoLog == null) throw NotInitializedException;
+        _getProgramInfoLog(program, bufSize, length, infoLog);
+    }
+
     public override unsafe void GetProgramiv(uint program, uint pname, int* @params)
     {
         if (_getProgramiv == null) throw NotInitializedException;
         _getProgramiv(program, pname, @params);
     }
 
-    public override unsafe void GetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog)
+    public override unsafe void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog)
     {
-        if (_getProgramInfoLog == null) throw NotInitializedException;
-        _getProgramInfoLog(program, bufSize, length, infoLog);
+        if (_getShaderInfoLog == null) throw NotInitializedException;
+        _getShaderInfoLog(shader, bufSize, length, infoLog);
     }
 
     public override unsafe void GetShaderiv(uint shader, uint pname, int* @params)
@@ -196,10 +211,10 @@ public class OpenGLWindows : OpenGLGeneric
         _getShaderiv(shader, pname, @params);
     }
 
-    public override unsafe void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog)
+    public override unsafe int GetUniformLocation(uint program, byte* name)
     {
-        if (_getShaderInfoLog == null) throw NotInitializedException;
-        _getShaderInfoLog(shader, bufSize, length, infoLog);
+        if (_getUniformLocation == null) throw NotInitializedException;
+        return _getUniformLocation(program, name);
     }
 
     public override void LinkProgram(uint program)
@@ -212,6 +227,18 @@ public class OpenGLWindows : OpenGLGeneric
     {
         if (_shaderSource == null) throw NotInitializedException;
         _shaderSource(shader, count, @string, length);
+    }
+
+    public override void Uniform4f(int location, float v0, float v1, float v2, float v3)
+    {
+        if (_uniform4f == null) throw NotInitializedException;
+        _uniform4f(location, v0, v1, v2, v3);
+    }
+
+    public override unsafe void UniformMatrix4fv(int location, uint count, bool transpose, float* value)
+    {
+        if (_uniformMatrix4fv == null) throw NotInitializedException;
+        _uniformMatrix4fv(location, count, transpose, value);
     }
 
     public override void UseProgram(uint program)

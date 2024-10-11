@@ -6,6 +6,10 @@ public abstract class Window
     public delegate void FramebufferSizeCallback(Window window, int width, int height);
     
     public abstract bool ShouldClose();
+    
+    public abstract int GetWidth();
+    
+    public abstract int GetHeight();
 
     public abstract void SetShouldClose(bool value);
     

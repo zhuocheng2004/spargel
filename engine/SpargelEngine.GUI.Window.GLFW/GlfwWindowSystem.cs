@@ -16,7 +16,12 @@ public class GlfwWindowSystem : WindowSystem<GlfwWindow>
     public override GlfwWindow Create(uint width, uint height, string title)
     {
         var handle = Glfw.glfwCreateWindow((int) width, (int) height, title, 0, 0);
-        if (handle != 0) return new GlfwWindow(handle);
+        if (handle != 0)
+        {
+            var window = new GlfwWindow(handle);
+            window.Initialize();
+            return window;
+        }
         
         Terminate();
         throw new Exception("failed to create GLFW window");

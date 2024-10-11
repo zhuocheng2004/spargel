@@ -97,6 +97,11 @@ public class OpenGLGeneric : OpenGL
         glDeleteVertexArrays(n, arrays);
     }
 
+    public override void DepthFunc(uint func)
+    {
+        glDepthFunc(func);
+    }
+
     public override void DrawArrays(uint mode, int first, uint count)
     {
         glDrawArrays(mode, first, count);
@@ -105,6 +110,11 @@ public class OpenGLGeneric : OpenGL
     public override unsafe void DrawElements(uint mode, uint count, uint type, void* indices)
     {
         glDrawElements(mode, count, type, indices);
+    }
+
+    public override void Enable(uint target)
+    {
+        glEnable(target);
     }
 
     public override void EnableVertexAttribArray(uint index)
@@ -121,15 +131,20 @@ public class OpenGLGeneric : OpenGL
     {
         glGenVertexArrays(n, arrays);
     }
+    
+    public override unsafe void GetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog)
+    {
+        glGetProgramInfoLog(program, bufSize, length, infoLog);
+    }
 
     public override unsafe void GetProgramiv(uint program, uint pname, int* @params)
     {
         glGetProgramiv(program, pname, @params);
     }
 
-    public override unsafe void GetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog)
+    public override unsafe void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog)
     {
-        glGetProgramInfoLog(program, bufSize, length, infoLog);
+        glGetShaderInfoLog(shader, bufSize, length, infoLog);
     }
     
     public override unsafe void GetShaderiv(uint shader, uint pname, int* @params)
@@ -137,9 +152,9 @@ public class OpenGLGeneric : OpenGL
         glGetShaderiv(shader, pname, @params);
     }
 
-    public override unsafe void GetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog)
+    public override unsafe int GetUniformLocation(uint program, byte* name)
     {
-       glGetShaderInfoLog(shader, bufSize, length, infoLog);
+        return glGetUniformLocation(program, name);
     }
 
     public override void LinkProgram(uint program)
@@ -150,6 +165,16 @@ public class OpenGLGeneric : OpenGL
     public override unsafe void ShaderSource(uint shader, uint count, byte** @string, int* length)
     {
         glShaderSource(shader, count, @string, length);
+    }
+
+    public override void Uniform4f(int location, float v0, float v1, float v2, float v3)
+    {
+        glUniform4f(location, v0, v1, v2, v3);
+    }
+
+    public override unsafe void UniformMatrix4fv(int location, uint count, bool transpose, float* value)
+    {
+        glUniformMatrix4fv(location, count, transpose, value);
     }
 
     public override void UseProgram(uint program)
@@ -206,12 +231,18 @@ public class OpenGLGeneric : OpenGL
     
     [DllImport(GlLibName)]
     private static extern unsafe void glDeleteVertexArrays(uint n, uint* arrays);
+
+    [DllImport(GlLibName)]
+    private static extern void glDepthFunc(uint func);
     
     [DllImport(GlLibName)]
     private static extern void glDrawArrays(uint mode, int first, uint count);
 
     [DllImport(GlLibName)]
     private static extern unsafe void glDrawElements(uint mode, uint count, uint type, void* indices);
+
+    [DllImport(GlLibName)]
+    private static extern void glEnable(uint target);
     
     [DllImport(GlLibName)]
     private static extern void glEnableVertexAttribArray(uint index);
@@ -223,22 +254,31 @@ public class OpenGLGeneric : OpenGL
     private static extern unsafe void glGenVertexArrays(uint n, uint* arrays);
     
     [DllImport(GlLibName)]
-    private static extern unsafe void glGetProgramiv(uint program, uint pname, int* @params);
+    private static extern unsafe void glGetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog);
     
     [DllImport(GlLibName)]
-    private static extern unsafe void glGetProgramInfoLog(uint program, uint bufSize, uint* length, byte* infoLog);
+    private static extern unsafe void glGetProgramiv(uint program, uint pname, int* @params);
 
+    [DllImport(GlLibName)]
+    private static extern unsafe void glGetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog);
+    
     [DllImport(GlLibName)]
     private static extern unsafe void glGetShaderiv(uint shader, uint pname, int* @params);
     
     [DllImport(GlLibName)]
-    private static extern unsafe void glGetShaderInfoLog(uint shader, uint bufSize, uint* length, byte* infoLog);
+    private static extern unsafe int glGetUniformLocation(uint program, byte* name);
     
     [DllImport(GlLibName)]
     private static extern void glLinkProgram(uint program);
     
     [DllImport(GlLibName)]
     private static extern unsafe void glShaderSource(uint shader, uint count, byte** @string, int* length);
+    
+    [DllImport(GlLibName)]
+    private static extern void glUniform4f(int location, float v0, float v1, float v2, float v3);
+    
+    [DllImport(GlLibName)]
+    private static extern unsafe void glUniformMatrix4fv(int location, uint count, bool transpose, float* value);
     
     [DllImport(GlLibName)]
     private static extern void glUseProgram(uint program);

@@ -34,18 +34,19 @@ public static class Program
             FragColor = vec4(vertexColor, 1.0);
         }
         """;
-
-    private static readonly OpenGL Gl = 
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new OpenGLWindows() : new OpenGLGeneric();
+    
+    private static readonly OpenGL Gl = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? new OpenGLWindows() : new OpenGLGeneric();
     private static readonly GlfwWindowSystem WindowSystem = new();
     private static GlfwWindow? _window;
     
     private static bool _resized;
     private static int _width, _height;
     
+    
     public static void Main()
     {
         WindowSystem.Init();
+        
         Glfw.glfwWindowHint(Glfw.ContextVersionMajor, 3);
         Glfw.glfwWindowHint(Glfw.ContextVersionMinor, 3);
         Glfw.glfwWindowHint(Glfw.OpenGLProfile, Glfw.OpenGLCoreProfile);

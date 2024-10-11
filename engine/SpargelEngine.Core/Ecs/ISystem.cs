@@ -7,5 +7,7 @@ public interface ISystem
 
     public void OnDestroy();
 
-    public void OnUpdate(uint order = 0);
+    public void OnUpdate(World world);
+    
+    public int Order() => 0;
 }
