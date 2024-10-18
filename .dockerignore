@@ -1,0 +1,10 @@
+
+# IDE
+*.swp
+*.tmp
+.vs
+.vscode
+
+# Build
+/build
+CMakeUserPresets.json
