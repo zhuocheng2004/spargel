@@ -94,9 +94,9 @@ struct SparseSet {
   uint32_t counter = 0;
 
   // entity -> internal index
-  std::uint32_t* sparse;
+  uint32_t* sparse;
   // internal index -> entity
-  std::uint32_t* dense;
+  uint32_t* dense;
 };
 
 struct StorageBase {
