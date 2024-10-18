@@ -4,8 +4,6 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 #include <xcb/xcb.h>
 
 
