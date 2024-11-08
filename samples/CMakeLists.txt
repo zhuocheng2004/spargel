@@ -17,3 +17,6 @@ endif ()
 
 add_executable(baby_ecs baby_ecs.cc)
 target_compile_features(baby_ecs PUBLIC cxx_std_20)
+
+add_executable(ecs ecs.cc ecs_demo.c)
+target_compile_features(ecs PUBLIC cxx_std_20)
