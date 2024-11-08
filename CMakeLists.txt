@@ -4,3 +4,5 @@ project(spargel)
 
 add_subdirectory(engine)
 add_subdirectory(samples)
+
+add_subdirectory(third_party/glfw)

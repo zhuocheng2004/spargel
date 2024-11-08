@@ -20,3 +20,7 @@ target_compile_features(baby_ecs PUBLIC cxx_std_20)
 
 add_executable(ecs ecs.cc ecs_demo.c)
 target_compile_features(ecs PUBLIC cxx_std_20)
+
+add_executable(hello_glfw hello_glfw.cc)
+target_compile_features(hello_glfw PUBLIC cxx_std_20)
+target_link_libraries(hello_glfw PRIVATE glfw)
