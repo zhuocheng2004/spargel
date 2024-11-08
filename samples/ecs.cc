@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <algorithm>
+#include <cstring>
 #include <map>
 #include <set>
 #include <string>

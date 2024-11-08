@@ -23,6 +23,7 @@ struct ecs_query_desc {
   char const** components;
   ecs_view_callback_t callback;
   void* data;
+  char const* query_name;
 };
 
 struct ecs_view {
