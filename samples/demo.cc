@@ -195,7 +195,7 @@ void render_system(ecs_world world, void* data) {
 void player_velocity_update(ecs_view* view, void* data) {
   auto wctx = (window_context*)data;
   auto vel = (velocity*)(view->components[1]);
-  // printf("debug: update player velocity\n");
+
   if (wctx->a_pressed) {
     vel->vx = -50;
   } else if (wctx->d_pressed) {
@@ -221,7 +221,7 @@ void player_velocity_system(ecs_world world, void* data) {
   desc.callback = player_velocity_update;
   desc.data = data;
   desc.query_name = "player_velocity/query";
-  // printf("debug: player_velocity/query\n");
+
   ecs_query(world, &desc);
 }
 
@@ -447,7 +447,7 @@ int main() {
   globals.vg = vg;
   globals.world = world;
 
-  glfwSwapInterval(1);
+  glfwSwapInterval(0);
   glfwSetTime(0);
   double t0 = glfwGetTime();
 
