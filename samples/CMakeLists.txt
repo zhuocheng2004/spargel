@@ -25,6 +25,6 @@ add_executable(hello_glfw hello_glfw.cc)
 target_compile_features(hello_glfw PUBLIC cxx_std_20)
 target_link_libraries(hello_glfw PRIVATE glfw)
 
-add_executable(demo demo.cc perf.c ecs.cc)
+add_executable(demo demo.cc ecs.cc)
 target_compile_features(demo PUBLIC cxx_std_20)
-target_link_libraries(demo PRIVATE glfw nanovg glad)
+target_link_libraries(demo PRIVATE glfw nanovg glad nanovg_perf)

@@ -1,6 +1,7 @@
 #include "ecs.h"
 
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <algorithm>
@@ -31,13 +32,13 @@ struct archetype {
   std::vector<chunk> chunks;
 };
 
+struct component_info {
+  uint32_t id;
+  size_t size;
+};
+
 struct ecs_world_impl {
-  // component id map
-  std::map<std::string, uint32_t> cid;
-  std::map<std::string, size_t> csize;
-  // number of component
-  uint32_t cnum = 0;
-  std::vector<std::pair<ecs_system_t, void*>> systems;
+  std::map<std::string, component_info> components;
   std::vector<archetype> archetypes;
 };
 
@@ -50,29 +51,24 @@ void ecs_destroy_world(ecs_world_impl* world) { delete world; }
 
 void ecs_register_component(ecs_world_impl* world, char const* name,
                             size_t size) {
-  if (world->cid.contains(name)) {
+  if (world->components.contains(name)) {
+    printf("error: ecs: duplicate component\n");
     return;
   }
-  world->cid.emplace(name, world->cnum);
-  world->csize.emplace(name, size);
-  world->cnum++;
-}
-
-void ecs_run(ecs_world_impl* world) {
-  for (auto [system, data] : world->systems) {
-    system(world, data);
-  }
+  auto id = world->components.size();
+  world->components.try_emplace(name, id, size);
 }
 
 void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
   // step 1. build set of component id
   std::set<uint32_t> cset;
   for (int i = 0; i < desc->num_components; i++) {
-    auto iter = world->cid.find(desc->components[i]);
-    if (iter == world->cid.end()) {
+    auto iter = world->components.find(desc->components[i]);
+    if (iter == world->components.end()) {
+      printf("error: ecs: unknown component\n");
       return;
     }
-    cset.insert(iter->second);
+    cset.insert(iter->second.id);
   }
   // step 2. try to find existing archetype
   auto iter = std::find_if(
@@ -88,10 +84,12 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
       // allocate more storage
       iter->capacity = need * 2;
       for (auto& c : iter->chunks) {
-        void* new_data = malloc(c.size * iter->capacity);
-        memcpy(new_data, c.data, c.size * iter->count);
-        free(c.data);
-        c.data = new_data;
+        if (c.size > 0) {
+          void* new_data = malloc(c.size * iter->capacity);
+          memcpy(new_data, c.data, c.size * iter->count);
+          free(c.data);
+          c.data = new_data;
+        }
       }
     }
     offset = iter->count;
@@ -101,9 +99,15 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
     auto capacity = desc->count * 2;
     std::vector<chunk> chunks(desc->num_components);
     for (int i = 0; i < desc->num_components; i++) {
-      chunks[i].name = desc->components[i];
-      chunks[i].size = world->csize[desc->components[i]];
-      chunks[i].data = malloc(capacity * chunks[i].size);
+      std::string name = desc->components[i];
+      auto size = world->components[name].size;
+      chunks[i].name = std::move(name);
+      chunks[i].size = size;
+      if (size > 0) {
+        chunks[i].data = malloc(capacity * chunks[i].size);
+      } else {
+        chunks[i].data = nullptr;
+      }
     }
     world->archetypes.emplace_back(std::move(cset), desc->count, capacity,
                                    std::move(chunks));
@@ -121,15 +125,16 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
   delete[] view.components;
 }
 
-void ecs_query(ecs_world world, struct ecs_query_desc* desc) {
+void ecs_query(ecs_world world, ecs_query_desc* desc) {
   // step 1. build set of required component ids
   std::set<uint32_t> cset;
   for (int i = 0; i < desc->count; i++) {
-    auto iter = world->cid.find(desc->components[i]);
-    if (iter == world->cid.end()) {
+    auto iter = world->components.find(desc->components[i]);
+    if (iter == world->components.end()) {
+      printf("error: ecs: unknown component\n");
       return;
     }
-    cset.insert(iter->second);
+    cset.insert(iter->second.id);
   }
   // step 2. find archetype
   ecs_view view;

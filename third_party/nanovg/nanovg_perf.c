@@ -1,4 +1,4 @@
-#include "perf.h"
+#include "nanovg_perf.h"
 
 #include <math.h>
 #include <stdio.h>

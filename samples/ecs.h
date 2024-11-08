@@ -6,7 +6,6 @@
 typedef struct ecs_world_impl* ecs_world;
 typedef struct ecs_view ecs_view;
 
-typedef void (*ecs_system_t)(ecs_world world, void* data);
 typedef void (*ecs_view_callback_t)(ecs_view* view, void* data);
 
 struct ecs_spawn_desc {
