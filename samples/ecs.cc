@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tracy/Tracy.hpp>
 #include <vector>
 
 struct chunk {
@@ -60,6 +61,7 @@ void ecs_register_component(ecs_world_impl* world, char const* name,
 }
 
 void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
+  ZoneScoped;
   // step 1. build set of component id
   std::set<uint32_t> cset;
   for (int i = 0; i < desc->num_components; i++) {
@@ -126,15 +128,19 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
 }
 
 void ecs_query(ecs_world world, ecs_query_desc* desc) {
+  ZoneScoped;
   // step 1. build set of required component ids
   std::set<uint32_t> cset;
-  for (int i = 0; i < desc->count; i++) {
-    auto iter = world->components.find(desc->components[i]);
-    if (iter == world->components.end()) {
-      printf("error: ecs: unknown component\n");
-      return;
+  {
+    ZoneScopedN("ecs/build_idset");
+    for (int i = 0; i < desc->count; i++) {
+      auto iter = world->components.find(desc->components[i]);
+      if (iter == world->components.end()) {
+        printf("error: ecs: unknown component\n");
+        return;
+      }
+      cset.insert(iter->second.id);
     }
-    cset.insert(iter->second.id);
   }
   // step 2. find archetype
   ecs_view view;
@@ -142,15 +148,18 @@ void ecs_query(ecs_world world, ecs_query_desc* desc) {
   for (auto& archetype : world->archetypes) {
     if (std::includes(archetype.components.begin(), archetype.components.end(),
                       cset.begin(), cset.end())) {
-      // step 3. found one archetype; construct view
-      // fill component pointers
-      for (int i = 0; i < desc->count; i++) {
-        auto iter = std::find_if(
-            archetype.chunks.begin(), archetype.chunks.end(),
-            [=](auto const& c) { return c.name == desc->components[i]; });
-        view.components[i] = iter->data;
+      {
+        ZoneScopedN("ecs/construct_view");
+        // step 3. found one archetype; construct view
+        // fill component pointers
+        for (int i = 0; i < desc->count; i++) {
+          auto iter = std::find_if(
+              archetype.chunks.begin(), archetype.chunks.end(),
+              [=](auto const& c) { return c.name == desc->components[i]; });
+          view.components[i] = iter->data;
+        }
+        view.count = archetype.count;
       }
-      view.count = archetype.count;
       // step 4. process data
       desc->callback(&view, desc->data);
     }

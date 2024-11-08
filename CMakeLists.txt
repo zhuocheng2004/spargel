@@ -8,3 +8,6 @@ add_subdirectory(samples)
 add_subdirectory(third_party/glad)
 add_subdirectory(third_party/glfw)
 add_subdirectory(third_party/nanovg)
+
+option(TRACY_ENALBE "" ON)
+add_subdirectory(third_party/tracy)

@@ -15,6 +15,8 @@
 #include <nanovg_gl.h>
 #include <nanovg_perf.h>
 
+#include <tracy/Tracy.hpp>
+
 struct window_context {
   GLFWwindow* window = nullptr;
   bool w_pressed = false;
@@ -58,6 +60,8 @@ struct renderable {
 
 
 void movement_system(ecs_world world, global_data* data) {
+  ZoneScoped;
+
   static char const* components[] = {"position", "velocity"};
   ecs_query_desc desc;
   desc.count = 2;
@@ -79,6 +83,8 @@ void movement_system(ecs_world world, global_data* data) {
 }
 
 void bounce_system(ecs_world world, global_data* data) {
+  ZoneScoped;
+
   static char const* components[] = {"position", "velocity"};
   ecs_query_desc desc;
   desc.count = 2;
@@ -117,6 +123,8 @@ void bounce_system(ecs_world world, global_data* data) {
 constexpr int half_size = 5;
 
 void render_system(ecs_world world, void* data) {
+  ZoneScoped;
+
   static char const* components[] = {"position", "renderable"};
 
   ecs_query_desc desc;
@@ -145,6 +153,8 @@ void render_system(ecs_world world, void* data) {
 }
 
 void player_velocity_system(ecs_world world, window_context* data) {
+  ZoneScoped;
+
   static char const* components[] = {"player", "velocity"};
 
   ecs_query_desc desc;
@@ -176,6 +186,8 @@ void player_velocity_system(ecs_world world, window_context* data) {
 }
 
 void player_restrict_system(ecs_world world, global_data* data) {
+  ZoneScoped;
+
   static char const* components[] = {"position", "player"};
 
   ecs_query_desc desc;
@@ -201,6 +213,8 @@ void player_restrict_system(ecs_world world, global_data* data) {
 }
 
 void render_blood_system(ecs_world world, global_data* data) {
+  ZoneScoped;
+
   static char const* components[] = {"player"};
   ecs_query_desc desc;
   desc.count = 1;
@@ -248,11 +262,15 @@ bool intersect(position* p1, position* p2) {
 }
 
 void battle_system(ecs_world world, global_data* data) {
+  ZoneScoped;
+
   static char const* components[] = {"player", "position"};
   ecs_query_desc desc;
   desc.count = 2;
   desc.components = components;
   desc.callback = [](ecs_view* view, void* data) {
+    ZoneScoped;
+
     auto ctx = (global_data*)data;
     auto p = (player*)view->components[0];
     auto pos = (position*)view->components[1];
@@ -264,6 +282,8 @@ void battle_system(ecs_world world, global_data* data) {
     desc.count = 2;
     desc.components = components;
     desc.callback = [](ecs_view* view, void* data) {
+      ZoneScoped;
+
       auto loop_data = (battle_loop_data*)data;
       auto pos = (position*)view->components[1];
       for (int i = 0; i < view->count; i++) {
@@ -356,6 +376,8 @@ struct game {
     spawn_enemies();
   }
   void spawn_enemies() {
+    ZoneScoped;
+
     static char const* components[] = {"position", "velocity", "renderable",
                                        "enemy"};
     ecs_spawn_desc desc;
@@ -380,6 +402,8 @@ struct game {
     ecs_spawn_entities(world, &desc);
   }
   void spawn_player() {
+    ZoneScoped;
+
     static char const* player_components[] = {"position", "player",
                                               "renderable", "velocity"};
     ecs_spawn_desc desc;
@@ -460,6 +484,9 @@ struct game {
       nvgEndFrame(gctx.vg);
 
       glfwSwapBuffers(wctx.window);
+
+      FrameMark;
+
       glfwPollEvents();
     }
   }
