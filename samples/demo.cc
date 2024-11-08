@@ -270,8 +270,8 @@ void battle_system(ecs_world world, global_data* data) {
         if (intersect(loop_data->pos, pos + i)) {
           if (!loop_data->globals->died) {
             loop_data->p->blood--;
-            loop_data->pos->x = 300;
-            loop_data->pos->y = 300;
+            loop_data->pos->x = loop_data->globals->win_width / 2 - half_size;
+            loop_data->pos->y = loop_data->globals->win_height / 2 - half_size;
             if (loop_data->p->blood == 0) {
               loop_data->globals->died = true;
             }
@@ -361,7 +361,7 @@ struct game {
     ecs_spawn_desc desc;
     desc.num_components = 4;
     desc.components = components;
-    desc.count = 10;  // spawn 10 entities
+    desc.count = 1000;  // spawn 10 entities
     desc.callback = [](ecs_view* view, void* data) {
       position* pos = (position*)(view->components[0]);
       velocity* vel = (velocity*)(view->components[1]);
@@ -369,14 +369,14 @@ struct game {
 
       for (int i = 0; i < view->count; i++) {
         auto id = i + 1;
-        pos[i].x = id * 20;
-        pos[i].y = id * 20;
-        vel[i].vx = 1.0 * 10;
-        vel[i].vy = id * 10;
+        pos[i].x = rand() % window_width;
+        pos[i].y = rand() % window_height;
+        vel[i].vx = rand() % 100 - 50;
+        vel[i].vy = rand() % 100 - 50;
         r[i].color = nvgRGB(255, 0, 0);
       }
     };
-    desc.callback_data = 0;
+    desc.callback_data = nullptr;
     ecs_spawn_entities(world, &desc);
   }
   void spawn_player() {
@@ -392,8 +392,8 @@ struct game {
       renderable* r = (renderable*)(view->components[2]);
       auto vel = (velocity*)(view->components[3]);
 
-      pos->x = 300;
-      pos->y = 300;
+      pos->x = window_width / 2.0;
+      pos->y = window_height / 2.0;
       p->blood = 5;
       r->color = nvgRGB(0, 255, 0);
       vel->vx = 0;
@@ -411,7 +411,7 @@ struct game {
   }
 
   void run() {
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
     glfwSetTime(0);
     double t0 = glfwGetTime();
 
