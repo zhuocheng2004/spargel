@@ -9,23 +9,48 @@
 #include <map>
 #include <set>
 #include <string>
-#include <tracy/Tracy.hpp>
 #include <vector>
 
+// tracy
+#include <tracy/Tracy.hpp>
+
 struct chunk {
-  std::string name;
-  // size of every slot
-  size_t size;
-  void* data;
+  chunk() = default;
+  chunk(std::string name, size_t size, void* data)
+      : name{std::move(name)}, size{size}, data{data} {}
+  chunk(chunk const&) = delete;
+  chunk(chunk&& that)
+      : name{std::move(that.name)}, size{that.size}, data{that.data} {
+    that.data = nullptr;
+  }
+
+  chunk& operator=(chunk const&) = delete;
 
   ~chunk() {
     if (data != nullptr) {
       free(data);
     }
   }
+
+  std::string name;
+  // size of every slot
+  size_t size = 0;
+  void* data = nullptr;
 };
 
 struct archetype {
+  archetype() = default;
+  archetype(std::set<uint32_t> components, size_t count, size_t capacity,
+            std::vector<chunk> chunks)
+      : components{std::move(components)},
+        count{count},
+        capacity{capacity},
+        chunks{std::move(chunks)} {}
+  archetype(archetype const&) = delete;
+  archetype(archetype&&) = default;
+
+  archetype& operator=(archetype const&) = delete;
+
   std::set<uint32_t> components;
   // number of entities;
   size_t count;
@@ -39,6 +64,8 @@ struct component_info {
 };
 
 struct ecs_world_impl {
+  ecs_world_impl() = default;
+  ecs_world_impl(ecs_world_impl const&) = delete;
   std::map<std::string, component_info> components;
   std::vector<archetype> archetypes;
 };
@@ -106,7 +133,7 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
       chunks[i].name = std::move(name);
       chunks[i].size = size;
       if (size > 0) {
-        chunks[i].data = malloc(capacity * chunks[i].size);
+        chunks[i].data = malloc(capacity * size);
       } else {
         chunks[i].data = nullptr;
       }
@@ -146,8 +173,9 @@ void ecs_query(ecs_world world, ecs_query_desc* desc) {
   ecs_view view;
   view.components = new void*[desc->count];
   for (auto& archetype : world->archetypes) {
-    if (std::includes(archetype.components.begin(), archetype.components.end(),
-                      cset.begin(), cset.end())) {
+    if (std::includes(archetype.components.cbegin(),
+                      archetype.components.cend(), cset.cbegin(),
+                      cset.cend())) {
       {
         ZoneScopedN("ecs/construct_view");
         // step 3. found one archetype; construct view

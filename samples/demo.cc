@@ -58,7 +58,6 @@ struct renderable {
   NVGcolor color;
 };
 
-
 void movement_system(ecs_world world, global_data* data) {
   ZoneScoped;
 
@@ -286,13 +285,13 @@ void battle_system(ecs_world world, global_data* data) {
 
       auto loop_data = (battle_loop_data*)data;
       auto pos = (position*)view->components[1];
-      for (int i = 0; i < view->count; i++) {
-        if (intersect(loop_data->pos, pos + i)) {
-          if (!loop_data->globals->died) {
+      if (!loop_data->globals->died) {
+        for (int i = 0; i < view->count; i++) {
+          if (intersect(loop_data->pos, pos + i)) {
             loop_data->p->blood--;
             loop_data->pos->x = loop_data->globals->win_width / 2 - half_size;
             loop_data->pos->y = loop_data->globals->win_height / 2 - half_size;
-            if (loop_data->p->blood == 0) {
+            if (loop_data->p->blood <= 0) {
               loop_data->globals->died = true;
             }
             break;
