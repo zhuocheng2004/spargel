@@ -6,6 +6,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <tracy/Tracy.hpp>
 #include <vector>
 
 #include "bit_array.h"
@@ -128,6 +129,7 @@ void ecs_register_component(ecs_world_impl* world, char const* name,
 }
 
 void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
+  ZoneScoped;
   auto* infos = new component_info[desc->num_components];
   archetype t =
       world->make_archetype(desc->num_components, desc->components, infos);
@@ -168,8 +170,13 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
 }
 
 void ecs_query(ecs_world world, ecs_query_desc* desc) {
+  ZoneScoped;
   auto* infos = new component_info[desc->count];
-  archetype t = world->make_archetype(desc->count, desc->components, infos);
+  archetype t;
+  {
+    ZoneScopedN("ecs/build_idset");
+    t = world->make_archetype(desc->count, desc->components, infos);
+  }
 
   ecs_view view;
   view.components = new void*[desc->count];
@@ -179,11 +186,14 @@ void ecs_query(ecs_world world, ecs_query_desc* desc) {
     const archetype& type = pair.first;
     if (!type.contains(t)) continue;
 
-    component_storage* storage = pair.second;
-    for (int i = 0; i < desc->count; i++) {
-      view.components[i] = storage->data[infos[i].id];
+    {
+      ZoneScopedN("ecs/construct_view");
+      component_storage* storage = pair.second;
+      for (int i = 0; i < desc->count; i++) {
+        view.components[i] = storage->data[infos[i].id];
+      }
+      view.count = storage->count;
     }
-    view.count = storage->count;
 
     desc->callback(&view, desc->data);
   }
