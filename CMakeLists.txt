@@ -9,5 +9,5 @@ add_subdirectory(third_party/glad)
 add_subdirectory(third_party/glfw)
 add_subdirectory(third_party/nanovg)
 
-option(TRACY_ENALBE "" ON)
+option(TRACY_ENALBE "" OFF)
 add_subdirectory(third_party/tracy)
