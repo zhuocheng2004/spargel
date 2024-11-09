@@ -4,4 +4,3 @@
 ![GitHub License](https://img.shields.io/github/license/zhuocheng2004/spargel)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/zhuocheng2004/spargel)
 ![GitHub last commit](https://img.shields.io/github/last-commit/zhuocheng2004/spargel)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/zhuocheng2004/spargel/build-test-ubuntu.yml)
