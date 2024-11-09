@@ -5,9 +5,9 @@ project(spargel)
 add_subdirectory(engine)
 add_subdirectory(samples)
 
-add_subdirectory(third_party/glad)
+add_subdirectory(third_party/glad/repo)
 add_subdirectory(third_party/glfw/repo)
-add_subdirectory(third_party/nanovg)
+add_subdirectory(third_party/nanovg/repo)
 
 option(TRACY_ENALBE "" OFF)
-add_subdirectory(third_party/tracy)
+add_subdirectory(third_party/tracy/repo)
