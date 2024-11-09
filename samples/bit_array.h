@@ -37,7 +37,10 @@ class bit_array {
     memcpy(data, that.data, size * segment_length);
   }
 
-  bit_array(bit_array&& that) = default;
+  bit_array(bit_array&& that) : size{that.size}, data{that.data} {
+    that.size = 0;
+    that.data = nullptr;
+  }
 
   bit_array(const uint64_t n) {
     size = 1;
@@ -45,7 +48,9 @@ class bit_array {
     data[0] = n;
   }
 
-  ~bit_array() { free(data); }
+  ~bit_array() {
+    if (data) free(data);
+  }
 
   int get_size() const { return size * segment_length; }
 
@@ -68,6 +73,7 @@ class bit_array {
   // reset the bit array to zero
   void clear() { *this = 0; }
 
+  // access one bit
   bool operator[](int index) const {
     int pos = index >> segment_length_shift;
     if (pos >= size) return false;

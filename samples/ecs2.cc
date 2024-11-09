@@ -53,9 +53,7 @@ struct component_storage {
     }
   }
 
-  component_storage(const component_storage& that) {
-    throw std::runtime_error("BUG: copy constructor should not be called");
-  }
+  component_storage(const component_storage& that) = delete;
 
   ~component_storage() {
     for (auto i : ids) free(data[i]);
