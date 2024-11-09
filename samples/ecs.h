@@ -28,6 +28,8 @@ struct ecs_query_desc {
 struct ecs_view {
   size_t count;
   void** components;
+  // internal use
+  struct archetype* type_;
 };
 
 #ifdef __cplusplus
@@ -39,6 +41,7 @@ void ecs_destroy_world(ecs_world world);
 void ecs_register_component(ecs_world world, char const* name, size_t size);
 void ecs_spawn_entities(ecs_world world, struct ecs_spawn_desc* desc);
 void ecs_query(ecs_world world, struct ecs_query_desc* desc);
+void ecs_view_delete(ecs_view* view, int id);
 
 #ifdef __cplusplus
 }

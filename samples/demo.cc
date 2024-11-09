@@ -58,6 +58,10 @@ struct renderable {
   NVGcolor color;
 };
 
+struct diameter {
+  float diam;
+};
+
 void movement_system(ecs_world world, global_data* data) {
   ZoneScoped;
 
@@ -84,9 +88,9 @@ void movement_system(ecs_world world, global_data* data) {
 void bounce_system(ecs_world world, global_data* data) {
   ZoneScoped;
 
-  static char const* components[] = {"position", "velocity"};
+  static char const* components[] = {"position", "velocity", "diameter"};
   ecs_query_desc desc;
-  desc.count = 2;
+  desc.count = 3;
   desc.components = components;
   desc.callback = [](ecs_view* view, void* data) {
     auto ctx = (global_data*)data;
@@ -95,20 +99,22 @@ void bounce_system(ecs_world world, global_data* data) {
 
     auto pos = (position*)(view->components[0]);
     auto vel = (velocity*)(view->components[1]);
+    auto diam = (diameter*)(view->components[2]);
+    auto h = diam->diam / 2.0;
 
     for (int i = 0; i < view->count; i++) {
       float x = pos[i].x;
       float y = pos[i].y;
-      if (x < 0) {
+      if (x < h) {
         vel[i].vx = abs(vel[i].vx);
       }
-      if (x > width) {
+      if (x > width - h) {
         vel[i].vx = -abs(vel[i].vx);
       }
-      if (y < 0) {
+      if (y < h) {
         vel[i].vy = abs(vel[i].vy);
       }
-      if (y > height) {
+      if (y > height - h) {
         vel[i].vy = -abs(vel[i].vy);
       }
     }
@@ -124,10 +130,10 @@ constexpr int half_size = 5;
 void render_system(ecs_world world, void* data) {
   ZoneScoped;
 
-  static char const* components[] = {"position", "renderable"};
+  static char const* components[] = {"position", "renderable", "diameter"};
 
   ecs_query_desc desc;
-  desc.count = 2;
+  desc.count = 3;
   desc.components = components;
   desc.callback = [](ecs_view* view, void* data) {
     auto ctx = (global_data*)data;
@@ -135,12 +141,14 @@ void render_system(ecs_world world, void* data) {
 
     auto pos = (position*)(view->components[0]);
     auto r = (renderable*)(view->components[1]);
+    auto diam = (diameter*)(view->components[2]);
 
     for (int i = 0; i < view->count; i++) {
       auto x = pos[i].x;
       auto y = pos[i].y;
+      auto h = diam[i].diam / 2.0;
       nvgBeginPath(vg);
-      nvgRect(vg, x - half_size, y - half_size, 10, 10);
+      nvgRect(vg, x - h, y - h, 2 * h, 2 * h);
       nvgFillColor(vg, r[i].color);
       nvgFill(vg);
     }
@@ -164,16 +172,16 @@ void player_velocity_system(ecs_world world, window_context* data) {
     auto vel = (velocity*)(view->components[1]);
 
     if (wctx->a_pressed) {
-      vel->vx = -50;
+      vel->vx = -100;
     } else if (wctx->d_pressed) {
-      vel->vx = 50;
+      vel->vx = 100;
     } else {
       vel->vx = 0;
     }
     if (wctx->w_pressed) {
-      vel->vy = -50;
+      vel->vy = -100;
     } else if (wctx->s_pressed) {
-      vel->vy = 50;
+      vel->vy = 100;
     } else {
       vel->vy = 0;
     }
@@ -187,10 +195,10 @@ void player_velocity_system(ecs_world world, window_context* data) {
 void player_restrict_system(ecs_world world, global_data* data) {
   ZoneScoped;
 
-  static char const* components[] = {"position", "player"};
+  static char const* components[] = {"position", "player", "diameter"};
 
   ecs_query_desc desc;
-  desc.count = 2;
+  desc.count = 3;
   desc.components = components;
   desc.callback = [](ecs_view* view, void* data) {
     global_data* ctx = (global_data*)data;
@@ -198,12 +206,14 @@ void player_restrict_system(ecs_world world, global_data* data) {
     float height = ctx->win_height;
 
     auto pos = (position*)(view->components[0]);
+    auto diam = (diameter*)(view->components[1]);
+    auto h = diam->diam / 2.0;
     float x = pos->x;
     float y = pos->y;
-    pos->x = fmin(pos->x, width);
-    pos->x = fmax(pos->x, 0);
-    pos->y = fmin(pos->y, height);
-    pos->y = fmax(pos->y, 0);
+    pos->x = fmin(pos->x, width - h);
+    pos->x = fmax(pos->x, h);
+    pos->y = fmin(pos->y, height - h);
+    pos->y = fmax(pos->y, h);
   };
   desc.data = data;
   desc.query_name = "player_restrict/query";
@@ -224,17 +234,13 @@ void render_blood_system(ecs_world world, global_data* data) {
     auto p = (player*)view->components[0];
 
     char str[64];
-    if (ctx->died) {
-      snprintf(str, 64, "You died.");
-    } else {
-      snprintf(str, 64, "Blood: %d", p->blood);
-    }
+    snprintf(str, 64, "Killed: %d", p->blood);
 
     nvgBeginPath(vg);
     nvgFontFace(vg, "sans");
     nvgFontSize(vg, 16.0f);
     nvgTextAlign(vg, NVG_ALIGN_RIGHT | NVG_ALIGN_TOP);
-    nvgFillColor(vg, nvgRGB(255, 0, 0));
+    nvgFillColor(vg, nvgRGB(255, 255, 255));
     nvgText(vg, ctx->win_width - 10, 10, str, NULL);
   };
   desc.data = data;
@@ -246,15 +252,17 @@ void render_blood_system(ecs_world world, global_data* data) {
 struct battle_loop_data {
   player* p;
   position* pos;
+  diameter* d;
   global_data* globals;
 };
 
-bool intersect(position* p1, position* p2) {
+bool intersect(position* p1, float d1, position* p2, float d2) {
   constexpr int full_size = 2 * half_size;
-  if (p1->x + full_size <= p2->x || p2->x + full_size <= p1->x) {
+  auto f = (d1 + d2) / 2.0;
+  if (p1->x + f <= p2->x || p2->x + f <= p1->x) {
     return false;
   }
-  if (p1->y + full_size <= p2->y || p2->y + full_size <= p1->y) {
+  if (p1->y + f <= p2->y || p2->y + f <= p1->y) {
     return false;
   }
   return true;
@@ -263,9 +271,9 @@ bool intersect(position* p1, position* p2) {
 void battle_system(ecs_world world, global_data* data) {
   ZoneScoped;
 
-  static char const* components[] = {"player", "position"};
+  static char const* components[] = {"player", "position", "diameter"};
   ecs_query_desc desc;
-  desc.count = 2;
+  desc.count = 3;
   desc.components = components;
   desc.callback = [](ecs_view* view, void* data) {
     ZoneScoped;
@@ -273,29 +281,28 @@ void battle_system(ecs_world world, global_data* data) {
     auto ctx = (global_data*)data;
     auto p = (player*)view->components[0];
     auto pos = (position*)view->components[1];
+    auto d = (diameter*)view->components[2];
 
-    battle_loop_data loop_data{p, pos, ctx};
+    battle_loop_data loop_data{p, pos, d, ctx};
 
-    static char const* components[] = {"enemy", "position"};
+    static char const* components[] = {"enemy", "position", "diameter"};
     ecs_query_desc desc;
-    desc.count = 2;
+    desc.count = 3;
     desc.components = components;
     desc.callback = [](ecs_view* view, void* data) {
       ZoneScoped;
 
       auto loop_data = (battle_loop_data*)data;
       auto pos = (position*)view->components[1];
-      if (!loop_data->globals->died) {
-        for (int i = 0; i < view->count; i++) {
-          if (intersect(loop_data->pos, pos + i)) {
-            loop_data->p->blood--;
-            loop_data->pos->x = loop_data->globals->win_width / 2 - half_size;
-            loop_data->pos->y = loop_data->globals->win_height / 2 - half_size;
-            if (loop_data->p->blood <= 0) {
-              loop_data->globals->died = true;
-            }
-            break;
-          }
+      auto d = (diameter*)(view->components[2]);
+      int i = 0;
+      while (i < view->count) {
+        if (intersect(loop_data->pos, loop_data->d->diam, pos + i, d[i].diam)) {
+          loop_data->p->blood++;
+          loop_data->d->diam += 0.1;
+          ecs_view_delete(view, i);
+        } else {
+          i++;
         }
       }
     };
@@ -369,6 +376,7 @@ struct game {
     ecs_register_component(world, "renderable", sizeof(renderable));
     ecs_register_component(world, "player", sizeof(player));
     ecs_register_component(world, "enemy", 0);
+    ecs_register_component(world, "diameter", sizeof(diameter));
   }
   void spawn_entities() {
     spawn_player();
@@ -378,15 +386,16 @@ struct game {
     ZoneScoped;
 
     static char const* components[] = {"position", "velocity", "renderable",
-                                       "enemy"};
+                                       "diameter", "enemy"};
     ecs_spawn_desc desc;
-    desc.num_components = 4;
+    desc.num_components = 5;
     desc.components = components;
-    desc.count = 1000;  // spawn 10 entities
+    desc.count = 1000;
     desc.callback = [](ecs_view* view, void* data) {
       position* pos = (position*)(view->components[0]);
       velocity* vel = (velocity*)(view->components[1]);
       renderable* r = (renderable*)(view->components[2]);
+      auto d = (diameter*)(view->components[3]);
 
       for (int i = 0; i < view->count; i++) {
         auto id = i + 1;
@@ -395,6 +404,7 @@ struct game {
         vel[i].vx = rand() % 100 - 50;
         vel[i].vy = rand() % 100 - 50;
         r[i].color = nvgRGB(255, 0, 0);
+        d[i].diam = 10;
       }
     };
     desc.callback_data = nullptr;
@@ -404,9 +414,9 @@ struct game {
     ZoneScoped;
 
     static char const* player_components[] = {"position", "player",
-                                              "renderable", "velocity"};
+                                              "renderable", "velocity", "diameter"};
     ecs_spawn_desc desc;
-    desc.num_components = 4;
+    desc.num_components = 5;
     desc.components = player_components;
     desc.count = 1;
     desc.callback = [](ecs_view* view, void* data) {
@@ -414,10 +424,12 @@ struct game {
       player* p = (player*)(view->components[1]);
       renderable* r = (renderable*)(view->components[2]);
       auto vel = (velocity*)(view->components[3]);
+      auto d = (diameter*)(view->components[4]);
 
       pos->x = window_width / 2.0;
       pos->y = window_height / 2.0;
-      p->blood = 5;
+      p->blood = 0;
+      d->diam = 10;
       r->color = nvgRGB(0, 255, 0);
       vel->vx = 0;
       vel->vy = 0;
@@ -434,7 +446,7 @@ struct game {
   }
 
   void run() {
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
     glfwSetTime(0);
     double t0 = glfwGetTime();
 

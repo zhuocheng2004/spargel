@@ -150,6 +150,7 @@ void ecs_spawn_entities(ecs_world world, ecs_spawn_desc* desc) {
     view.components[i] = (char*)chunk_iter->data + chunk_iter->size * offset;
   }
   view.count = desc->count;
+  view.type_ = &*iter;
   desc->callback(&view, desc->callback_data);
   delete[] view.components;
 }
@@ -187,10 +188,28 @@ void ecs_query(ecs_world world, ecs_query_desc* desc) {
           view.components[i] = iter->data;
         }
         view.count = archetype.count;
+        view.type_ = &archetype;
       }
       // step 4. process data
       desc->callback(&view, desc->data);
     }
   }
   delete[] view.components;
+}
+
+void ecs_view_delete(ecs_view* view, int id) {
+  auto type = view->type_;
+  if (id >= view->count) {
+    printf("error: ecs_view_delete: out of bounds\n");
+    return;
+  }
+  auto count = view->count;
+  for (auto& c : type->chunks) {
+    auto size = c.size;
+    auto old_data = (char*)c.data + size * id;
+    auto new_data = (char*)c.data + size * (count - 1);
+    memcpy(old_data, new_data, size);
+  }
+  type->count--;
+  view->count--;
 }
