@@ -1,0 +1,9 @@
+config("glad_config") {
+  include_dirs = [ "repo/include" ]
+}
+
+source_set("glad") {
+  public_configs = [ ":glad_config" ]
+  public = [ "repo/include/glad/gl.h" ]
+  sources = [ "repo/src/gl.c" ]
+}

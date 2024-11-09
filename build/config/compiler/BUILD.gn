@@ -1,0 +1,54 @@
+import("//build/config/sysroot.gni")
+
+config("basic") {
+  cflags = []
+  cflags_c = []
+  cflags_cc = []
+  ldflags = []
+
+  cflags += [ "-fcolor-diagnostics" ]
+  ldflags += [
+    "-fuse-ld=lld",
+    "-Wl,--color-diagnostics",
+  ]
+}
+
+config("debug") {
+}
+
+config("default_include_dirs") {
+  include_dirs = [
+    "//",
+    root_gen_dir,
+  ]
+}
+
+config("default_optimizations") {
+  cflags = [ "-O0" ]
+}
+
+config("default_standard") {
+  cflags_c = [ "-std=c11" ]
+  cflags_cc = [ "-std=c++20" ]
+}
+
+config("default_symbols") {
+  cflags = [ "-g0" ]
+}
+
+config("no_exceptions") {
+  cflags_cc = [ "-fno-exceptions" ]
+}
+
+config("no_rtti") {
+  cflags_cc = [ "-fno-rtti" ]
+}
+
+config("sysroot") {
+  sysroot_flags = [
+    "-isysroot",
+    rebase_path(sysroot, root_build_dir),
+  ]
+  cflags = sysroot_flags
+  ldflags = sysroot_flags
+}

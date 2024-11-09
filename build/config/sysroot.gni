@@ -1,0 +1,13 @@
+import("//build/config/macos.gni")
+
+declare_args() {
+  sysroot = ""
+}
+
+if (sysroot == "") {
+  if (is_macos) {
+    sysroot = macos_sdk_path
+  } else {
+    assert(false)
+  }
+}

@@ -1,0 +1,64 @@
+if (target_os == "") {
+  target_os = host_os
+}
+if (target_cpu == "") {
+  target_cpu = host_cpu
+}
+if (current_os == "") {
+  current_os = target_os
+}
+if (current_cpu == "") {
+  current_cpu = target_cpu
+}
+
+is_linux = current_os == "linux"
+is_macos = current_os == "mac"
+is_win = current_os == "win"
+
+declare_args() {
+  is_debug = true
+}
+
+_default_toolchain = ""
+if (target_os == "mac") {
+  assert(host_os == "mac")
+  _default_toolchain = "//build/toolchain/macos:clang_$target_cpu"
+} else {
+  assert(false)
+}
+set_default_toolchain(_default_toolchain)
+
+_default_compiler_configs = [
+  "//build/config/compiler:basic",
+  "//build/config/compiler:default_include_dirs",
+  "//build/config/compiler:default_optimizations",
+  "//build/config/compiler:default_standard",
+  "//build/config/compiler:default_symbols",
+  "//build/config/compiler:no_exceptions",
+  "//build/config/compiler:no_rtti",
+  "//build/config/compiler:sysroot",
+]
+
+if (is_debug) {
+  _default_compiler_configs += [
+    "//build/config/compiler:debug",
+  ]
+} else {
+  _default_compiler_configs += [
+    "//build/config/compiler:release",
+  ]
+}
+
+set_defaults("static_library") {
+  configs = _default_compiler_configs
+}
+set_defaults("source_set") {
+  configs = _default_compiler_configs
+}
+
+_default_linker_configs = []
+_default_executable_configs = _default_compiler_configs + _default_linker_configs
+
+set_defaults("executable") {
+  configs = _default_executable_configs
+}

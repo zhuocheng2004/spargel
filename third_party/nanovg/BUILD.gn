@@ -1,0 +1,28 @@
+config("nanovg_config") {
+  include_dirs = [ "repo" ]
+}
+
+source_set("nanovg") {
+  public_configs = [ ":nanovg_config" ]
+  public = [
+    "repo/nanovg.h",
+    "repo/nanovg_gl.h",
+  ]
+  sources = [
+    "repo/fontstash.h",
+    "repo/nanovg.c",
+    "repo/nanovg_gl_utils.h",
+    "repo/stb_image.h",
+    "repo/stb_truetype.h",
+  ]
+}
+
+source_set("nanovg_perf") {
+  public = [ "repo/nanovg_perf.h" ]
+  sources = [ "repo/nanovg_perf.c" ]
+  deps = [
+    ":nanovg",
+    "//third_party/glad",
+    "//third_party/glfw",
+  ]
+}
