@@ -23,6 +23,7 @@ struct window_context {
   bool a_pressed = false;
   bool s_pressed = false;
   bool d_pressed = false;
+  bool space_pressed = false;
 };
 
 struct graphics_context {
@@ -171,17 +172,22 @@ void player_velocity_system(ecs_world world, window_context* data) {
     auto wctx = (window_context*)data;
     auto vel = (velocity*)(view->components[1]);
 
+    auto speed = 100;
+    if (wctx->space_pressed) {
+      speed = 200;
+    }
+
     if (wctx->a_pressed) {
-      vel->vx = -100;
+      vel->vx = -speed;
     } else if (wctx->d_pressed) {
-      vel->vx = 100;
+      vel->vx = speed;
     } else {
       vel->vx = 0;
     }
     if (wctx->w_pressed) {
-      vel->vy = -100;
+      vel->vy = -speed;
     } else if (wctx->s_pressed) {
-      vel->vy = 100;
+      vel->vy = speed;
     } else {
       vel->vy = 0;
     }
@@ -206,10 +212,8 @@ void player_restrict_system(ecs_world world, global_data* data) {
     float height = ctx->win_height;
 
     auto pos = (position*)(view->components[0]);
-    auto diam = (diameter*)(view->components[1]);
+    auto diam = (diameter*)(view->components[2]);
     auto h = diam->diam / 2.0;
-    float x = pos->x;
-    float y = pos->y;
     pos->x = fmin(pos->x, width - h);
     pos->x = fmax(pos->x, h);
     pos->y = fmin(pos->y, height - h);
@@ -510,6 +514,14 @@ struct game {
     auto ctx = (window_context*)glfwGetWindowUserPointer(window);
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    if (key == GLFW_KEY_SPACE) {
+      if (action == GLFW_PRESS) {
+        ctx->space_pressed = true;
+      }
+      if (action == GLFW_RELEASE) {
+        ctx->space_pressed = false;
+      }
     }
     if (key == GLFW_KEY_A) {
       if (action == GLFW_PRESS) {
