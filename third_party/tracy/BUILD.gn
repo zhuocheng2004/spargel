@@ -9,6 +9,6 @@ config("tracy_client_config") {
 
 source_set("tracy_client") {
   public_configs = [ ":tracy_client_config" ]
-  public = [ "repo/tracy/Tracy.hpp" ]
+  public = [ "repo/public/tracy/Tracy.hpp" ]
   sources = [ "repo/public/TracyClient.cpp" ]
 }
