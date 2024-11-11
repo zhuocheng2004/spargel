@@ -11,4 +11,5 @@ source_set("tracy_client") {
   public_configs = [ ":tracy_client_config" ]
   public = [ "repo/public/tracy/Tracy.hpp" ]
   sources = [ "repo/public/TracyClient.cpp" ]
+  configs += [ "//build/config/compiler:no_deprecation_warning" ]
 }

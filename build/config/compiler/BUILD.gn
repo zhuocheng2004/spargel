@@ -52,3 +52,7 @@ config("sysroot") {
   cflags = sysroot_flags
   ldflags = sysroot_flags
 }
+
+config("no_deprecation_warning") {
+  cflags = [ "-Wno-deprecated-declarations" ]
+}
