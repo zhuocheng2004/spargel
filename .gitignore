@@ -8,3 +8,6 @@
 # Build
 /out
 CMakeUserPresets.json
+
+# Mac
+.DS_Store

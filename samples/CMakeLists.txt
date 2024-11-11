@@ -1,12 +1,3 @@
-if (APPLE)
-  find_library(FOUNDATION_LIBRARY Foundation)
-  find_library(APPKIT_LIBRARY AppKit)
-  add_executable(mac_window mac_window.cc)
-  target_compile_features(mac_window PUBLIC cxx_std_20)
-  target_link_libraries(mac_window
-    PRIVATE ${FOUNDATION_LIBRARY} ${APPKIT_LIBRARY})
-endif ()
-
 find_package(X11)
 if (X11_FOUND AND X11_xcb_FOUND)
   add_executable(x11_window x11_window.c)
@@ -17,7 +8,6 @@ endif ()
 add_executable(demo demo.cc ecs.cc)
 target_compile_features(demo PUBLIC cxx_std_20)
 target_link_libraries(demo PRIVATE glfw nanovg glad nanovg_perf Tracy::TracyClient)
-
 
 add_executable(bit_array_demo bit_array_demo.cc)
 target_compile_features(bit_array_demo PUBLIC cxx_std_20)

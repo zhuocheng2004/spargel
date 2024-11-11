@@ -2,4 +2,7 @@ group("default") {
   deps = [
     "//samples:demo",
   ]
+  if (is_macos) {
+    deps += []
+  }
 }
