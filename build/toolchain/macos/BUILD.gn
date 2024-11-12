@@ -35,6 +35,15 @@ toolchain("clang_arm64") {
     command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} {{framework_dirs}} {{cflags}} {{cflags_objc}} -c {{source}} -o {{output}}"
     description = "OBJC {{output}}"
   }
+  tool("objcxx") {
+    depfile = "{{output}}.d"
+    depsformat = "gcc"
+    outputs = [
+      "$object_subdir/{{source_name_part}}.o"
+    ]
+    command = "$cxx -MMD -MF $depfile {{defines}} {{include_dirs}} {{framework_dirs}} {{cflags}} {{cflags_objcc}} -c {{source}} -o {{output}}"
+    description = "OBJCXX {{output}}"
+  }
   tool("alink") {
     rspfile = "{{output}}.rsp"
     rspfile_content = "{{inputs}}"

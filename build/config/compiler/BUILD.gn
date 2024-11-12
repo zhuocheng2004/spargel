@@ -30,6 +30,8 @@ config("default_optimizations") {
 config("default_standard") {
   cflags_c = [ "-std=c11" ]
   cflags_cc = [ "-std=c++20" ]
+  cflags_objc = [ "-std=c11" ]
+  cflags_objcc = [ "-std=c++20" ]
 }
 
 config("default_symbols") {
