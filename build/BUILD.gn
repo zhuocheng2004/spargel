@@ -1,0 +1,3 @@
+source_set("build_config") {
+  public = [ "build_config.h" ]
+}
