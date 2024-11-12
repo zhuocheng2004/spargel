@@ -3,6 +3,9 @@ group("default") {
     "//samples:demo",
     "//base",
     "//gpu",
+
+    # tests
+    "//base/memory:ref_count_ptr_test",
   ]
   if (is_macos) {
     deps += []

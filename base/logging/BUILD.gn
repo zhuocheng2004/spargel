@@ -1,0 +1,11 @@
+source_set("logging") {
+  public = [
+    "logging.h",
+  ]
+  sources = [
+    "logging.cc",
+  ]
+  deps = [
+    "//base/meta",
+  ]
+}

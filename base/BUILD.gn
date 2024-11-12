@@ -3,5 +3,6 @@ source_set("base") {
     "//base/task",
     "//base/compiler",
     "//base/callback",
+    "//base/memory",
   ]
 }
