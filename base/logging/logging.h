@@ -5,9 +5,17 @@
 
 namespace base::logging {
 
-void Log(char const* message,
+enum class LogLevel {
+  Debug,
+  Info,
+  Warning,
+  Error,
+  Fatal,
+};
+
+void Log(LogLevel level, char const* message,
          meta::SourceLocation loc = meta::SourceLocation::Current());
 
-}
+}  // namespace base::logging
 
 #endif

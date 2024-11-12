@@ -5,20 +5,21 @@
 
 using base::memory::MakeRefCounted;
 using base::memory::RefCounted;
+using enum base::logging::LogLevel;
 
 class Foo : public RefCounted<Foo> {
  public:
-  Foo() { base::logging::Log("Foo()"); }
+  Foo() { base::logging::Log(Debug, "Foo()"); }
 
  private:
   friend RefCounted<Foo>;
-  ~Foo() { base::logging::Log("~Foo()"); }
+  ~Foo() { base::logging::Log(Debug, "~Foo()"); }
 };
 
 int main() {
   auto x = MakeRefCounted<Foo>();
-  base::logging::Log("x constructed");
+  base::logging::Log(Debug, "x constructed");
   auto y = x;
-  base::logging::Log("before return");
+  base::logging::Log(Debug, "before return");
   return 0;
 }
