@@ -11,3 +11,6 @@ CMakeUserPresets.json
 
 # Mac
 .DS_Store
+
+# jujutsu
+.jj
