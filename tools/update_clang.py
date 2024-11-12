@@ -19,7 +19,7 @@ CDS_URL = 'https://commondatastorage.googleapis.com/chromium-browser-clang'
 
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 ROOT_DIR = os.path.abspath(os.path.join(THIS_DIR, '..'))
-LLVM_BUILD_DIR = os.path.join(ROOT_DIR, 'third_party', 'llvm-build', 'cr')
+LLVM_BUILD_DIR = os.path.join(ROOT_DIR, 'third_party', 'llvm_build', 'cr')
 
 STAMP_FILENAME = 'cr_build_revision'
 STAMP_FILE = os.path.normpath(os.path.join(LLVM_BUILD_DIR, STAMP_FILENAME))
