@@ -2,6 +2,7 @@ group("default") {
   deps = [
     "//samples:demo",
     "//base",
+    "//gpu",
   ]
   if (is_macos) {
     deps += []
