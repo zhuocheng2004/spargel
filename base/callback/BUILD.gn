@@ -1,0 +1,4 @@
+source_set("callback") {
+  public = [ "callback.h" ]
+  deps = [ "//base/compiler" ]
+}

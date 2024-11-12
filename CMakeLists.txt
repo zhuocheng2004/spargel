@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 project(spargel)
 
+add_subdirectory(base)
 add_subdirectory(engine)
 add_subdirectory(samples)
 
