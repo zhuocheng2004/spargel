@@ -1,11 +1,14 @@
 group("default") {
   deps = [
-    "//samples:demo",
     "//base",
     "//gpu",
 
     # tests
     "//base/memory:ref_count_ptr_test",
+
+    # samples
+    "//samples:demo",
+    "//samples/vulkan_triangle",
   ]
   if (is_macos) {
     deps += []

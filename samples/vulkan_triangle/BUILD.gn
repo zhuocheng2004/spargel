@@ -1,0 +1,17 @@
+executable("vulkan_triangle") {
+  sources = [
+    "app.cc",
+    "app.h",
+    "app_delegate.cc",
+    "app_delegate.h",
+    "app_delegate_mac.h",
+    "app_delegate_mac.mm",
+    "main.cc",
+    "proc_table.h",
+    "vulkan_procs.inc",
+  ]
+  deps = [
+    "//base/logging",
+    "//gpu/vulkan:vulkan_headers",
+  ]
+}
