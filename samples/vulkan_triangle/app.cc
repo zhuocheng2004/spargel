@@ -53,6 +53,12 @@ bool App::Init() {
   if (!CreateDevice()) return false;
   if (!LoadDeviceProcs()) return false;
   LOG(Info, "device created");
+  GetQueue();
+  SelectSurfaceFormat();
+  if (!CreateSwapchain()) return false;
+  LOG(Info, "swapchain created");
+  if (!GetSwapchainImages()) return false;
+  if (!CreateSwapchainImageViews()) return false;
   return true;
 }
 
@@ -294,6 +300,60 @@ void App::QueryDeviceQueueFamilies(size_t idx) {
   prop.queue_families.resize(count);
 }
 
+bool App::QueryDeviceSurfaceCapabilities(size_t idx) {
+  auto adapter = physical_devices_[idx];
+  auto& prop = physical_device_properties_[idx];
+  auto result = table_.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+      adapter, surface_, &prop.surface_capabilities);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot query surface capabilities");
+    return false;
+  }
+  return true;
+}
+
+bool App::QueryDeviceSurfaceFormats(size_t idx) {
+  auto adapter = physical_devices_[idx];
+  auto& prop = physical_device_properties_[idx];
+  uint32_t count;
+  auto result = table_.vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface_,
+                                                            &count, nullptr);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot query surface formats");
+    return false;
+  }
+  prop.surface_formats.resize(count);
+  result = table_.vkGetPhysicalDeviceSurfaceFormatsKHR(
+      adapter, surface_, &count, prop.surface_formats.data());
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot query surface formats");
+    return false;
+  }
+  prop.surface_formats.resize(count);
+  return true;
+}
+
+bool App::QueryDevicePresentModes(size_t idx) {
+  auto adapter = physical_devices_[idx];
+  auto& prop = physical_device_properties_[idx];
+  uint32_t count;
+  auto result = table_.vkGetPhysicalDeviceSurfacePresentModesKHR(
+      adapter, surface_, &count, nullptr);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot query present modes");
+    return false;
+  }
+  prop.present_modes.resize(count);
+  result = table_.vkGetPhysicalDeviceSurfacePresentModesKHR(
+      adapter, surface_, &count, prop.present_modes.data());
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot query present modes");
+    return false;
+  }
+  prop.present_modes.resize(count);
+  return true;
+}
+
 bool App::QueryPhysicalDeviceProperties() {
   physical_device_properties_.resize(physical_devices_.size());
 
@@ -306,6 +366,9 @@ bool App::QueryPhysicalDeviceProperties() {
 
     if (!QueryDeviceExtensions(i)) return false;
     QueryDeviceQueueFamilies(i);
+    if (!QueryDeviceSurfaceCapabilities(i)) return false;
+    if (!QueryDeviceSurfaceFormats(i)) return false;
+    if (!QueryDevicePresentModes(i)) return false;
   }
   return true;
 }
@@ -400,6 +463,112 @@ bool App::LoadDeviceProcs() {
   return true;
 }
 
+void App::GetQueue() {
+  table_.vkGetDeviceQueue(device_, queue_family_id_, 0, &queue_);
+}
+
+void App::SelectSurfaceFormat() {
+  auto const& formats =
+      physical_device_properties_[physical_device_id_].surface_formats;
+  for (auto const& format : formats) {
+    if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
+        format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+      surface_format_ = format;
+      return;
+    }
+  }
+  surface_format_ = formats[0];
+}
+
+bool App::CreateSwapchain() {
+  auto const& prop = physical_device_properties_[physical_device_id_];
+
+  auto min_image_count = prop.surface_capabilities.minImageCount + 1;
+  if (prop.surface_capabilities.maxImageCount > 0 &&
+      min_image_count > prop.surface_capabilities.maxImageCount) {
+    min_image_count = prop.surface_capabilities.maxImageCount;
+  }
+
+  VkExtent2D image_extent;
+  image_extent.width = delegate_->GetWidth();
+  image_extent.height = delegate_->GetHeight();
+
+  VkSwapchainCreateInfoKHR info;
+  info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+  info.pNext = nullptr;
+  info.flags = 0;
+  info.surface = surface_;
+  info.minImageCount = min_image_count;
+  info.imageFormat = surface_format_.format;
+  info.imageColorSpace = surface_format_.colorSpace;
+  info.imageExtent = image_extent;
+  info.imageArrayLayers = 1;
+  info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  info.queueFamilyIndexCount = 0;
+  info.pQueueFamilyIndices = nullptr;
+  info.preTransform = prop.surface_capabilities.currentTransform;
+  info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+  info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+  info.clipped = VK_TRUE;
+  info.oldSwapchain = nullptr;
+  auto result =
+      table_.vkCreateSwapchainKHR(device_, &info, nullptr, &swapchain_);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot create swapchain");
+    return false;
+  }
+  return true;
+}
+
+bool App::GetSwapchainImages() {
+  uint32_t count;
+  auto result =
+      table_.vkGetSwapchainImagesKHR(device_, swapchain_, &count, nullptr);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot get swapchain images");
+    return false;
+  }
+  swapchain_images_.resize(count);
+  result = table_.vkGetSwapchainImagesKHR(device_, swapchain_, &count,
+                                          swapchain_images_.data());
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot get swapchain images");
+    return false;
+  }
+  swapchain_images_.resize(count);
+  return true;
+}
+
+bool App::CreateSwapchainImageViews() {
+  swapchain_image_views_.resize(swapchain_images_.size());
+  VkImageViewCreateInfo info;
+  info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+  info.pNext = nullptr;
+  info.flags = 0;
+  info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+  info.format = surface_format_.format;
+  info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+  info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+  info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+  info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+  info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  info.subresourceRange.baseMipLevel = 0;
+  info.subresourceRange.levelCount = 1;
+  info.subresourceRange.baseArrayLayer = 0;
+  info.subresourceRange.layerCount = 1;
+  for (int i = 0; i < swapchain_images_.size(); i++) {
+    info.image = swapchain_images_[i];
+    auto result = table_.vkCreateImageView(device_, &info, nullptr,
+                                           swapchain_image_views_.data() + i);
+    if (result != VK_SUCCESS) {
+      LOG(Error, "cannot create swapchain image views");
+      return false;
+    }
+  }
+  return true;
+}
+
 VkBool32 App::DebugMessageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT type,
@@ -423,8 +592,20 @@ void App::DestroySurface() {
 
 void App::DestroyDevice() { table_.vkDestroyDevice(device_, nullptr); }
 
+void App::DestroySwapchain() {
+  table_.vkDestroySwapchainKHR(device_, swapchain_, nullptr);
+}
+
+void App::DestroySwapchainImageViews() {
+  for (auto image_view : swapchain_image_views_) {
+    table_.vkDestroyImageView(device_, image_view, nullptr);
+  }
+}
+
 // TODO: delegate deinit
 void App::Deinit() {
+  DestroySwapchainImageViews();
+  DestroySwapchain();
   DestroyDevice();
   DestroySurface();
   if (has_debug_utils_) DestroyDebugMessenger();

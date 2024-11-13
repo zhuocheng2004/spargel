@@ -107,3 +107,6 @@ bool AppDelegateMac::CreateWindow() {
   [data_->view setLayer:data_->layer];
   return true;
 }
+
+uint32_t AppDelegateMac::GetWidth() { return data_->view.bounds.size.width; }
+uint32_t AppDelegateMac::GetHeight() { return data_->view.bounds.size.height; }

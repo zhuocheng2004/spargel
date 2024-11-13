@@ -28,6 +28,9 @@ class AppDelegate {
   virtual bool CreateSurface(VkInstance instance, VkSurfaceKHR* surface,
                              ProcTable const& table) = 0;
 
+  virtual uint32_t GetWidth() = 0;
+  virtual uint32_t GetHeight() = 0;
+
   virtual void Deinit() = 0;
 
  protected:

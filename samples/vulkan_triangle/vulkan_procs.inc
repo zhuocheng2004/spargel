@@ -34,11 +34,22 @@ VULKAN_INSTANCE_PROC(vkCreateMetalSurfaceEXT)
 
 VULKAN_INSTANCE_PROC(vkDestroySurfaceKHR)
 VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceSupportKHR)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceFormatsKHR)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfacePresentModesKHR)
 
 #endif
 
 #if defined(VULKAN_DEVICE_PROC)
 
 VULKAN_DEVICE_PROC(vkDestroyDevice)
+VULKAN_DEVICE_PROC(vkGetDeviceQueue)
+
+VULKAN_DEVICE_PROC(vkCreateImageView)
+VULKAN_DEVICE_PROC(vkDestroyImageView)
+
+VULKAN_DEVICE_PROC(vkCreateSwapchainKHR)
+VULKAN_DEVICE_PROC(vkDestroySwapchainKHR)
+VULKAN_DEVICE_PROC(vkGetSwapchainImagesKHR)
 
 #endif

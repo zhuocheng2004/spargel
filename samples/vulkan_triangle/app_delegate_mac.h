@@ -26,6 +26,9 @@ class AppDelegateMac final : public AppDelegate {
   bool CreateSurface(VkInstance instance, VkSurfaceKHR* surface,
                      ProcTable const& table) override;
 
+  uint32_t GetWidth() override;
+  uint32_t GetHeight() override;
+
   void Deinit() override;
 
  private:

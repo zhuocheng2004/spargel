@@ -34,6 +34,9 @@ class App {
   bool EnumeratePhysicalDevices();
   bool QueryDeviceExtensions(size_t idx);
   void QueryDeviceQueueFamilies(size_t idx);
+  bool QueryDeviceSurfaceCapabilities(size_t idx);
+  bool QueryDeviceSurfaceFormats(size_t idx);
+  bool QueryDevicePresentModes(size_t idx);
   bool QueryPhysicalDeviceProperties();
   bool SelectPhysicalDevice();
   bool SelectDeviceExtensions();
@@ -41,11 +44,18 @@ class App {
   bool SelectDeviceFeatures();
   bool CreateDevice();
   bool LoadDeviceProcs();
+  void GetQueue();
+  void SelectSurfaceFormat();
+  bool CreateSwapchain();
+  bool GetSwapchainImages();
+  bool CreateSwapchainImageViews();
 
   void DestroyInstance();
   void DestroyDebugMessenger();
   void DestroySurface();
   void DestroyDevice();
+  void DestroySwapchain();
+  void DestroySwapchainImageViews();
 
   static VkBool32 DebugMessageCallback(
       VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -63,6 +73,12 @@ class App {
   size_t physical_device_id_ = 0;
   uint32_t queue_family_id_ = 0;
   VkDevice device_ = nullptr;
+  VkQueue queue_ = nullptr;
+  VkSwapchainKHR swapchain_ = nullptr;
+
+  std::vector<VkImage> swapchain_images_;
+  std::vector<VkImageView> swapchain_image_views_;
+  VkSurfaceFormatKHR surface_format_;
 
   std::vector<VkLayerProperties> instance_layers_;
   std::vector<VkExtensionProperties> instance_extensions_;
@@ -78,6 +94,9 @@ class App {
     VkPhysicalDeviceFeatures features;
     std::vector<VkExtensionProperties> extensions;
     std::vector<VkQueueFamilyProperties> queue_families;
+    VkSurfaceCapabilitiesKHR surface_capabilities;
+    std::vector<VkSurfaceFormatKHR> surface_formats;
+    std::vector<VkPresentModeKHR> present_modes;
   };
   std::vector<PhysicalDeviceProperty> physical_device_properties_;
 
