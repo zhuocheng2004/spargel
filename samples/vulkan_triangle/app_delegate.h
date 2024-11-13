@@ -8,6 +8,8 @@
 
 class AppDelegate {
  public:
+  virtual ~AppDelegate() = default;
+
   void SetProcTable(ProcTable* table);
 
   virtual bool LoadLibrary() = 0;
@@ -19,6 +21,12 @@ class AppDelegate {
   virtual bool SelectInstanceExtensions(
       std::vector<VkExtensionProperties> const& available,
       std::vector<char const*>& selected);
+  virtual bool SelectDeviceExtensions(
+      std::vector<VkExtensionProperties> const& available,
+      std::vector<char const*>& selected);
+
+  virtual bool CreateSurface(VkInstance instance, VkSurfaceKHR* surface,
+                             ProcTable const& table) = 0;
 
   virtual void Deinit() = 0;
 

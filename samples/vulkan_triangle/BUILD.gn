@@ -16,4 +16,10 @@ executable("vulkan_triangle") {
     "//base/logging",
     "//gpu/vulkan:vulkan_headers",
   ]
+  if (is_macos) {
+    frameworks = [
+      "AppKit.framework",
+      "QuartzCore.framework",
+    ]
+  }
 }

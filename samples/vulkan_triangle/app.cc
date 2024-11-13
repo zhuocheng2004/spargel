@@ -12,6 +12,8 @@ App::App(AppDelegate* delegate) : delegate_{delegate} {
   delegate_->SetProcTable(&table_);
 }
 
+// todo: this approach is bad, for there is no way to clean up resourcecs in
+// failure path
 bool App::Init() {
   if (!delegate_->LoadLibrary()) return false;
   if (!delegate_->LoadVkGetInstanceProcAddr()) return false;
@@ -35,8 +37,22 @@ bool App::Init() {
   if (!LoadInstanceProcs()) return false;
   if (has_debug_utils_) {
     if (!CreateDebugMessenger()) return false;
+    LOG(Info, "debug messenger created");
   }
+  if (!delegate_->CreateSurface(instance_, &surface_, table_)) return false;
+  LOG(Info, "surface created");
   if (!EnumeratePhysicalDevices()) return false;
+  if (!QueryPhysicalDeviceProperties()) return false;
+  if (!SelectPhysicalDevice()) return false;
+  if (!SelectDeviceExtensions()) return false;
+  if (!delegate_->SelectDeviceExtensions(
+          physical_device_properties_[physical_device_id_].extensions,
+          selected_device_extensions_))
+    return false;
+  if (!SelectDeviceFeatures()) return false;
+  if (!CreateDevice()) return false;
+  if (!LoadDeviceProcs()) return false;
+  LOG(Info, "device created");
   return true;
 }
 
@@ -246,24 +262,171 @@ bool App::EnumeratePhysicalDevices() {
   return true;
 }
 
-void App::DestroyInstance() { table_.vkDestroyInstance(instance_, nullptr); }
+bool App::QueryDeviceExtensions(size_t idx) {
+  auto adapter = physical_devices_[idx];
+  auto& prop = physical_device_properties_[idx];
+  uint32_t count;
+  auto result = table_.vkEnumerateDeviceExtensionProperties(adapter, nullptr,
+                                                            &count, nullptr);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot enumerate device extensions");
+    return false;
+  }
+  prop.extensions.resize(count);
+  result = table_.vkEnumerateDeviceExtensionProperties(adapter, nullptr, &count,
+                                                       prop.extensions.data());
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot enumerate device extensions");
+    return false;
+  }
+  prop.extensions.resize(count);
+  return true;
+}
 
-void App::DestroyDebugMessenger() {
-  table_.vkDestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
+void App::QueryDeviceQueueFamilies(size_t idx) {
+  auto adapter = physical_devices_[idx];
+  auto& prop = physical_device_properties_[idx];
+  uint32_t count;
+  table_.vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count, nullptr);
+  prop.queue_families.resize(count);
+  table_.vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count,
+                                                  prop.queue_families.data());
+  prop.queue_families.resize(count);
+}
+
+bool App::QueryPhysicalDeviceProperties() {
+  physical_device_properties_.resize(physical_devices_.size());
+
+  for (int i = 0; i < physical_devices_.size(); i++) {
+    auto adapter = physical_devices_[i];
+    auto& prop = physical_device_properties_[i];
+
+    table_.vkGetPhysicalDeviceProperties(adapter, &prop.properties);
+    table_.vkGetPhysicalDeviceFeatures(adapter, &prop.features);
+
+    if (!QueryDeviceExtensions(i)) return false;
+    QueryDeviceQueueFamilies(i);
+  }
+  return true;
+}
+
+// todo: implement adapter selection logic
+bool App::SelectPhysicalDevice() {
+  physical_device_id_ = 0;
+  physical_device_ = physical_devices_[physical_device_id_];
+  return true;
+}
+
+bool App::SelectDeviceExtensions() {
+  auto available = physical_device_properties_[physical_device_id_].extensions;
+  auto has_swapchain = SelectExtensionByName("VK_KHR_swapchain", available,
+                                             selected_device_extensions_);
+  if (!has_swapchain) {
+    LOG(Error, "cannot find extension VK_KHR_swapchain");
+    return false;
+  }
+  auto has_portability_subset_ = SelectExtensionByName(
+      "VK_KHR_portability_subset", available, selected_device_extensions_);
+  return true;
+}
+
+// todo: how to select queues?
+bool App::SelectQueues() {
+  auto const& families =
+      physical_device_properties_[physical_device_id_].queue_families;
+  // find one queue family that supports all of graphics, compute, transfer, and
+  // present.
+  auto expected =
+      VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
+  for (int i = 0; i < families.size(); i++) {
+    auto const& prop = families[i];
+    bool valid = (prop.queueFlags & expected) != 0;
+    VkBool32 present = VK_FALSE;
+    table_.vkGetPhysicalDeviceSurfaceSupportKHR(physical_device_, i, surface_,
+                                                &present);
+    if (valid && present) {
+      queue_family_id_ = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool App::SelectDeviceFeatures() { return true; }
+
+static const float QueuePriorities[] = {1.0, 1.0, 1.0, 1.0};
+
+bool App::CreateDevice() {
+  VkDeviceQueueCreateInfo queue_info;
+  queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+  queue_info.pNext = nullptr;
+  queue_info.flags = 0;
+  queue_info.queueFamilyIndex = queue_family_id_;
+  queue_info.queueCount = 1;
+  queue_info.pQueuePriorities = QueuePriorities;
+
+  VkDeviceCreateInfo info;
+  info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+  info.pNext = nullptr;
+  info.flags = 0;
+  info.queueCreateInfoCount = 1;
+  info.pQueueCreateInfos = &queue_info;
+  info.enabledLayerCount = 0;
+  info.ppEnabledLayerNames = nullptr;
+  info.enabledExtensionCount = selected_device_extensions_.size();
+  info.ppEnabledExtensionNames = selected_device_extensions_.data();
+  info.pEnabledFeatures = &device_features_;
+
+  auto result =
+      table_.vkCreateDevice(physical_device_, &info, nullptr, &device_);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot create device");
+    return false;
+  }
+  return true;
+}
+
+bool App::LoadDeviceProcs() {
+  auto vkGetDeviceProcAddr = table_.vkGetDeviceProcAddr;
+#define VULKAN_DEVICE_PROC(name)                                         \
+  table_.name =                                                          \
+      reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(device_, #name)); \
+  if (!table_.name) {                                                    \
+    Log(Error, "cannot load " #name);                                    \
+    return false;                                                        \
+  }
+#include "samples/vulkan_triangle/vulkan_procs.inc"
+#undef VULKAN_DEVICE_PROC
+  return true;
 }
 
 VkBool32 App::DebugMessageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT type,
     VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
-  LOG(Info, "vulkan validation: ", data->pMessage);
+  // LOG(Info, "vulkan validation: ", data->pMessage);
+  printf("validator: %s\n", data->pMessage);
   // Spec:
   // The application should always return VK_FALSE.
   return VK_FALSE;
 }
 
+void App::DestroyInstance() { table_.vkDestroyInstance(instance_, nullptr); }
+
+void App::DestroyDebugMessenger() {
+  table_.vkDestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
+}
+
+void App::DestroySurface() {
+  table_.vkDestroySurfaceKHR(instance_, surface_, nullptr);
+}
+
+void App::DestroyDevice() { table_.vkDestroyDevice(device_, nullptr); }
+
 // TODO: delegate deinit
 void App::Deinit() {
+  DestroyDevice();
+  DestroySurface();
   if (has_debug_utils_) DestroyDebugMessenger();
   DestroyInstance();
   delegate_->Deinit();

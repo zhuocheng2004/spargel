@@ -4,11 +4,15 @@
 // Do not use function declarations, as we have a custom loader.
 #define VK_NO_PROTOTYPES
 
-#include "vulkan/vk_platform.h" // IWYU pragma: export
-#include "vulkan/vulkan_core.h" // IWYU pragma: export
+#include "vulkan/vk_platform.h"  // IWYU pragma: export
+#include "vulkan/vulkan_core.h"  // IWYU pragma: export
 
 // TODO: vulkan_win32.h
 // TODO: vulkan_wayland.h
-// TODO: vulkan_macos.h
+
+// TODO: vulkan_metal.h
+#if defined(__APPLE__)
+#include "vulkan/vulkan_metal.h"
+#endif
 
 #endif

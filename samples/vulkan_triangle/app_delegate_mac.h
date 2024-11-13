@@ -8,6 +8,9 @@
 
 class AppDelegateMac final : public AppDelegate {
  public:
+  AppDelegateMac();
+  ~AppDelegateMac() override;
+
   bool LoadLibrary() override;
   bool LoadVkGetInstanceProcAddr() override;
 
@@ -16,11 +19,22 @@ class AppDelegateMac final : public AppDelegate {
   bool SelectInstanceExtensions(
       std::vector<VkExtensionProperties> const& available,
       std::vector<char const*>& selected) override;
+  bool SelectDeviceExtensions(
+      std::vector<VkExtensionProperties> const& available,
+      std::vector<char const*>& selected) override;
+
+  bool CreateSurface(VkInstance instance, VkSurfaceKHR* surface,
+                     ProcTable const& table) override;
 
   void Deinit() override;
 
  private:
+  bool CreateWindow();
+
   void* library_ = nullptr;
+
+  struct ObjcData;
+  ObjcData* data_;
 };
 
 #endif

@@ -32,10 +32,20 @@ class App {
   bool LoadInstanceProcs();
   bool CreateDebugMessenger();
   bool EnumeratePhysicalDevices();
+  bool QueryDeviceExtensions(size_t idx);
+  void QueryDeviceQueueFamilies(size_t idx);
+  bool QueryPhysicalDeviceProperties();
+  bool SelectPhysicalDevice();
+  bool SelectDeviceExtensions();
+  bool SelectQueues();
+  bool SelectDeviceFeatures();
+  bool CreateDevice();
   bool LoadDeviceProcs();
 
   void DestroyInstance();
   void DestroyDebugMessenger();
+  void DestroySurface();
+  void DestroyDevice();
 
   static VkBool32 DebugMessageCallback(
       VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -48,13 +58,28 @@ class App {
 
   VkInstance instance_ = nullptr;
   VkDebugUtilsMessengerEXT debug_messenger_ = nullptr;
+  VkSurfaceKHR surface_ = nullptr;
+  VkPhysicalDevice physical_device_ = nullptr;
+  size_t physical_device_id_ = 0;
+  uint32_t queue_family_id_ = 0;
+  VkDevice device_ = nullptr;
 
   std::vector<VkLayerProperties> instance_layers_;
   std::vector<VkExtensionProperties> instance_extensions_;
   std::vector<char const*> selected_instance_layers_;
   std::vector<char const*> selected_instance_extensions_;
+  std::vector<char const*> selected_device_extensions_;
+  VkPhysicalDeviceFeatures device_features_ = {};
 
   std::vector<VkPhysicalDevice> physical_devices_;
+
+  struct PhysicalDeviceProperty {
+    VkPhysicalDeviceProperties properties;
+    VkPhysicalDeviceFeatures features;
+    std::vector<VkExtensionProperties> extensions;
+    std::vector<VkQueueFamilyProperties> queue_families;
+  };
+  std::vector<PhysicalDeviceProperty> physical_device_properties_;
 
   bool has_validation_ = false;
   bool has_api_dump_ = false;

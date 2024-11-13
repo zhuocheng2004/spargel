@@ -15,10 +15,25 @@ VULKAN_GENERAL_PROC(vkCreateInstance)
 #if defined(VULKAN_INSTANCE_PROC)
 
 VULKAN_INSTANCE_PROC(vkDestroyInstance)
+
 VULKAN_INSTANCE_PROC(vkEnumeratePhysicalDevices)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceProperties)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceFeatures)
+VULKAN_INSTANCE_PROC(vkEnumerateDeviceExtensionProperties)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceQueueFamilyProperties)
+
+VULKAN_INSTANCE_PROC(vkCreateDevice)
+VULKAN_INSTANCE_PROC(vkGetDeviceProcAddr)
 
 VULKAN_INSTANCE_PROC(vkCreateDebugUtilsMessengerEXT)
 VULKAN_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT)
+
+#if defined(__APPLE__)
+VULKAN_INSTANCE_PROC(vkCreateMetalSurfaceEXT)
+#endif
+
+VULKAN_INSTANCE_PROC(vkDestroySurfaceKHR)
+VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceSupportKHR)
 
 #endif
 

@@ -13,3 +13,9 @@ bool AppDelegate::SelectInstanceExtensions(
     std::vector<char const*>& selected) {
   return true;
 }
+
+bool AppDelegate::SelectDeviceExtensions(
+    std::vector<VkExtensionProperties> const& available,
+    std::vector<char const*>& selected) {
+  return true;
+}
