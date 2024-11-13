@@ -1,5 +1,6 @@
 #include "samples/vulkan_triangle/app.h"
 
+#include <math.h>
 #include <stdio.h>
 
 #include "base/logging/logging.h"
@@ -59,6 +60,11 @@ bool App::Init() {
   LOG(Info, "swapchain created");
   if (!GetSwapchainImages()) return false;
   if (!CreateSwapchainImageViews()) return false;
+  if (!CreateCommandPool()) return false;
+  if (!CreateCommandBuffers()) return false;
+  if (!CreateRenderFences()) return false;
+  if (!CreateSwapchainSemaphores()) return false;
+  if (!CreateRenderSemaphores()) return false;
   return true;
 }
 
@@ -390,6 +396,12 @@ bool App::SelectDeviceExtensions() {
   }
   auto has_portability_subset_ = SelectExtensionByName(
       "VK_KHR_portability_subset", available, selected_device_extensions_);
+  auto has_synchronization2 = SelectExtensionByName(
+      "VK_KHR_synchronization2", available, selected_device_extensions_);
+  if (!has_synchronization2) {
+    LOG(Error, "cannot find extension VK_KHR_synchronization2");
+    return false;
+  }
   return true;
 }
 
@@ -420,6 +432,12 @@ bool App::SelectDeviceFeatures() { return true; }
 static const float QueuePriorities[] = {1.0, 1.0, 1.0, 1.0};
 
 bool App::CreateDevice() {
+  VkPhysicalDeviceSynchronization2Features synchronization2;
+  synchronization2.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
+  synchronization2.pNext = nullptr;
+  synchronization2.synchronization2 = VK_TRUE;
+
   VkDeviceQueueCreateInfo queue_info;
   queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
   queue_info.pNext = nullptr;
@@ -430,7 +448,7 @@ bool App::CreateDevice() {
 
   VkDeviceCreateInfo info;
   info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-  info.pNext = nullptr;
+  info.pNext = &synchronization2;
   info.flags = 0;
   info.queueCreateInfoCount = 1;
   info.pQueueCreateInfos = &queue_info;
@@ -503,7 +521,8 @@ bool App::CreateSwapchain() {
   info.imageColorSpace = surface_format_.colorSpace;
   info.imageExtent = image_extent;
   info.imageArrayLayers = 1;
-  info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+  info.imageUsage =
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
   info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   info.queueFamilyIndexCount = 0;
   info.pQueueFamilyIndices = nullptr;
@@ -569,6 +588,91 @@ bool App::CreateSwapchainImageViews() {
   return true;
 }
 
+bool App::CreateCommandPool() {
+  VkCommandPoolCreateInfo info;
+  info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+  info.pNext = nullptr;
+  info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+  info.queueFamilyIndex = queue_family_id_;
+  auto result =
+      table_.vkCreateCommandPool(device_, &info, nullptr, &command_pool_);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot create command pool");
+    return false;
+  }
+  return true;
+}
+
+bool App::CreateCommandBuffers() {
+  VkCommandBufferAllocateInfo info;
+  info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+  info.pNext = nullptr;
+  info.commandPool = command_pool_;
+  info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  info.commandBufferCount = NumFramesInFlight;
+  auto result =
+      table_.vkAllocateCommandBuffers(device_, &info, frames_.command_buffer);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot allocate command buffers");
+    return false;
+  }
+  return true;
+}
+
+bool App::CreateFence(VkFlags flags, VkFence* fence) {
+  VkFenceCreateInfo info;
+  info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+  info.pNext = nullptr;
+  info.flags = flags;
+  auto result = table_.vkCreateFence(device_, &info, nullptr, fence);
+  if (result != VK_SUCCESS) {
+    return false;
+  }
+  return true;
+}
+
+bool App::CreateSemaphore(VkFlags flags, VkSemaphore* semaphore) {
+  VkSemaphoreCreateInfo info;
+  info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+  info.pNext = nullptr;
+  info.flags = flags;
+  auto result = table_.vkCreateSemaphore(device_, &info, nullptr, semaphore);
+  if (result != VK_SUCCESS) {
+    return false;
+  }
+  return true;
+}
+
+bool App::CreateRenderFences() {
+  for (int i = 0; i < NumFramesInFlight; i++) {
+    if (!CreateFence(VK_FENCE_CREATE_SIGNALED_BIT, frames_.render_fence + i)) {
+      LOG(Error, "cannot create fences");
+      return false;
+    }
+  }
+  return true;
+}
+
+bool App::CreateSwapchainSemaphores() {
+  for (int i = 0; i < NumFramesInFlight; i++) {
+    if (!CreateSemaphore(0, frames_.swapchain_semaphore + i)) {
+      LOG(Error, "cannot create semaphores");
+      return false;
+    }
+  }
+  return true;
+}
+
+bool App::CreateRenderSemaphores() {
+  for (int i = 0; i < NumFramesInFlight; i++) {
+    if (!CreateSemaphore(0, frames_.render_semaphore + i)) {
+      LOG(Error, "cannot create semaphores");
+      return false;
+    }
+  }
+  return true;
+}
+
 VkBool32 App::DebugMessageCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT type,
@@ -602,8 +706,32 @@ void App::DestroySwapchainImageViews() {
   }
 }
 
+void App::DestroyCommandPool() {
+  table_.vkDestroyCommandPool(device_, command_pool_, nullptr);
+}
+
+void App::DestroyRenderFences() {
+  for (int i = 0; i < NumFramesInFlight; i++) {
+    table_.vkDestroyFence(device_, frames_.render_fence[i], nullptr);
+  }
+}
+void App::DestroySwapchainSemaphores() {
+  for (int i = 0; i < NumFramesInFlight; i++) {
+    table_.vkDestroySemaphore(device_, frames_.swapchain_semaphore[i], nullptr);
+  }
+}
+void App::DestroyRenderSemaphores() {
+  for (int i = 0; i < NumFramesInFlight; i++) {
+    table_.vkDestroySemaphore(device_, frames_.render_semaphore[i], nullptr);
+  }
+}
+
 // TODO: delegate deinit
 void App::Deinit() {
+  DestroyRenderSemaphores();
+  DestroySwapchainSemaphores();
+  DestroyRenderFences();
+  DestroyCommandPool();
   DestroySwapchainImageViews();
   DestroySwapchain();
   DestroyDevice();
@@ -613,4 +741,206 @@ void App::Deinit() {
   delegate_->Deinit();
 }
 
-void App::Run() {}
+bool App::WaitAndResetFence() {
+  VkResult result;
+  result = table_.vkWaitForFences(
+      device_, 1, frames_.render_fence + current_frame_, VK_TRUE, UINT64_MAX);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot wait for fence");
+    return false;
+  }
+  result =
+      table_.vkResetFences(device_, 1, frames_.render_fence + current_frame_);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot reset fence");
+    return false;
+  }
+  return true;
+}
+
+bool App::AcquireNextImage(uint32_t* id) {
+  auto result = table_.vkAcquireNextImageKHR(
+      device_, swapchain_, UINT64_MAX,
+      frames_.swapchain_semaphore[current_frame_], nullptr, id);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot acquire next swapchain image");
+    return false;
+  }
+  return true;
+}
+
+bool App::BeginCommandBuffer() {
+  auto buffer = frames_.command_buffer[current_frame_];
+  auto result = table_.vkResetCommandBuffer(buffer, 0);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot reset command buffer");
+    return false;
+  }
+  VkCommandBufferBeginInfo info;
+  info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+  info.pNext = nullptr;
+  info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  info.pInheritanceInfo = nullptr;
+  result = table_.vkBeginCommandBuffer(buffer, &info);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot begin command buffer");
+    return false;
+  }
+  return true;
+}
+
+bool App::EndCommandBuffer() {
+  auto result =
+      table_.vkEndCommandBuffer(frames_.command_buffer[current_frame_]);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot end command buffer");
+    return false;
+  }
+  return true;
+}
+
+bool App::TransitionImage(VkCommandBuffer cmd, VkImage image,
+                          VkImageLayout cur_layout, VkImageLayout new_layout) {
+  VkImageMemoryBarrier2 barrier;
+  barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+  barrier.pNext = nullptr;
+  barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+  barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;
+  barrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+  barrier.dstAccessMask =
+      VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
+  barrier.oldLayout = cur_layout;
+  barrier.newLayout = new_layout;
+  barrier.srcQueueFamilyIndex = 0;
+  barrier.dstQueueFamilyIndex = 0;
+  barrier.image = image;
+  barrier.subresourceRange.aspectMask =
+      (new_layout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
+          ? VK_IMAGE_ASPECT_DEPTH_BIT
+          : VK_IMAGE_ASPECT_COLOR_BIT;
+  barrier.subresourceRange.baseMipLevel = 0;
+  barrier.subresourceRange.levelCount = 1;
+  barrier.subresourceRange.baseArrayLayer = 0;
+  barrier.subresourceRange.layerCount = 1;
+
+  VkDependencyInfo dep;
+  dep.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+  dep.pNext = nullptr;
+  dep.dependencyFlags = 0;
+  dep.memoryBarrierCount = 0;
+  dep.pMemoryBarriers = nullptr;
+  dep.bufferMemoryBarrierCount = 0;
+  dep.pBufferMemoryBarriers = nullptr;
+  dep.imageMemoryBarrierCount = 1;
+  dep.pImageMemoryBarriers = &barrier;
+
+  table_.vkCmdPipelineBarrier2KHR(cmd, &dep);
+
+  return true;
+}
+
+bool App::Submit() {
+  auto cmd = frames_.command_buffer[current_frame_];
+
+  VkCommandBufferSubmitInfo cmdbuf_info;
+  cmdbuf_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+  cmdbuf_info.pNext = nullptr;
+  cmdbuf_info.commandBuffer = cmd;
+  cmdbuf_info.deviceMask = 0;
+
+  VkSemaphoreSubmitInfo wait_info;
+  wait_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+  wait_info.pNext = nullptr;
+  wait_info.semaphore = frames_.swapchain_semaphore[current_frame_];
+  wait_info.value = 1;
+  wait_info.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR;
+  wait_info.deviceIndex = 0;
+
+  VkSemaphoreSubmitInfo signal_info;
+  signal_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+  signal_info.pNext = nullptr;
+  signal_info.semaphore = frames_.render_semaphore[current_frame_];
+  signal_info.value = 1;
+  signal_info.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
+  signal_info.deviceIndex = 0;
+
+  VkSubmitInfo2 info;
+  info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+  info.pNext = nullptr;
+  info.waitSemaphoreInfoCount = 1;
+  info.pWaitSemaphoreInfos = &wait_info;
+  info.signalSemaphoreInfoCount = 1;
+  info.pSignalSemaphoreInfos = &signal_info;
+  info.commandBufferInfoCount = 1;
+  info.pCommandBufferInfos = &cmdbuf_info;
+
+  auto result = table_.vkQueueSubmit2KHR(queue_, 1, &info,
+                                         frames_.render_fence[current_frame_]);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot submit command buffer");
+    return false;
+  }
+  return true;
+}
+
+bool App::Present(uint32_t id) {
+  VkPresentInfoKHR info = {};
+  info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+  info.pNext = nullptr;
+  info.waitSemaphoreCount = 1;
+  info.pWaitSemaphores = frames_.render_semaphore + current_frame_;
+  info.swapchainCount = 1;
+  info.pSwapchains = &swapchain_;
+  info.pImageIndices = &id;
+  info.pResults = nullptr;
+  auto result = table_.vkQueuePresentKHR(queue_, &info);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot present");
+    return false;
+  }
+  return true;
+}
+
+void App::Run() {
+  uint32_t n = 0;
+  while (!delegate_->ShouldQuit()) {
+    if (!WaitAndResetFence()) return;
+
+    uint32_t swapchain_image_id;
+    if (!AcquireNextImage(&swapchain_image_id)) return;
+    if (!BeginCommandBuffer()) return;
+
+    auto cmd = frames_.command_buffer[current_frame_];
+    auto image = swapchain_images_[swapchain_image_id];
+
+    if (!TransitionImage(cmd, image, VK_IMAGE_LAYOUT_UNDEFINED,
+                         VK_IMAGE_LAYOUT_GENERAL))
+      return;
+
+    float flash = abs(sin(n / 120.f));
+    VkClearColorValue clearValue = {{abs(sin(n / 120.f + 72)), abs(sin(n / 120.f + 36)), flash, 1.0f}};
+
+    VkImageSubresourceRange clear_range;
+    clear_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    clear_range.baseMipLevel = 0;
+    clear_range.levelCount = 1;
+    clear_range.baseArrayLayer = 0;
+    clear_range.layerCount = 1;
+
+    table_.vkCmdClearColorImage(cmd, image, VK_IMAGE_LAYOUT_GENERAL,
+                                &clearValue, 1, &clear_range);
+
+    if (!TransitionImage(cmd, image, VK_IMAGE_LAYOUT_GENERAL,
+                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR))
+      return;
+
+    if (!EndCommandBuffer()) return;
+    if (!Submit()) return;
+    if (!Present(swapchain_image_id)) return;
+
+    current_frame_ = (current_frame_ + 1) % NumFramesInFlight;
+    n++;
+    delegate_->PollEvents();
+  }
+  table_.vkDeviceWaitIdle(device_);
+}

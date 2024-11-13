@@ -31,6 +31,9 @@ class AppDelegate {
   virtual uint32_t GetWidth() = 0;
   virtual uint32_t GetHeight() = 0;
 
+  virtual void PollEvents() = 0;
+  virtual bool ShouldQuit() = 0;
+
   virtual void Deinit() = 0;
 
  protected:

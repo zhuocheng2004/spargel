@@ -49,6 +49,13 @@ class App {
   bool CreateSwapchain();
   bool GetSwapchainImages();
   bool CreateSwapchainImageViews();
+  bool CreateCommandPool();
+  bool CreateCommandBuffers();
+  bool CreateFence(VkFlags flags, VkFence* fence);
+  bool CreateSemaphore(VkFlags flags, VkSemaphore* semaphore);
+  bool CreateRenderFences();
+  bool CreateSwapchainSemaphores();
+  bool CreateRenderSemaphores();
 
   void DestroyInstance();
   void DestroyDebugMessenger();
@@ -56,6 +63,19 @@ class App {
   void DestroyDevice();
   void DestroySwapchain();
   void DestroySwapchainImageViews();
+  void DestroyCommandPool();
+  void DestroyRenderFences();
+  void DestroySwapchainSemaphores();
+  void DestroyRenderSemaphores();
+
+  bool WaitAndResetFence();
+  bool AcquireNextImage(uint32_t* id);
+  bool BeginCommandBuffer();
+  bool EndCommandBuffer();
+  bool TransitionImage(VkCommandBuffer cmd, VkImage image,
+                       VkImageLayout cur_layout, VkImageLayout new_layout);
+  bool Submit();
+  bool Present(uint32_t id);
 
   static VkBool32 DebugMessageCallback(
       VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -75,6 +95,20 @@ class App {
   VkDevice device_ = nullptr;
   VkQueue queue_ = nullptr;
   VkSwapchainKHR swapchain_ = nullptr;
+  VkCommandPool command_pool_ = nullptr;
+
+  static constexpr size_t NumFramesInFlight = 2;
+  struct FrameData {
+    VkCommandBuffer command_buffer[NumFramesInFlight] = {nullptr};
+    // signalled when rendering is finished
+    VkFence render_fence[NumFramesInFlight] = {nullptr};
+    // signalled when swapchain image is ready for rendering
+    VkSemaphore swapchain_semaphore[NumFramesInFlight] = {nullptr};
+    // signalled when rendering is finished
+    VkSemaphore render_semaphore[NumFramesInFlight] = {nullptr};
+  };
+  FrameData frames_;
+  size_t current_frame_ = 0;
 
   std::vector<VkImage> swapchain_images_;
   std::vector<VkImageView> swapchain_image_views_;

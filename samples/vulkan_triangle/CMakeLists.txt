@@ -17,3 +17,9 @@ target_include_directories(vulkan_triangle
   "${PROJECT_SOURCE_DIR}/third_party/vulkan_headers/repo/include"
 )
 target_link_libraries(vulkan_triangle PRIVATE base)
+
+if (APPLE)
+  find_library(APPKIT AppKit)
+  find_library(QUARTZ_CORE QuartzCore)
+  target_link_libraries(vulkan_triangle PRIVATE ${APPKIT} ${QUARTZ_CORE})
+endif ()

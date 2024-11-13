@@ -29,12 +29,19 @@ class AppDelegateMac final : public AppDelegate {
   uint32_t GetWidth() override;
   uint32_t GetHeight() override;
 
+  void PollEvents() override;
+  bool ShouldQuit() override;
+
   void Deinit() override;
+
+  void SetShouldQuit(bool v);
 
  private:
   bool CreateWindow();
 
   void* library_ = nullptr;
+
+  bool should_quit_ = false;
 
   struct ObjcData;
   ObjcData* data_;
