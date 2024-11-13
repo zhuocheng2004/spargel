@@ -1,6 +1,8 @@
 #ifndef SAMPLES_VULKAN_TRIANGLE_APP_H_
 #define SAMPLES_VULKAN_TRIANGLE_APP_H_
 
+#include <vector>
+
 #include "gpu/vulkan/vulkan_headers.h"
 #include "samples/vulkan_triangle/app_delegate.h"
 #include "samples/vulkan_triangle/proc_table.h"
@@ -10,16 +12,47 @@ class App {
   explicit App(AppDelegate* delegate);
 
   bool Init();
-  bool CreateInstance();
 
   void Deinit();
 
   void Run();
 
  private:
+  bool LoadGeneralProcs();
+  bool EnumerateInstanceLayers();
+  void PrintInstanceLayers();
+  bool EnumerateInstanceLayerExtensions(char const* layer);
+  bool EnumerateInstanceExtensions();
+  void PrintInstanceExtensions();
+  bool SelectInstanceLayers();
+  bool SelectInstanceExtensions();
+  void PrintSelectedInstanceLayers();
+  void PrintSelectedInstanceExtensions();
+  bool CreateInstance();
+  bool LoadInstanceProcs();
+  bool LoadDeviceProcs();
+
+  void DestroyInstance();
+
   AppDelegate* delegate_ = nullptr;
+
   ProcTable table_;
+
   VkInstance instance_ = nullptr;
+
+  std::vector<VkLayerProperties> instance_layers_;
+  std::vector<VkExtensionProperties> instance_extensions_;
+  std::vector<char const*> selected_instance_layers_;
+  std::vector<char const*> selected_instance_extensions_;
+
+  bool has_validation_ = false;
+  bool has_api_dump_ = false;
+  bool has_debug_utils_ = false;
+  // if VK_KHR_portability_enumeration is present, selecte it
+  // note: the MoltenVK driver is non-conformant
+  // note: is it possible that we link with MoltenVK directly in shipping build?
+  // todo: consider move this to platform specific logic
+  bool has_portability_ = false;
 };
 
 #endif

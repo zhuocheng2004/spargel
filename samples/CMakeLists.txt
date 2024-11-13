@@ -11,3 +11,5 @@ target_link_libraries(demo PRIVATE glfw nanovg glad nanovg_perf Tracy::TracyClie
 
 add_executable(bit_array_demo bit_array_demo.cc)
 target_compile_features(bit_array_demo PUBLIC cxx_std_20)
+
+add_subdirectory(vulkan_triangle)

@@ -8,6 +8,8 @@ executable("vulkan_triangle") {
     "app_delegate_mac.mm",
     "main.cc",
     "proc_table.h",
+    "utils.cc",
+    "utils.h",
     "vulkan_procs.inc",
   ]
   deps = [

@@ -1,6 +1,9 @@
 #ifndef SAMPLES_VULKAN_TRIANGLE_APP_DELEGATE_H_
 #define SAMPLES_VULKAN_TRIANGLE_APP_DELEGATE_H_
 
+#include <vector>
+
+#include "gpu/vulkan/vulkan_headers.h"
 #include "samples/vulkan_triangle/proc_table.h"
 
 class AppDelegate {
@@ -9,6 +12,13 @@ class AppDelegate {
 
   virtual bool LoadLibrary() = 0;
   virtual bool LoadVkGetInstanceProcAddr() = 0;
+
+  virtual bool SelectInstanceLayers(
+      std::vector<VkLayerProperties> const& available,
+      std::vector<char const*>& selected);
+  virtual bool SelectInstanceExtensions(
+      std::vector<VkExtensionProperties> const& available,
+      std::vector<char const*>& selected);
 
   virtual void Deinit() = 0;
 
