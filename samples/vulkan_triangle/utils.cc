@@ -1,5 +1,7 @@
 #include "samples/vulkan_triangle/utils.h"
 
+#include <algorithm>
+
 bool SelectLayerByName(char const* layer,
                        std::vector<VkLayerProperties> const& available,
                        std::vector<char const*>& selected) {
