@@ -15,6 +15,10 @@ VULKAN_GENERAL_PROC(vkCreateInstance)
 #if defined(VULKAN_INSTANCE_PROC)
 
 VULKAN_INSTANCE_PROC(vkDestroyInstance)
+VULKAN_INSTANCE_PROC(vkEnumeratePhysicalDevices)
+
+VULKAN_INSTANCE_PROC(vkCreateDebugUtilsMessengerEXT)
+VULKAN_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT)
 
 #endif
 

@@ -17,9 +17,9 @@ bool App::Init() {
   if (!delegate_->LoadVkGetInstanceProcAddr()) return false;
   if (!LoadGeneralProcs()) return false;
   if (!EnumerateInstanceLayers()) return false;
-  PrintInstanceLayers();
+  // PrintInstanceLayers();
   if (!EnumerateInstanceExtensions()) return false;
-  PrintInstanceExtensions();
+  // PrintInstanceExtensions();
   if (!SelectInstanceLayers()) return false;
   if (!delegate_->SelectInstanceLayers(instance_layers_,
                                        selected_instance_layers_))
@@ -31,8 +31,12 @@ bool App::Init() {
   PrintSelectedInstanceLayers();
   PrintSelectedInstanceExtensions();
   if (!CreateInstance()) return false;
-  Log(Info, "instance created");
+  LOG(Info, "instance created");
   if (!LoadInstanceProcs()) return false;
+  if (has_debug_utils_) {
+    if (!CreateDebugMessenger()) return false;
+  }
+  if (!EnumeratePhysicalDevices()) return false;
   return true;
 }
 
@@ -42,7 +46,7 @@ bool App::LoadGeneralProcs() {
   table_.name =                                                            \
       reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(nullptr, #name)); \
   if (!table_.name) {                                                      \
-    Log(Error, "cannot load " #name);                                      \
+    LOG(Error, "cannot load " #name);                                      \
     return false;                                                          \
   }
 #include "samples/vulkan_triangle/vulkan_procs.inc"
@@ -54,7 +58,7 @@ bool App::EnumerateInstanceLayers() {
   uint32_t count;
   auto result = table_.vkEnumerateInstanceLayerProperties(&count, nullptr);
   if (result != VK_SUCCESS) {
-    Log(Error, "cannot enumerate instance layers");
+    LOG(Error, "cannot enumerate instance layers");
     return false;
   }
   instance_layers_.resize(count);
@@ -78,14 +82,14 @@ bool App::EnumerateInstanceLayerExtensions(char const* layer) {
   auto result =
       table_.vkEnumerateInstanceExtensionProperties(layer, &count, nullptr);
   if (result != VK_SUCCESS) {
-    Log(Error, "cannot enumerate instance extensions");
+    LOG(Error, "cannot enumerate instance extensions");
     return false;
   }
   exts.resize(count);
   result =
       table_.vkEnumerateInstanceExtensionProperties(layer, &count, exts.data());
   if (result != VK_SUCCESS) {
-    Log(Error, "cannot enumerate instance extensions");
+    LOG(Error, "cannot enumerate instance extensions");
     return false;
   }
   exts.resize(count);
@@ -118,27 +122,26 @@ bool App::SelectInstanceLayers() {
   has_validation_ =
       SelectLayerByName("VK_LAYER_KHRONOS_validation", instance_layers_,
                         selected_instance_layers_);
-  has_api_dump_ = SelectLayerByName(
-      "VK_LAYER_LUNARG_api_dump", instance_layers_, selected_instance_layers_);
+  // has_api_dump_ = SelectLayerByName(
+  //     "VK_LAYER_LUNARG_api_dump", instance_layers_,
+  //     selected_instance_layers_);
   return true;
 }
 
 void App::PrintSelectedInstanceLayers() {
-  printf("list of selected instance layers (%zu in total)\n",
-         selected_instance_layers_.size());
+  LOG(Info, "list of selected instance layers (",
+      selected_instance_layers_.size(), " in total)");
   for (auto name : selected_instance_layers_) {
-    printf("  %s\n", name);
+    LOG(Info, "  ", name);
   }
-  printf("\n");
 }
 
 void App::PrintSelectedInstanceExtensions() {
-  printf("list of selected instance extensions (%zu in total)\n",
-         selected_instance_extensions_.size());
+  LOG(Info, "list of selected instance extensions (",
+      selected_instance_extensions_.size(), " in total)");
   for (auto name : selected_instance_extensions_) {
-    printf("  %s\n", name);
+    LOG(Info, "  ", name);
   }
-  printf("\n");
 }
 
 bool App::SelectInstanceExtensions() {
@@ -148,7 +151,7 @@ bool App::SelectInstanceExtensions() {
   auto has_surface = SelectExtensionByName(
       "VK_KHR_surface", instance_extensions_, selected_instance_extensions_);
   if (!has_surface) {
-    Log(Error, "cannot find extension VK_KHR_surface");
+    LOG(Error, "cannot find extension VK_KHR_surface");
     return false;
   }
   has_portability_ = SelectExtensionByName("VK_KHR_portability_enumeration",
@@ -182,7 +185,7 @@ bool App::CreateInstance() {
 
   auto result = table_.vkCreateInstance(&info, nullptr, &instance_);
   if (result != VK_SUCCESS) {
-    Log(Error, "cannot create instance");
+    LOG(Error, "cannot create instance");
     return false;
   }
   return true;
@@ -202,10 +205,66 @@ bool App::LoadInstanceProcs() {
   return true;
 }
 
+bool App::CreateDebugMessenger() {
+  VkDebugUtilsMessengerCreateInfoEXT info;
+  info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+  info.pNext = nullptr;
+  info.flags = 0;
+  info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+  info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+  info.pfnUserCallback = DebugMessageCallback;
+  info.pUserData = this;
+  auto result = table_.vkCreateDebugUtilsMessengerEXT(instance_, &info, nullptr,
+                                                      &debug_messenger_);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot create debug messenger");
+    return false;
+  }
+  return true;
+}
+
+bool App::EnumeratePhysicalDevices() {
+  uint32_t count;
+  auto result = table_.vkEnumeratePhysicalDevices(instance_, &count, nullptr);
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot enumerate physical devices");
+    return false;
+  }
+  physical_devices_.resize(count);
+  result = table_.vkEnumeratePhysicalDevices(instance_, &count,
+                                             physical_devices_.data());
+  if (result != VK_SUCCESS) {
+    LOG(Error, "cannot enumerate physical devices");
+    return false;
+  }
+  physical_devices_.resize(count);
+  return true;
+}
+
 void App::DestroyInstance() { table_.vkDestroyInstance(instance_, nullptr); }
+
+void App::DestroyDebugMessenger() {
+  table_.vkDestroyDebugUtilsMessengerEXT(instance_, debug_messenger_, nullptr);
+}
+
+VkBool32 App::DebugMessageCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT type,
+    VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
+  LOG(Info, "vulkan validation: ", data->pMessage);
+  // Spec:
+  // The application should always return VK_FALSE.
+  return VK_FALSE;
+}
 
 // TODO: delegate deinit
 void App::Deinit() {
+  if (has_debug_utils_) DestroyDebugMessenger();
   DestroyInstance();
   delegate_->Deinit();
 }
