@@ -181,6 +181,7 @@ bool AppDelegateMac::CreateWindow() {
   [data_->view setLayer:data_->layer];
 
   [data_->window setContentView:data_->view];
+  [data_->window setTitle:[NSString stringWithUTF8String:"Spargel Engine"]];
   [data_->window makeKeyAndOrderFront:NSApp];
 
   data_->window_delegate = [[WindowDelegate alloc] initWithAppDelegateMac:this];
@@ -192,8 +193,8 @@ uint32_t AppDelegateMac::GetWidth() { return data_->view.bounds.size.width; }
 uint32_t AppDelegateMac::GetHeight() { return data_->view.bounds.size.height; }
 
 void AppDelegateMac::PollEvents() {
-  @autoreleasepool {
-    for (;;) {
+  for (;;) {
+    @autoreleasepool {
       NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny
                                           untilDate:[NSDate distantPast]
                                              inMode:NSDefaultRunLoopMode
@@ -201,7 +202,7 @@ void AppDelegateMac::PollEvents() {
       if (event == nil) break;
       [NSApp sendEvent:event];
     }
-  }  // autoreleasepool
+  }
 }
 
 bool AppDelegateMac::ShouldQuit() { return should_quit_; }
