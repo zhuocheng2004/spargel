@@ -1,0 +1,5 @@
+executable("myth") {
+  sources = [
+    "main.cc",
+  ]
+}

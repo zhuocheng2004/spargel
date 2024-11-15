@@ -1,0 +1,17 @@
+source_set("platform") {
+  public = [
+    "public/platform.h",
+  ]
+  sources = [
+    "private/platform.cc",
+  ]
+  if (is_macos) {
+    sources += [
+      "private/macos/platform_mac.h",
+      "private/macos/platform_mac.mm",
+    ]
+    frameworks = [
+      "AppKit.framework",
+    ]
+  }
+}

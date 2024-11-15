@@ -12,3 +12,6 @@ add_subdirectory(third_party/nanovg/repo)
 
 option(TRACY_ENALBE "" OFF)
 add_subdirectory(third_party/tracy/repo)
+
+add_subdirectory(modules)
+add_subdirectory(games)

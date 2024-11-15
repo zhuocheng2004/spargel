@@ -11,8 +11,13 @@ group("default") {
     "//samples/vulkan_triangle",
 
     # modules
+    "//modules/base",
     "//modules/gpu",
+    "//modules/platform",
     "//modules/window",
+
+    # games
+    "//games/myth",
   ]
   if (is_macos) {
     deps += []

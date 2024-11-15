@@ -21,7 +21,7 @@ class shader_module;
 class texture;
 class texture_view;
 
-enum backend_kind {
+enum class backend_kind {
   directx,
   metal,
   vulkan,

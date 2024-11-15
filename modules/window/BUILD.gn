@@ -5,4 +5,13 @@ source_set("window") {
   sources = [
     "private/window.cc",
   ]
+  if (is_macos) {
+    sources += [
+      "private/cocoa/window_cocoa.h",
+      "private/cocoa/window_cocoa.mm",
+    ]
+    frameworks = [
+      "AppKit.framework",
+    ]
+  }
 }
