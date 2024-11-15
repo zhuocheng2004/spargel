@@ -60,3 +60,7 @@ config("sysroot") {
 config("no_deprecation_warning") {
   cflags = [ "-Wno-deprecated-declarations" ]
 }
+
+config("default_warning") {
+  cflags = [ "-Wall" ]
+}

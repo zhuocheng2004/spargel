@@ -34,6 +34,7 @@ _default_compiler_configs = [
   "//build/config/compiler:default_optimizations",
   "//build/config/compiler:default_standard",
   "//build/config/compiler:default_symbols",
+  "//build/config/compiler:default_warning",
   "//build/config/compiler:no_exceptions",
   "//build/config/compiler:no_rtti",
   "//build/config/compiler:sysroot",
