@@ -18,6 +18,8 @@ group("default") {
 
     # games
     "//games/myth",
+
+    "//third_party/glslang",
   ]
   if (is_macos) {
     deps += []

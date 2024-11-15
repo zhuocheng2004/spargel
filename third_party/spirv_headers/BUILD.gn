@@ -1,0 +1,7 @@
+config("spirv_headers_config") {
+  include_dirs = [ "repo/include" ]
+}
+
+source_set("spirv_headers") {
+  public_configs = [ ":spirv_headers_config" ]
+}
