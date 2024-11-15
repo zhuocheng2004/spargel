@@ -56,6 +56,8 @@ class App {
   bool CreateRenderFences();
   bool CreateSwapchainSemaphores();
   bool CreateRenderSemaphores();
+  bool CreateRenderPass();
+  bool CreateFramebuffers();
 
   void DestroyInstance();
   void DestroyDebugMessenger();
@@ -67,13 +69,17 @@ class App {
   void DestroyRenderFences();
   void DestroySwapchainSemaphores();
   void DestroyRenderSemaphores();
+  void DestroyFramebuffers();
+  void DestroyRenderPass();
 
   bool WaitAndResetFence();
   bool AcquireNextImage(uint32_t* id);
   bool BeginCommandBuffer();
   bool EndCommandBuffer();
-  bool TransitionImage(VkCommandBuffer cmd, VkImage image,
-                       VkImageLayout cur_layout, VkImageLayout new_layout);
+  void BeginRenderPass(VkCommandBuffer cmd, uint32_t image_id,
+                       VkClearColorValue clear);
+  // bool TransitionImage(VkCommandBuffer cmd, VkImage image,
+  //                      VkImageLayout cur_layout, VkImageLayout new_layout);
   bool Submit();
   bool Present(uint32_t id);
 
@@ -97,6 +103,8 @@ class App {
   VkSwapchainKHR swapchain_ = nullptr;
   VkCommandPool command_pool_ = nullptr;
 
+  VkRenderPass render_pass_ = nullptr;
+
   static constexpr size_t NumFramesInFlight = 2;
   struct FrameData {
     VkCommandBuffer command_buffer[NumFramesInFlight] = {nullptr};
@@ -112,7 +120,11 @@ class App {
 
   std::vector<VkImage> swapchain_images_;
   std::vector<VkImageView> swapchain_image_views_;
+  std::vector<VkFramebuffer> framebuffers_;
   VkSurfaceFormatKHR surface_format_;
+
+  uint32_t width_ = 0;
+  uint32_t height_ = 0;
 
   std::vector<VkLayerProperties> instance_layers_;
   std::vector<VkExtensionProperties> instance_extensions_;
@@ -135,7 +147,7 @@ class App {
   std::vector<PhysicalDeviceProperty> physical_device_properties_;
 
   bool has_validation_ = false;
-  bool has_api_dump_ = false;
+  // bool has_api_dump_ = false;
   bool has_debug_utils_ = false;
   // if VK_KHR_portability_enumeration is present, selecte it
   // note: the MoltenVK driver is non-conformant

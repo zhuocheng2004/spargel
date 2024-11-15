@@ -55,25 +55,36 @@ VULKAN_DEVICE_PROC(vkResetCommandBuffer)
 VULKAN_DEVICE_PROC(vkBeginCommandBuffer)
 VULKAN_DEVICE_PROC(vkEndCommandBuffer)
 
+VULKAN_DEVICE_PROC(vkCreateRenderPass)
+VULKAN_DEVICE_PROC(vkDestroyRenderPass)
+
+VULKAN_DEVICE_PROC(vkCreateFramebuffer)
+VULKAN_DEVICE_PROC(vkDestroyFramebuffer)
+
 VULKAN_DEVICE_PROC(vkCreateFence)
 VULKAN_DEVICE_PROC(vkDestroyFence)
-VULKAN_DEVICE_PROC(vkCreateSemaphore)
-VULKAN_DEVICE_PROC(vkDestroySemaphore)
-
 VULKAN_DEVICE_PROC(vkWaitForFences)
 VULKAN_DEVICE_PROC(vkResetFences)
+
+VULKAN_DEVICE_PROC(vkCreateSemaphore)
+VULKAN_DEVICE_PROC(vkDestroySemaphore)
 
 VULKAN_DEVICE_PROC(vkCreateSwapchainKHR)
 VULKAN_DEVICE_PROC(vkDestroySwapchainKHR)
 VULKAN_DEVICE_PROC(vkGetSwapchainImagesKHR)
 VULKAN_DEVICE_PROC(vkAcquireNextImageKHR)
 
-VULKAN_DEVICE_PROC(vkCmdPipelineBarrier2KHR)
-VULKAN_DEVICE_PROC(vkQueueSubmit2KHR)
+// requires synchronization2
+// VULKAN_DEVICE_PROC(vkQueueSubmit2KHR)
+// VULKAN_DEVICE_PROC(vkCmdPipelineBarrier2KHR)
 
+VULKAN_DEVICE_PROC(vkQueueSubmit)
+VULKAN_DEVICE_PROC(vkQueuePresentKHR)
+
+VULKAN_DEVICE_PROC(vkCmdBeginRenderPass)
+VULKAN_DEVICE_PROC(vkCmdEndRenderPass)
 VULKAN_DEVICE_PROC(vkCmdClearColorImage)
 
-VULKAN_DEVICE_PROC(vkQueuePresentKHR)
 
 VULKAN_DEVICE_PROC(vkDeviceWaitIdle)
 
