@@ -13,7 +13,7 @@ if (current_cpu == "") {
 
 is_linux = current_os == "linux"
 is_macos = current_os == "mac"
-is_win = current_os == "win"
+is_windows = current_os == "win"
 
 declare_args() {
   is_debug = true
@@ -23,6 +23,9 @@ _default_toolchain = ""
 if (target_os == "mac") {
   assert(host_os == "mac")
   _default_toolchain = "//build/toolchain/macos:clang_$target_cpu"
+} else if (target_os == "linux") {
+  assert(host_os == "linux")
+  _default_toolchain = "//build/toolchain/linux:clang_$target_cpu"
 } else {
   assert(false)
 }

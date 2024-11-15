@@ -7,6 +7,8 @@ declare_args() {
 if (sysroot == "") {
   if (is_macos) {
     sysroot = macos_sdk_path
+  } else if (is_linux) {
+    sysroot = "/"
   } else {
     assert(false)
   }
