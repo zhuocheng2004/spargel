@@ -9,6 +9,10 @@ group("default") {
     # samples
     "//samples:demo",
     "//samples/vulkan_triangle",
+
+    # modules
+    "//modules/gpu",
+    "//modules/window",
   ]
   if (is_macos) {
     deps += []

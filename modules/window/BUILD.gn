@@ -1,0 +1,8 @@
+source_set("window") {
+  public = [
+    "public/window.h",
+  ]
+  sources = [
+    "private/window.cc",
+  ]
+}

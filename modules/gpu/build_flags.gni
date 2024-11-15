@@ -1,0 +1,5 @@
+declare_args() {
+  enable_directx = is_win
+  enable_vulkan = true
+  enable_metal = is_macos
+}
