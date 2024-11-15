@@ -9,6 +9,7 @@ group("default") {
     # samples
     "//samples:demo",
     "//samples/vulkan_triangle",
+    "//samples:platform_window",
 
     # modules
     "//modules/base",

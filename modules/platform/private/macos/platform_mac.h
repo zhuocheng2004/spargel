@@ -31,6 +31,8 @@ class platform_mac final : public platform {
 
   bool initialized() override;
 
+  void poll_event() override;
+
  private:
   bool initialized_ = false;
   SpargelAppDelegate* delegate_;

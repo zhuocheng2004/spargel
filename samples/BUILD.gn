@@ -12,3 +12,10 @@ executable("demo") {
     "//third_party/tracy:tracy_client",
   ]
 }
+executable("platform_window") {
+  sources = [ "platform_window.cc" ]
+  deps = [
+    "//modules/platform",
+    "//modules/window",
+  ]
+}

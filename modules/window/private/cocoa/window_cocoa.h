@@ -1,7 +1,7 @@
 #pragma once
 
-#include "modules/window/public/window.h"
 #include "modules/base/public/types.h"
+#include "modules/window/public/window.h"
 
 #import <AppKit/NSWindow.h>
 
@@ -21,7 +21,12 @@ class window_cocoa : public window {
   void init(window_descriptor const& desc);
   void deinit();
 
+  void set_title(char const* str) override;
+
+  void close() override;
+
  private:
+  bool closed_;
   int width_;
   int height_;
 

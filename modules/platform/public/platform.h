@@ -11,6 +11,8 @@ class platform {
   virtual void init() = 0;
   virtual void deinit() = 0;
 
+  virtual void poll_event() = 0;
+
   virtual bool initialized() = 0;
 };
 

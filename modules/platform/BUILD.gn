@@ -14,4 +14,7 @@ source_set("platform") {
       "AppKit.framework",
     ]
   }
+  deps = [
+    "//modules/base",
+  ]
 }

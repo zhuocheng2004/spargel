@@ -22,4 +22,8 @@ window* window::create(window_descriptor const& desc) {
 
 window::~window() = default;
 
+void window::set_title(char const* str) {}
+
+void window::close() {}
+
 }  // namespace spargel::window
