@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+
+	<key>CFBundleIdentifier</key>
+	<string>com.spargel.editor</string>
+
+	<key>CFBundleName</key>
+	<string>Spargel</string>
+
+	<key>CFBundleDisplayName</key>
+	<string>Spargel Editor</string>
+
+	<key>CFBundleVersion</key>
+	<string>0.0.1</string>
+
+	<key>CFBundleShortVersionString</key>
+	<string>0.0.1</string>
+
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+
+	<key>LSMinimumSystemVersion</key>
+	<string>15</string>
+
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en-US</string>
+
+	<key>CFBundleExecutable</key>
+	<string>editor</string>
+
+	<key>CFBundleIconFile</key>
+	<string></string>
+
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+</dict>
+</plist>

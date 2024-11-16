@@ -9,13 +9,12 @@ group("default") {
     # samples
     "//samples:demo",
     "//samples/vulkan_triangle",
-    "//samples:platform_window",
 
     # modules
     "//modules/base",
+    "//modules/editor",
     "//modules/gpu",
-    "//modules/platform",
-    "//modules/window",
+    "//modules/ui",
 
     # games
     "//games/myth",
@@ -23,6 +22,8 @@ group("default") {
     "//third_party/glslang",
   ]
   if (is_macos) {
-    deps += []
+    deps += [
+      "//modules/editor:SpargelEditor.app"
+    ]
   }
 }

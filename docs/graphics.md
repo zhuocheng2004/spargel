@@ -74,6 +74,8 @@ Aside:
 Apple's move towards a combined dynamic linker cache makes it increasingly more
 difficult to inspect the internals of various system frameworks.
 
+> The default `terminate:` implementation ends the process directly, never leaving the event loop.
+
 ## `MTLView`, `CAMetalLayer`, and `CADisplayLink`
 
 > `CADisplayLink`: A timer object that allows your app to synchronize its drawing to the refresh rate of the display.
@@ -157,3 +159,79 @@ See [templates](https://github.com/flutter/flutter/tree/1ef8d512829dad0797ecf525
 ## Vulkan Presentation
 
 > Calls to `vkQueuePresentKHR` *may* block, but *must* return in finite time.
+
+## Metal
+
+### Objects
+
+- `MTLDevice`: The main Metal interface to a GPU that apps use to draw graphics
+  and run computations in parallel.
+- `MTLCommandQueue`: An instance you use to create, submit, and schedule
+  command buffers to a specific GPU device to run the commands within those buffers.
+- `MTLCommandBuffer`: A container that stores a sequence of GPU commands that
+  you encode into it.
+- `MTLCommandEncoder`
+- `MTLRenderCommandEncoder`
+- `MTLParallelRenderCommandEncoder`
+- `MTLRenderPipelineState`
+- `MTLDrawable`
+- `MTLDepthStencilState`
+- `MTLRasterizationRateMap`
+- `MTLComputeCommandEncoder`
+- `MTLComputePipelineState`
+- `MTLBlitCommandEncoder`
+- `MTLIndirectCommandBuffer`
+- `MTLIndirectComputeCommand`
+- `MTLIndirectRenderCommand`
+- `MTLAccelerationStructure`
+- `MTLAccelerationStructureCommandEncoder`
+- `MTLIntersectionFunctionTable`
+- `MTLResidencySet`: A collection of resource allocations that can move in and
+  out of resident memory.
+- `MTLAllocation`
+- `MTLResource`
+- `MTLBuffer`
+- `MTLArgumentEncoder`
+- `MTLTexture`
+- `MTLSamplerState`
+- `MTLResourceStateCommandEncoder`
+- `MTLHeap`
+- `MTLIOCommandQueue`
+- `MTLIOCommandBuffer`
+- `MTLIOFileHandle`
+- `MTLFence`
+- `MTLEvent`
+- `MTLSharedEvent`
+- `MTLLibrary`
+- `MTLDynamicLibrary`
+- `MTLBinaryArchive`
+- `MTLFunction`
+- `MTLFunctionHandle`
+- `MTLVisibleFunctionTable`
+- `MTLFunctionStitchingNode`
+- `MTLFunctionStitchingAttribute`
+- `MTLBinding`
+- `MTLBufferBinding`
+- `MTLTextureBinding`
+- `MTLThreadgroupBinding`
+- `MTLObjectPayloadBinding`
+- `MTLLogState`
+
+### Overview
+
+- Buffers, textures, and other resources.
+- Input/Output command queues for loading resources from the file system.
+- Command queues.
+- Pipeline states, which are expensive to create.
+
+### Creating Device
+
+All the new devices have exactly one GPU.
+Get the GPU by calling `MTLCreateSystemDefaultDevice`
+
+
+## References
+
+- [Metal Game Window](https://developer.apple.com/documentation/metal/managing_your_game_window_for_metal_in_macos?language=objc)
+- [Custom Metal View](https://developer.apple.com/documentation/metal/onscreen_presentation/creating_a_custom_metal_view?language=objc)
+-

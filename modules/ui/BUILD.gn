@@ -1,0 +1,21 @@
+source_set("ui") {
+  public = [
+    "public/platform.h",
+    "public/window.h",
+  ]
+  sources = [
+    "private/platform.cc",
+    "private/window.cc",
+  ]
+  if (is_macos) {
+    sources += [
+      "private/appkit/platform_ns.h",
+      "private/appkit/platform_ns.mm",
+      "private/appkit/window_ns.h",
+      "private/appkit/window_ns.mm",
+    ]
+    frameworks = [
+      "AppKit.framework",
+    ]
+  }
+}
