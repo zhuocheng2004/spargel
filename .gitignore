@@ -4,9 +4,10 @@
 *.tmp
 .vs
 .vscode
+.cache
 
 # Build
-/out
+/build
 CMakeUserPresets.json
 
 # Mac

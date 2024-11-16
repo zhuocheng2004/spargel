@@ -1,6 +1,0 @@
-source_set("build_config") {
-  public = [ "build_config.h" ]
-}
-source_set("build_flags") {
-  public = [ "build_flags.h" ]
-}

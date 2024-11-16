@@ -11,13 +11,18 @@ if (APPLE)
       app_delegate_mac.mm
   )
 endif ()
+if (WIN32)
+  target_sources(vulkan_triangle
+    PRIVATE
+      app_delegate_win.cc
+  )
+endif ()
 target_compile_features(vulkan_triangle PUBLIC cxx_std_20)
 target_include_directories(vulkan_triangle
   PUBLIC
   "${PROJECT_SOURCE_DIR}"
-  "${PROJECT_SOURCE_DIR}/third_party/vulkan_headers/repo/include"
 )
-target_link_libraries(vulkan_triangle PRIVATE base)
+target_link_libraries(vulkan_triangle PRIVATE Vulkan::Headers)
 
 if (APPLE)
   find_library(APPKIT AppKit)

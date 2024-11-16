@@ -1,9 +1,0 @@
-source_set("base") {
-  public = [
-    "public/string.h",
-    "public/types.h",
-  ]
-  sources = [
-    "private/string.cc",
-  ]
-}

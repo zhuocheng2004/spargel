@@ -1,0 +1,13 @@
+function(spargel_add_executable name)
+  add_executable(${name})
+  target_compile_features(${name} PUBLIC cxx_std_20)
+  target_include_directories(${name} PUBLIC "${PROJECT_SOURCE_DIR}")
+  # set_target_properties(${name} PROPERTIES LINK_LIBRARIES_STRATEGY REORDER_FREELY)
+endfunction()
+
+function(spargel_add_library name)
+  add_library(${name})
+  target_compile_features(${name} PUBLIC cxx_std_20)
+  target_include_directories(${name} PUBLIC "${PROJECT_SOURCE_DIR}")
+  # set_target_properties(${name} PROPERTIES LINK_LIBRARIES_STRATEGY REORDER_FREELY)
+endfunction()
