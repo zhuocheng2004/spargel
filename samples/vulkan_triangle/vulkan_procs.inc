@@ -31,6 +31,9 @@ VULKAN_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT)
 #if defined(__APPLE__)
 VULKAN_INSTANCE_PROC(vkCreateMetalSurfaceEXT)
 #endif
+#if defined(_WIN32)
+VULKAN_INSTANCE_PROC(vkCreateWin32SurfaceKHR)
+#endif
 
 VULKAN_INSTANCE_PROC(vkDestroySurfaceKHR)
 VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceSupportKHR)

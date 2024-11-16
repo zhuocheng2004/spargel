@@ -9,6 +9,7 @@ if (sysroot == "") {
     sysroot = macos_sdk_path
   } else if (is_linux) {
     sysroot = "/"
+  } else if (is_windows) {
   } else {
     assert(false)
   }

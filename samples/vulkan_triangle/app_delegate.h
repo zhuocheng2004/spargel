@@ -12,7 +12,7 @@ class AppDelegate {
 
   void SetProcTable(ProcTable* table);
 
-  virtual bool LoadLibrary() = 0;
+  virtual bool LoadVkLibrary() = 0;
   virtual bool LoadVkGetInstanceProcAddr() = 0;
 
   virtual bool SelectInstanceLayers(

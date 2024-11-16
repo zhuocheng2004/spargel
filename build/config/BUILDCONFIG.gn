@@ -19,6 +19,10 @@ declare_args() {
   is_debug = true
 }
 
+declare_args() {
+  is_msvc = is_windows
+}
+
 _default_toolchain = ""
 if (target_os == "mac") {
   assert(host_os == "mac")
@@ -26,6 +30,9 @@ if (target_os == "mac") {
 } else if (target_os == "linux") {
   assert(host_os == "linux")
   _default_toolchain = "//build/toolchain/linux:clang_$target_cpu"
+} else if (target_os == "win") {
+  assert(host_os == "win")
+  _default_toolchain = "//build/toolchain/windows:msvc_$target_cpu"
 } else {
   assert(false)
 }
@@ -62,6 +69,10 @@ set_defaults("source_set") {
 
 _default_linker_configs = []
 _default_executable_configs = _default_compiler_configs + _default_linker_configs
+
+if (is_windows) {
+  _default_executable_configs += [ "//build/config/compiler:default_libs" ]
+}
 
 set_defaults("executable") {
   configs = _default_executable_configs

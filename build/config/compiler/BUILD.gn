@@ -6,11 +6,13 @@ config("basic") {
   cflags_cc = []
   ldflags = []
 
-  cflags += [ "-fcolor-diagnostics" ]
-  ldflags += [
-    "-fuse-ld=lld",
-    "-Wl,--color-diagnostics",
-  ]
+  if (!is_msvc)  {
+    cflags += [ "-fcolor-diagnostics" ]
+    ldflags += [
+      "-fuse-ld=lld",
+      "-Wl,--color-diagnostics",
+    ]
+  }
 }
 
 config("debug") {
@@ -24,43 +26,79 @@ config("default_include_dirs") {
 }
 
 config("default_optimizations") {
-  cflags = [ "-O0" ]
+  if (is_msvc) {
+    cflags = [ "/Od" ]
+  } else {
+    cflags = [ "-O0" ]
+  }
 }
 
 config("default_standard") {
-  cflags_c = [ "-std=c11" ]
-  cflags_cc = [ "-std=c++20" ]
-  cflags_objc = [ "-std=c11" ]
-  cflags_objcc = [ "-std=c++20" ]
+  if (is_msvc) {
+    cflags_c = [ "/std:c11" ]
+    cflags_cc = [ "/std:c++20" ]
+  } else {
+    cflags_c = [ "-std=c11" ]
+    cflags_cc = [ "-std=c++20" ]
+    cflags_objc = [ "-std=c11" ]
+    cflags_objcc = [ "-std=c++20" ]
+  }
 }
 
 config("default_symbols") {
-  cflags = [ "-g0" ]
+  if (is_msvc) {
+
+  } else {
+    cflags = [ "-g0" ]
+  }
 }
 
 config("no_exceptions") {
-  cflags_cc = [ "-fno-exceptions" ]
-  cflags_objcc = [ "-fno-exceptions" ]
+  if (is_msvc) {
+    defines = [ "_HAS_EXCEPTIONS=0" ]
+  } else {
+    cflags_cc = [ "-fno-exceptions" ]
+    cflags_objcc = [ "-fno-exceptions" ]
+  }
 }
 
 config("no_rtti") {
-  cflags_cc = [ "-fno-rtti" ]
-  cflags_objcc = [ "-fno-rtti" ]
+  if (is_msvc) {
+    cflags_cc = [ "/GR-" ]
+  } else {
+    cflags_cc = [ "-fno-rtti" ]
+    cflags_objcc = [ "-fno-rtti" ]
+  }
 }
 
 config("sysroot") {
-  sysroot_flags = [
-    "-isysroot",
-    rebase_path(sysroot, root_build_dir),
-  ]
-  cflags = sysroot_flags
-  ldflags = sysroot_flags
+  if (is_linux || is_macos) {
+    sysroot_flags = [
+      "-isysroot",
+      rebase_path(sysroot, root_build_dir),
+    ]
+    cflags = sysroot_flags
+    ldflags = sysroot_flags
+  }
 }
 
 config("no_deprecation_warning") {
-  cflags = [ "-Wno-deprecated-declarations" ]
+  if (!is_msvc) {
+    cflags = [ "-Wno-deprecated-declarations" ]
+  }
 }
 
 config("default_warning") {
-  cflags = [ "-Wall" ]
+  if (!is_msvc) {
+    cflags = [ "-Wall" ]
+  }
+}
+
+config("default_libs") {
+  libs = [
+    "user32.lib",
+    "kernel32.lib",
+    "gdi32.lib",
+    "shell32.lib",
+  ]
 }

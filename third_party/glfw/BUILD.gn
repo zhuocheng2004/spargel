@@ -47,4 +47,18 @@ source_set("glfw") {
       "CoreFoundation.framework",
     ]
   }
+
+  if (is_windows) {
+    defines = [ "_GLFW_WIN32" ]
+    sources += [
+      "repo/src/win32_init.c",
+      "repo/src/win32_joystick.c",
+      "repo/src/win32_module.c",
+      "repo/src/win32_monitor.c",
+      "repo/src/win32_thread.c",
+      "repo/src/win32_time.c",
+      "repo/src/win32_window.c",
+      "repo/src/wgl_context.c",
+    ]
+  }
 }

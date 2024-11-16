@@ -127,7 +127,12 @@ class SourceLocation {
       : ptr_{ptr} {}
   std::source_location::__impl const* ptr_;
 #else
-#error "unimplemented: SourceLocation"
+ public:
+  static consteval SourceLocation Current() { return SourceLocation(); }
+  constexpr uint32_t Line() const { return 0; }
+  constexpr uint32_t Column() const { return 0; }
+  constexpr char const* FileName() const { return "<unknown file>"; }
+  constexpr char const* FunctionName() const { return "<unknown function>"; }
 #endif
 };
 

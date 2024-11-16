@@ -16,7 +16,7 @@ App::App(AppDelegate* delegate) : delegate_{delegate} {
 // todo: this approach is bad, for there is no way to clean up resourcecs in
 // failure path
 bool App::Init() {
-  if (!delegate_->LoadLibrary()) return false;
+  if (!delegate_->LoadVkLibrary()) return false;
   if (!delegate_->LoadVkGetInstanceProcAddr()) return false;
   if (!LoadGeneralProcs()) return false;
   if (!EnumerateInstanceLayers()) return false;
@@ -859,7 +859,7 @@ bool App::AcquireNextImage(uint32_t* id) {
   auto result = table_.vkAcquireNextImageKHR(
       device_, swapchain_, UINT64_MAX,
       frames_.swapchain_semaphore[current_frame_], nullptr, id);
-  if (result != VK_SUCCESS) {
+  if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     LOG(Error, "cannot acquire next swapchain image");
     return false;
   }
@@ -1006,7 +1006,7 @@ bool App::Present(uint32_t id) {
   info.pImageIndices = &id;
   info.pResults = nullptr;
   auto result = table_.vkQueuePresentKHR(queue_, &info);
-  if (result != VK_SUCCESS) {
+  if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     LOG(Error, "cannot present");
     return false;
   }

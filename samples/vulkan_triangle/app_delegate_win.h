@@ -1,15 +1,15 @@
-#ifndef SAMPLES_VULKAN_TRIANGLE_APP_DELEGATE_MAC_H_
-#define SAMPLES_VULKAN_TRIANGLE_APP_DELEGATE_MAC_H_
+#ifndef SAMPLES_VULKAN_TRIANGLE_APP_DELEGATE_WIN_H_
+#define SAMPLES_VULKAN_TRIANGLE_APP_DELEGATE_WIN_H_
 
 #include <vector>
 
-#include "samples/vulkan_triangle/vulkan_headers.h"
 #include "samples/vulkan_triangle/app_delegate.h"
+#include "samples/vulkan_triangle/vulkan_headers.h"
 
-class AppDelegateMac final : public AppDelegate {
+class AppDelegateWin final : public AppDelegate {
  public:
-  AppDelegateMac();
-  ~AppDelegateMac() override;
+  AppDelegateWin();
+  ~AppDelegateWin() override;
 
   bool LoadVkLibrary() override;
   bool LoadVkGetInstanceProcAddr() override;
@@ -37,14 +37,12 @@ class AppDelegateMac final : public AppDelegate {
   void SetShouldQuit(bool v);
 
  private:
-  bool CreateWindow();
+  bool DoCreateWindow();
 
-  void* library_ = nullptr;
+  HMODULE module_ = nullptr;
+  HWND hwnd_ = nullptr;
 
   bool should_quit_ = false;
-
-  struct ObjcData;
-  ObjcData* data_;
 };
 
 #endif

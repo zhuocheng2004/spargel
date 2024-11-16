@@ -15,4 +15,10 @@
 #include "vulkan/vulkan_metal.h"
 #endif
 
+#if defined(_WIN32)
+// hack
+#include <Windows.h>
+#include "vulkan/vulkan_win32.h"
+#endif
+
 #endif

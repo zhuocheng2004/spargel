@@ -59,7 +59,7 @@ AppDelegateMac::AppDelegateMac() {
 }
 AppDelegateMac::~AppDelegateMac() { delete data_; }
 
-bool AppDelegateMac::LoadLibrary() {
+bool AppDelegateMac::LoadVkLibrary() {
   // library_ = dlopen("libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
   library_ = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
   if (!library_) {

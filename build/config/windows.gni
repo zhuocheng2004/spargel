@@ -1,0 +1,3 @@
+declare_args() {
+  msvc_bin_path = ""
+}

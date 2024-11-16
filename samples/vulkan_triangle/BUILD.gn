@@ -4,8 +4,6 @@ executable("vulkan_triangle") {
     "app.h",
     "app_delegate.cc",
     "app_delegate.h",
-    "app_delegate_mac.h",
-    "app_delegate_mac.mm",
     "main.cc",
     "proc_table.h",
     "utils.cc",
@@ -18,9 +16,19 @@ executable("vulkan_triangle") {
     "//third_party/vulkan_headers",
   ]
   if (is_macos) {
+    sources += [
+      "app_delegate_mac.h",
+      "app_delegate_mac.mm",
+    ]
     frameworks = [
       "AppKit.framework",
       "QuartzCore.framework",
+    ]
+  }
+  if (is_windows) {
+    sources += [
+      "app_delegate_win.h",
+      "app_delegate_win.cc",
     ]
   }
 }

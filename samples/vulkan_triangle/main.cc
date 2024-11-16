@@ -4,12 +4,17 @@
 #if __APPLE__
 #include "samples/vulkan_triangle/app_delegate_mac.h"
 #endif
+#if _WIN32
+#include "samples/vulkan_triangle/app_delegate_win.h"
+#endif
 
 using enum base::logging::LogLevel;
 
 int main() {
 #if __APPLE__
   AppDelegateMac delegate;
+#elif _WIN32
+  AppDelegateWin delegate;
 #else
 #error "unsupported platform"
 #endif
