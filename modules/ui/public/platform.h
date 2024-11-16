@@ -9,7 +9,7 @@ enum class platform_backend {
   glfw,
   wayland,
   win32,
-  xlib,
+  xcb,
 };
 
 class platform {

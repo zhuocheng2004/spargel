@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "base/logging/logging.h"
+#include "samples/vulkan_triangle/logging.h"
 #include "samples/vulkan_triangle/utils.h"
 
 using base::logging::Log;
@@ -897,7 +897,8 @@ bool App::EndCommandBuffer() {
 }
 
 // bool App::TransitionImage(VkCommandBuffer cmd, VkImage image,
-//                           VkImageLayout cur_layout, VkImageLayout new_layout) {
+//                           VkImageLayout cur_layout, VkImageLayout new_layout)
+//                           {
 //   VkImageMemoryBarrier2 barrier;
 //   barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
 //   barrier.pNext = nullptr;

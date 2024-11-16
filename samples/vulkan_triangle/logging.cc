@@ -1,4 +1,4 @@
-#include "base/logging/logging.h"
+#include "samples/vulkan_triangle/logging.h"
 
 #include <stdio.h>
 

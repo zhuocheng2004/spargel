@@ -3,6 +3,7 @@ add_executable(vulkan_triangle
   app_delegate.cc
   main.cc
   utils.cc
+  logging.cc
 )
 if (APPLE)
   target_sources(vulkan_triangle

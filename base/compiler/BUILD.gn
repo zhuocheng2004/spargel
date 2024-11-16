@@ -1,9 +1,0 @@
-source_set("compiler") {
-  public = [
-    "unreachable.h",
-    "has_builtin.h",
-  ]
-  deps = [
-    "//build:build_config",
-  ]
-}

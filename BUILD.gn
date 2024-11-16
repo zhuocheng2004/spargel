@@ -1,23 +1,14 @@
 group("default") {
   deps = [
-    "//base",
-    "//gpu",
+    "//games/myth",
 
-    # tests
-    "//base/memory:ref_count_ptr_test",
-
-    # samples
-    "//samples:demo",
-    "//samples/vulkan_triangle",
-
-    # modules
     "//modules/base",
     "//modules/editor",
     "//modules/gpu",
     "//modules/ui",
 
-    # games
-    "//games/myth",
+    "//samples:demo",
+    "//samples/vulkan_triangle",
 
     "//third_party/glslang",
   ]

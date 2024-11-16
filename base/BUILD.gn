@@ -1,8 +1,0 @@
-source_set("base") {
-  deps = [
-    "//base/task",
-    "//base/compiler",
-    "//base/callback",
-    "//base/memory",
-  ]
-}

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "gpu/vulkan/vulkan_headers.h"
+#include "samples/vulkan_triangle/vulkan_headers.h"
 
 bool SelectLayerByName(char const* layer,
                        std::vector<VkLayerProperties> const& available,

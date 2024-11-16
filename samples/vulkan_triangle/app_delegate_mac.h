@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "gpu/vulkan/vulkan_headers.h"
+#include "samples/vulkan_triangle/vulkan_headers.h"
 #include "samples/vulkan_triangle/app_delegate.h"
 
 class AppDelegateMac final : public AppDelegate {

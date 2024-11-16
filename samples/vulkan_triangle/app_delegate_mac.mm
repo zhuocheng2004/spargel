@@ -7,7 +7,7 @@
 #import <AppKit/NSWindow.h>
 #import <QuartzCore/CAMetalLayer.h>
 
-#include "base/logging/logging.h"
+#include "samples/vulkan_triangle/logging.h"
 #include "samples/vulkan_triangle/utils.h"
 
 using base::logging::Log;

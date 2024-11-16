@@ -1,9 +1,0 @@
-source_set("meta") {
-  public = [
-    "forward.h",
-    "source_location.h",
-  ]
-  deps = [
-    "//base/compiler",
-  ]
-}

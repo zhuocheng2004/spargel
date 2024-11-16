@@ -1,7 +1,7 @@
 #ifndef SAMPLES_VULKAN_TRIANGLE_PROC_TABLE_H_
 #define SAMPLES_VULKAN_TRIANGLE_PROC_TABLE_H_
 
-#include "gpu/vulkan/vulkan_headers.h"
+#include "samples/vulkan_triangle/vulkan_headers.h"
 
 struct ProcTable {
 #define DEFINE_FUNCTION_POINTER(name) PFN_##name name = nullptr;

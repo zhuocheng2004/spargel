@@ -11,10 +11,11 @@ executable("vulkan_triangle") {
     "utils.cc",
     "utils.h",
     "vulkan_procs.inc",
+    "logging.cc",
+    "logging.h",
   ]
   deps = [
-    "//base/logging",
-    "//gpu/vulkan:vulkan_headers",
+    "//third_party/vulkan_headers",
   ]
   if (is_macos) {
     frameworks = [

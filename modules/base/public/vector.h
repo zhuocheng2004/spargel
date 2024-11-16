@@ -4,7 +4,7 @@
 
 namespace spargel::base {
 
-// a utf-8 string
-class string {};
+template <typename T>
+class vector {};
 
 }  // namespace spargel::base

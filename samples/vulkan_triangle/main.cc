@@ -1,5 +1,5 @@
-#include "base/logging/logging.h"
 #include "samples/vulkan_triangle/app.h"
+#include "samples/vulkan_triangle/logging.h"
 
 #if __APPLE__
 #include "samples/vulkan_triangle/app_delegate_mac.h"
