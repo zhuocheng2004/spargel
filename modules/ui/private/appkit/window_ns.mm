@@ -20,8 +20,15 @@
   [self addTrackingArea:area_];
   return self;
 }
+- (void)dealloc {
+  if (area_) {
+    [area_ release];
+  }
+  [super dealloc];
+}
 - (void)updateTrackingAreas {
   [self removeTrackingArea:area_];
+  [area_ release];
   area_ = [[NSTrackingArea alloc] initWithRect:self.bounds
                                        options:NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
                                          owner:self
@@ -33,7 +40,7 @@
   auto location = [event locationInWindow];
   spargel_window_->mouse_moved(location.x, location.y);
 }
-- (void)mouseDown:(NSEvent *)event {
+- (void)mouseDown:(NSEvent*)event {
   auto location = [event locationInWindow];
   spargel_window_->mouse_down(location.x, location.y);
 }
@@ -75,36 +82,27 @@ window_ns::window_ns() : width_{300}, height_{300} {}
 window_ns::~window_ns() = default;
 
 void window_ns::init(int width, int height) {
-  @autoreleasepool {
-    width_ = width;
-    height_ = height;
+  width_ = width;
+  height_ = height;
 
-    auto screen = [NSScreen mainScreen];
+  auto screen = [NSScreen mainScreen];
 
-    auto style = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
-                 NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
-    auto rect = NSMakeRect(0, 0, width_, height_);
-    // center the window
-    rect.origin.x = (screen.frame.size.width - width_) / 2;
-    rect.origin.y = (screen.frame.size.height - height_) / 2;
+  auto style = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
+                NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
+  auto rect = NSMakeRect(0, 0, width_, height_);
+  // center the window
+  rect.origin.x = (screen.frame.size.width - width_) / 2;
+  rect.origin.y = (screen.frame.size.height - height_) / 2;
 
-    window_ = [[NSWindow alloc] initWithContentRect:rect
-                                          styleMask:style
-                                            backing:NSBackingStoreBuffered
-                                              defer:NO
-                                             screen:screen];
-    window_.releasedWhenClosed = NO;
-    window_.minSize = NSMakeSize(200, 200);
+  window_ = [[NSWindow alloc] initWithContentRect:rect
+                                        styleMask:style
+                                          backing:NSBackingStoreBuffered
+                                            defer:NO
+                                            screen:screen];
+  window_.releasedWhenClosed = NO;
+  window_.minSize = NSMakeSize(200, 200);
 
-    // auto delegate = [[SpargelWindowDelegate alloc] init];
-    // window_.delegate = delegate_;
-
-    // auto view = [[SpargelContentView alloc] init];
-    // window_.contentView = view_;
-    // [window_ makeFirstResponder:view_];
-
-    [window_ makeKeyAndOrderFront:nil];
-  }
+  [window_ makeKeyAndOrderFront:nil];
 }
 
 void window_ns::set_title(char const* title) {
@@ -125,6 +123,7 @@ void window_ns::bind_renderer(renderer* r) {
   view.wantsLayer = YES;
   [view createDisplayLink:window_];
   window_.contentView = view;
+  [view release];
 }
 
 void window_ns::render() {

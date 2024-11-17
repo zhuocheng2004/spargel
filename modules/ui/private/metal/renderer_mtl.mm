@@ -44,6 +44,7 @@ void renderer_mtl::init() {
 
   pipeline_state_ = [device_ newRenderPipelineStateWithDescriptor:pipelineStateDescriptor
                                                             error:&error];
+  [pipelineStateDescriptor release];
   if (pipeline_state_ == nil) {
     NSLog(@"cannot create pipeline state");
     if (error.description != nil) {
@@ -57,12 +58,6 @@ void renderer_mtl::init() {
 
 static const vector_float2 unit_vertices[] = {
     {0, 0}, {1, 0}, {1, 1}, {1, 1}, {0, 1}, {0, 0},
-};
-
-static const quad_data quads_to_draw[] = {
-    {{20, 20}, {200, 50}, {1, 0, 0, 1}},
-    {{60, 40}, {50, 200}, {0, 0, 1, 1}},
-    {{-10, -10}, {20, 20}, {0, 1, 0, 1}},
 };
 
 void renderer_mtl::begin() {
@@ -81,6 +76,7 @@ void renderer_mtl::begin() {
   render_pass_desc.colorAttachments[0].texture = current_drawable_.texture;
 
   render_encoder_ = [command_buffer_ renderCommandEncoderWithDescriptor:render_pass_desc];
+  [render_pass_desc release];
   render_encoder_.label = @"MyRenderEncoder";
 }
 
@@ -117,6 +113,8 @@ void renderer_mtl::end() {
   [render_encoder_ endEncoding];
   [command_buffer_ presentDrawable:current_drawable_];
   [command_buffer_ commit];
+
+  [buffer release];
   frame_id_++;
 }
 
