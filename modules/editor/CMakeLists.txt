@@ -10,10 +10,18 @@ if(SPARGEL_IS_MACOS)
   add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/MacOS/editor
     COMMAND cp -Rc ${CMAKE_BINARY_DIR}/bin/editor ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/MacOS/editor
+    DEPENDS editor
+  )
+  add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/Resources/shader.metallib
+    COMMAND cp ${CMAKE_BINARY_DIR}/shader/shader.metallib ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/Resources/shader.metallib
+    DEPENDS ${CMAKE_BINARY_DIR}/shader/shader.metallib
   )
   add_custom_target(SpargelEditorBundle ALL
     DEPENDS
       ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/Info.plist
       ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/MacOS/editor
+      # hack
+      ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/Resources/shader.metallib
   )
 endif()

@@ -2,6 +2,7 @@
 
 namespace spargel::ui {
 
+class renderer;
 class window;
 
 enum class platform_backend {
@@ -29,6 +30,7 @@ class platform {
   // start the platform main loop
   virtual void run() = 0;
 
+  renderer* create_renderer();
   window* create_window();
 
  protected:

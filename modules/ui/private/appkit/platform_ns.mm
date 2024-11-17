@@ -5,7 +5,8 @@
   // do nothing
 }
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
-  return NO;
+  // todo: remove this
+  return YES;
 }
 @end
 

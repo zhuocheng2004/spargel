@@ -4,6 +4,7 @@
 namespace spargel::ui {
 platform* create_appkit_platform();
 window* create_appkit_window();
+renderer* create_metal_renderer();
 }  // namespace spargel::ui
 #endif
 
@@ -32,6 +33,17 @@ platform::~platform() = default;
 platform::platform(platform_backend backend) : backend_{backend} {}
 
 platform_backend platform::backend() const { return backend_; }
+
+renderer* platform::create_renderer() {
+  switch (backend_) {
+#if __APPLE__
+    case platform_backend::appkit:
+      return create_metal_renderer();
+#endif
+    default:
+      return nullptr;
+  }
+}
 
 window* platform::create_window() {
   switch (backend_) {
