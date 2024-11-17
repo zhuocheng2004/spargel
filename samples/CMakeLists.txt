@@ -5,11 +5,11 @@ if (X11_FOUND AND X11_xcb_FOUND)
   target_link_libraries(x11_window PRIVATE m ${X11_LIBRARIES} ${X11_xcb_LIB})
 endif ()
 
-add_executable(demo demo.cc ecs.cc)
-target_compile_features(demo PUBLIC cxx_std_20)
+spargel_add_executable(demo)
+target_sources(demo PRIVATE demo.cc ecs.cc)
 target_link_libraries(demo PRIVATE glfw nanovg glad nanovg_perf Tracy::TracyClient)
 
-add_executable(bit_array_demo bit_array_demo.cc)
-target_compile_features(bit_array_demo PUBLIC cxx_std_20)
+spargel_add_executable(bit_array_demo bit_array_demo.cc)
+target_sources(bit_array_demo PRIVATE bit_array_demo.cc)
 
 add_subdirectory(vulkan_triangle)

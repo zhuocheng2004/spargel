@@ -1,4 +1,7 @@
+# we need to bump minimal cmake version to 3.29 to enable CMP0156
 cmake_minimum_required(VERSION 3.28)
+
+cmake_policy(SET CMP0156 NEW)
 
 project(spargel)
 
@@ -9,6 +12,18 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include(AddSpargel)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
+  set(SPARGEL_IS_MACOS YES CACHE BOOL "")
+else()
+  set(SPARGEL_IS_MACOS NO CACHE BOOL "")
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
+  set(SPARGEL_IS_WINDOWS YES CACHE BOOL "")
+else()
+  set(SPARGEL_IS_WINDOWS NO CACHE BOOL "")
+endif()
 
 add_subdirectory(games)
 add_subdirectory(modules)
