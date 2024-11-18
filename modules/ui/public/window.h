@@ -11,9 +11,9 @@ class WindowDelegate {
 
   virtual void render(Renderer* r);
 
-  virtual void onMouseMove(double x, double y);
+  virtual void onMouseMove(float x, float y);
 
-  virtual void onMouseDown(double x, double y);
+  virtual void onMouseDown(float x, float y);
 
   virtual void setWindow(Window* window);
 };

@@ -8,9 +8,9 @@ WindowDelegate::~WindowDelegate() = default;
 
 void WindowDelegate::render(Renderer* r) {}
 
-void WindowDelegate::onMouseMove(double x, double y) {}
+void WindowDelegate::onMouseMove(float x, float y) {}
 
-void WindowDelegate::onMouseDown(double x, double y) {}
+void WindowDelegate::onMouseDown(float x, float y) {}
 
 void WindowDelegate::setWindow(Window* window) {}
 

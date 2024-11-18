@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/base/public/types.h"
+#include "modules/ui/public/types.h"
 #include "modules/ui/public/window.h"
 
 #import <AppKit/AppKit.h>
@@ -35,10 +35,10 @@ class WindowNS final : public Window {
 
   RendererMTL* getRenderer();
 
-  void mouseMoved(double x, double y);
-  void mouseDown(double x, double y);
+  void mouseMoved(float x, float y);
+  void mouseDown(float x, float y);
 
-  NSRect toBacking(double x, double y, double width, double height);
+  Rect toBacking(Rect rect);
 
  private:
   int width_;

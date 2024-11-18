@@ -6,8 +6,8 @@
 
 namespace spargel::ui {
 
-RendererMTL::RendererMTL() : frame_id_{0} {}
-RendererMTL::~RendererMTL() = default;
+RendererMTL::RendererMTL() {}
+RendererMTL::~RendererMTL() {}
 
 void RendererMTL::init() {
   device_ = MTLCreateSystemDefaultDevice();
@@ -81,10 +81,9 @@ void RendererMTL::begin() {
 }
 
 void RendererMTL::end() {
-  simd::uint2 _viewportSize = {(unsigned int)width_, (unsigned int)height_};
+  simd::float2 viewport = {width_, height_};
 
-  [render_encoder_ setViewport:(MTLViewport){0.0, 0.0, static_cast<double>(_viewportSize.x),
-                                             static_cast<double>(_viewportSize.y), 0.0, 1.0}];
+  [render_encoder_ setViewport:(MTLViewport){0.0, 0.0, viewport.x, viewport.y, 0.0, 1.0}];
 
   [render_encoder_ setRenderPipelineState:pipeline_state_];
 
@@ -96,13 +95,10 @@ void RendererMTL::end() {
                                      length:quads_.size() * sizeof(QuadData)
                                     options:MTLResourceStorageModeManaged];
 
-  // [render_encoder_ setVertexBytes:&quads_to_draw
-  //                          length:sizeof(quads_to_draw)
-  //                         atIndex:quad_input_index_quads];
   [render_encoder_ setVertexBuffer:buffer offset:0 atIndex:quad_input_index_quads];
 
-  [render_encoder_ setVertexBytes:&_viewportSize
-                           length:sizeof(_viewportSize)
+  [render_encoder_ setVertexBytes:&viewport
+                           length:sizeof(viewport)
                           atIndex:quad_input_index_viewport];
 
   [render_encoder_ drawPrimitives:MTLPrimitiveTypeTriangle
@@ -115,19 +111,18 @@ void RendererMTL::end() {
   [command_buffer_ commit];
 
   [buffer release];
-  frame_id_++;
 }
 
-void RendererMTL::drawQuad(float x, float y, float width, float height, Color3 color) {
-  auto rect = window_->toBacking(x, y, width, height);
+void RendererMTL::drawQuad(Rect rect, Color3 color) {
+  auto backing_rect = window_->toBacking(rect);
   quads_.push_back({
-      .origin = {(float)rect.origin.x, (float)rect.origin.y},
-      .size = {(float)rect.size.width, (float)rect.size.height},
+      .origin = {backing_rect.origin.x, backing_rect.origin.y},
+      .size = {backing_rect.size.width, backing_rect.size.height},
       .color = {color.r, color.g, color.b, 1},
   });
 }
 
-void RendererMTL::setDrawableSize(double width, double height) {
+void RendererMTL::setDrawableSize(float width, float height) {
   if (width_ == width && height_ == height) return;
   width_ = width;
   height_ = height;

@@ -1,7 +1,8 @@
-#include <functional>
-#include <vector>
 #include <stdlib.h>
 #include <time.h>
+
+#include <functional>
+#include <vector>
 
 #include "modules/ui/public/platform.h"
 #include "modules/ui/public/renderer.h"
@@ -32,13 +33,13 @@ class Element {
     delete child;
   }
 
-  virtual void onMouseMove(double x, double y) {
+  virtual void onMouseMove(float x, float y) {
     for (int i = 0; i < children_.size(); i++) {
       children_[i]->onMouseMove(x, y);
     }
   }
 
-  virtual void onMouseDown(double x, double y) {
+  virtual void onMouseDown(float x, float y) {
     for (int i = 0; i < children_.size(); i++) {
       children_[i]->onMouseDown(x, y);
     }
@@ -61,8 +62,8 @@ class ButtonElement : public Element {
  public:
   // origin is upper left
   explicit ButtonElement(float x, float y, float width, float height,
-                          spargel::ui::Color3 color,
-                          std::function<void()> on_click)
+                         spargel::ui::Color3 color,
+                         std::function<void()> on_click)
       : x_{x},
         y_{y},
         width_{width},
@@ -71,7 +72,7 @@ class ButtonElement : public Element {
         hovered_{false},
         on_click_(std::move(on_click)) {}
 
-  void onMouseMove(double x, double y) override {
+  void onMouseMove(float x, float y) override {
     if (x >= x_ && x <= x_ + width_ && y >= y_ && y <= y_ + width_) {
       hovered_ = true;
     } else {
@@ -79,20 +80,20 @@ class ButtonElement : public Element {
     }
   }
 
-  void onMouseDown(double x, double y) override {
+  void onMouseDown(float x, float y) override {
     if (x >= x_ && x <= x_ + width_ && y >= y_ && y <= y_ + width_) {
       on_click_();
     }
   }
 
   void render(spargel::ui::Renderer* r) override {
-    auto render_x = -window()->width() / 2.0 + x_;
-    auto render_y = window()->height() / 2.0 - y_ - height_;
+    float render_x = -window()->width() / 2.0 + x_;
+    float render_y = window()->height() / 2.0 - y_ - height_;
     if (hovered_) {
-      r->drawQuad(render_x, render_y, width_, height_, color_);
+      r->drawQuad({{render_x, render_y}, {width_, height_}}, color_);
     } else {
-      r->drawQuad(render_x, render_y, width_, height_,
-                   {1 - color_.r, 1 - color_.g, 1 - color_.b});
+      r->drawQuad({{render_x, render_y}, {width_, height_}},
+                  {1 - color_.r, 1 - color_.g, 1 - color_.b});
     }
   }
 
@@ -130,11 +131,11 @@ class Editor final : public spargel::ui::WindowDelegate {
 
   void render(spargel::ui::Renderer* r) override { root_->render(r); }
 
-  void onMouseMove(double x, double y) override {
+  void onMouseMove(float x, float y) override {
     root_->onMouseMove(x, window_->height() - y);
   }
 
-  void onMouseDown(double x, double y) override {
+  void onMouseDown(float x, float y) override {
     root_->onMouseDown(x, window_->height() - y);
   }
 

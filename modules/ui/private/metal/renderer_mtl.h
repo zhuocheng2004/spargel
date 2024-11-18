@@ -21,10 +21,9 @@ class RendererMTL final : public Renderer {
   void begin() override;
   void end() override;
 
-  void drawQuad(float x, float y, float width, float height,
-                 Color3 color) override;
+  void drawQuad(Rect rect, Color3 color) override;
 
-  void setDrawableSize(double width, double height);
+  void setDrawableSize(float width, float height);
 
   CAMetalLayer* layer();
 
@@ -43,12 +42,10 @@ class RendererMTL final : public Renderer {
 
   WindowNS* window_;
 
-  double width_;
-  double height_;
+  float width_;
+  float height_;
 
   std::vector<QuadData> quads_;
-
-  int frame_id_;
 };
 
 Renderer* createMetalRenderer();

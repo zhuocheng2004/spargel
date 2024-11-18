@@ -14,14 +14,13 @@ vertex QuadVertexOutput quad_vertex(
     uint quad_id [[instance_id]],
     constant float2* vertices [[buffer(quad_input_index_vertices)]],
     constant QuadData* quads [[buffer(quad_input_index_quads)]],
-    constant uint2* viewport  [[buffer(quad_input_index_viewport)]]) {
+    constant float2* viewport  [[buffer(quad_input_index_viewport)]]) {
   QuadVertexOutput out;
 
   float2 pixelSpacePosition = vertices[vertex_id] * quads[quad_id].size + quads[quad_id].origin;
-  float2 viewportSize = float2(*viewport);
 
   out.position = float4(0.0, 0.0, 0.0, 1.0);
-  out.position.xy = pixelSpacePosition / (viewportSize / 2.0);
+  out.position.xy = pixelSpacePosition / (*viewport / 2.0);
 
   out.color = quads[quad_id].color;
 

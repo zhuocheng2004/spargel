@@ -36,7 +36,6 @@
   [self addTrackingArea:area_];
 }
 - (void)mouseMoved:(NSEvent*)event {
-  // NSLog(@"mouse moved!");
   auto location = [event locationInWindow];
   spargel_window_->mouseMoved(location.x, location.y);
 }
@@ -88,7 +87,7 @@ void WindowNS::init(int width, int height) {
   auto screen = [NSScreen mainScreen];
 
   auto style = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
-                NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
+               NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
   auto rect = NSMakeRect(0, 0, width_, height_);
   // center the window
   rect.origin.x = (screen.frame.size.width - width_) / 2;
@@ -98,7 +97,7 @@ void WindowNS::init(int width, int height) {
                                         styleMask:style
                                           backing:NSBackingStoreBuffered
                                             defer:NO
-                                            screen:screen];
+                                           screen:screen];
   window_.releasedWhenClosed = NO;
   window_.minSize = NSMakeSize(200, 200);
 
@@ -112,8 +111,8 @@ void WindowNS::setTitle(char const* title) {
 void WindowNS::setWidth(int width) { width_ = width; }
 void WindowNS::setHeight(int height) { height_ = height; }
 
-int WindowNS::width() { return width_; }
-int WindowNS::height() { return height_; }
+int WindowNS::width() { return window_.frame.size.width; }
+int WindowNS::height() { return window_.frame.size.height; }
 
 void WindowNS::setRenderer(Renderer* r) {
   renderer_ = static_cast<RendererMTL*>(r);
@@ -134,12 +133,15 @@ void WindowNS::render() {
 
 RendererMTL* WindowNS::getRenderer() { return renderer_; }
 
-void WindowNS::mouseMoved(double x, double y) { delegate()->onMouseMove(x, y); }
+void WindowNS::mouseMoved(float x, float y) { delegate()->onMouseMove(x, y); }
 
-void WindowNS::mouseDown(double x, double y) { delegate()->onMouseDown(x, y); }
+void WindowNS::mouseDown(float x, float y) { delegate()->onMouseDown(x, y); }
 
-NSRect WindowNS::toBacking(double x, double y, double width, double height) {
-  return [window_ convertRectToBacking:{{x, y}, {width, height}}];
+Rect WindowNS::toBacking(Rect rect) {
+  NSRect result = [window_ convertRectToBacking:NSMakeRect(rect.origin.x, rect.origin.y,
+                                                           rect.size.width, rect.size.height)];
+  return {{static_cast<float>(result.origin.x), static_cast<float>(result.origin.y)},
+          {static_cast<float>(result.size.width), static_cast<float>(result.size.height)}};
 }
 
 Window* createAppKitWindow() { return new WindowNS; }
