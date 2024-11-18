@@ -10,6 +10,8 @@ struct Point {
 struct RectSize {
   float width;
   float height;
+
+  friend bool operator==(RectSize const& lhs, RectSize const& rhs);
 };
 
 struct Rect {

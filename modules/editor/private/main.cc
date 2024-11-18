@@ -110,44 +110,56 @@ class ButtonElement : public Element {
 
 class Editor final : public spargel::ui::WindowDelegate {
  public:
-  Editor() {
-    root_ = new Element;
-    root_->addChild(new ButtonElement(50, 50, 50, 50, {0, 0, 0}, [this]() {
-      auto x = rand() % window_->width();
-      auto y = rand() % window_->height();
-      root_->addChild(new ButtonElement(
-          x, y, 15, 15,
-          {sinf(n_ * 2.718281 + 36), sinf(n_ * 0.577215 * 2 + 136),
-           sinf(n_ * 3.141592 * 2.718281)},
-          [] {}));
-      n_++;
-    }));
-    root_->addChild(new ButtonElement(100, 100, 50, 50, {0, 1, 0}, [this]() {
-      root_->removeLast();
-      n_--;
-    }));
-  }
-  ~Editor() { delete root_; }
+  explicit Editor(spargel::ui::Platform* platform) {
+    _renderer = platform->createRenderer();
+    _renderer->init();
 
-  void render(spargel::ui::Renderer* r) override { root_->render(r); }
+    _window = platform->createWindow();
+    _window->init(500, 500);
+    _window->setTitle("Spargel Editor");
+    _window->setDelegate(this);
+
+    _renderer->setRenderTarget(_window->renderTarget());
+
+    _root = new Element;
+    _root->addChild(new ButtonElement(50, 50, 50, 50, {0, 0, 0}, [this]() {
+      auto x = rand() % _window->width();
+      auto y = rand() % _window->height();
+      _root->addChild(new ButtonElement(
+          x, y, 15, 15,
+          {sinf(_n * 2.718281 + 36), sinf(_n * 0.577215 * 2 + 136),
+           sinf(_n * 3.141592 * 2.718281)},
+          [] {}));
+      _n++;
+    }));
+    _root->addChild(new ButtonElement(100, 100, 50, 50, {0, 1, 0}, [this]() {
+      _root->removeLast();
+      _n--;
+    }));
+
+    _root->setWindow(_window);
+  }
+  ~Editor() { delete _root; }
+
+  void render() override {
+    _renderer->begin();
+    _root->render(_renderer);
+    _renderer->end();
+  }
 
   void onMouseMove(float x, float y) override {
-    root_->onMouseMove(x, window_->height() - y);
+    _root->onMouseMove(x, _window->height() - y);
   }
 
   void onMouseDown(float x, float y) override {
-    root_->onMouseDown(x, window_->height() - y);
-  }
-
-  void setWindow(spargel::ui::Window* window) override {
-    window_ = window;
-    root_->setWindow(window);
+    _root->onMouseDown(x, _window->height() - y);
   }
 
  private:
-  Element* root_;
-  spargel::ui::Window* window_;
-  int n_ = 1;
+  spargel::ui::Renderer* _renderer;
+  spargel::ui::Window* _window;
+  Element* _root;
+  int _n = 1;
 };
 
 int main() {
@@ -156,16 +168,7 @@ int main() {
   auto platform = spargel::ui::Platform::create();
   platform->init();
 
-  Editor editor;
-
-  auto renderer = platform->createRenderer();
-  renderer->init();
-
-  auto window = platform->createWindow();
-  window->init(500, 500);
-  window->setTitle("Spargel Editor");
-  window->setDelegate(&editor);
-  window->setRenderer(renderer);
+  Editor editor(platform);
 
   platform->run();
 

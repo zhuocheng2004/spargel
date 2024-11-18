@@ -2,6 +2,6 @@
 
 namespace spargel::ui {
 
-Renderer::~Renderer() = default;
+Renderer::~Renderer() {}
 
-}
+}  // namespace spargel::ui

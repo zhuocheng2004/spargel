@@ -2,15 +2,17 @@ spargel_add_library(ui)
 target_sources(ui
   PRIVATE
     private/platform.cc
-    private/window.cc
+    private/render_target.cc
     private/renderer.cc
+    private/types.cc
+    private/window.cc
 )
 if (APPLE)
   target_sources(ui
     PRIVATE
       private/appkit/platform_ns.mm
       private/appkit/window_ns.mm
-
+      private/metal/render_target_mtl.mm
       private/metal/renderer_mtl.mm
   )
 

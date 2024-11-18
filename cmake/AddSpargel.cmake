@@ -1,15 +1,18 @@
-function(spargel_add_executable name)
-  add_executable(${name})
+function(spargel_target_common name)
   target_compile_features(${name} PUBLIC cxx_std_20)
   target_include_directories(${name} PUBLIC "${PROJECT_SOURCE_DIR}")
   # set_target_properties(${name} PROPERTIES LINK_LIBRARIES_STRATEGY REORDER_FREELY)
+  target_compile_options(${name} PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>)
+endfunction()
+
+function(spargel_add_executable name)
+  add_executable(${name})
+  spargel_target_common(${name})
 endfunction()
 
 function(spargel_add_library name)
   add_library(${name})
-  target_compile_features(${name} PUBLIC cxx_std_20)
-  target_include_directories(${name} PUBLIC "${PROJECT_SOURCE_DIR}")
-  # set_target_properties(${name} PROPERTIES LINK_LIBRARIES_STRATEGY REORDER_FREELY)
+  spargel_target_common(${name})
 endfunction()
 
 function(spargel_add_option name doc value)

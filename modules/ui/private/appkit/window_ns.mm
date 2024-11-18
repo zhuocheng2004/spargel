@@ -2,7 +2,7 @@
 
 #import <AppKit/AppKit.h>
 
-#include "modules/ui/private/metal/renderer_mtl.h"
+#include "modules/ui/private/metal/render_target_mtl.h"
 
 @interface SpargelMetalView : NSView {
   spargel::ui::WindowNS* spargel_window_;
@@ -13,10 +13,7 @@
 - (instancetype)initWithSpargelUIWindow:(spargel::ui::WindowNS*)window {
   [super init];
   spargel_window_ = window;
-  area_ = [[NSTrackingArea alloc] initWithRect:self.bounds
-                                       options:NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
-                                         owner:self
-                                      userInfo:nil];
+  area_ = [self createTrackingArea];
   [self addTrackingArea:area_];
   return self;
 }
@@ -26,13 +23,16 @@
   }
   [super dealloc];
 }
+- (NSTrackingArea*)createTrackingArea {
+  return [[NSTrackingArea alloc] initWithRect:self.bounds
+                                      options:NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
+                                        owner:self
+                                     userInfo:nil];
+}
 - (void)updateTrackingAreas {
   [self removeTrackingArea:area_];
   [area_ release];
-  area_ = [[NSTrackingArea alloc] initWithRect:self.bounds
-                                       options:NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
-                                         owner:self
-                                      userInfo:nil];
+  area_ = [self createTrackingArea];
   [self addTrackingArea:area_];
 }
 - (void)mouseMoved:(NSEvent*)event {
@@ -48,7 +48,7 @@
   [display_link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
 }
 - (void)render:(CADisplayLink*)sender {
-  // NSLog(@"%f", sender.targetTimestamp);
+  // todo: sender.targetTimestamp
   spargel_window_->render();
 }
 - (void)viewDidChangeBackingProperties {
@@ -71,13 +71,18 @@
   if (newSize.width <= 0 || newSize.width <= 0) {
     return;
   }
-  spargel_window_->getRenderer()->setDrawableSize(newSize.width, newSize.height);
+  spargel_window_->setDrawableSize(
+      {static_cast<float>(newSize.width), static_cast<float>(newSize.height)});
 }
 @end
 
 namespace spargel::ui {
 
-WindowNS::WindowNS() : width_{300}, height_{300} {}
+WindowNS::WindowNS() {
+  width_ = 0;
+  height_ = 0;
+  _render_target = new RenderTargetMTL(this);
+}
 WindowNS::~WindowNS() = default;
 
 void WindowNS::init(int width, int height) {
@@ -101,6 +106,14 @@ void WindowNS::init(int width, int height) {
   window_.releasedWhenClosed = NO;
   window_.minSize = NSMakeSize(200, 200);
 
+  auto view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this];
+  view.layer = _render_target->layer();
+  view.wantsLayer = YES;
+  [view createDisplayLink:window_];
+
+  window_.contentView = view;
+  [view release];
+
   [window_ makeKeyAndOrderFront:nil];
 }
 
@@ -111,31 +124,18 @@ void WindowNS::setTitle(char const* title) {
 void WindowNS::setWidth(int width) { width_ = width; }
 void WindowNS::setHeight(int height) { height_ = height; }
 
-int WindowNS::width() { return window_.frame.size.width; }
-int WindowNS::height() { return window_.frame.size.height; }
+int WindowNS::width() { return window_.contentView.bounds.size.width; }
+int WindowNS::height() { return window_.contentView.bounds.size.height; }
 
-void WindowNS::setRenderer(Renderer* r) {
-  renderer_ = static_cast<RendererMTL*>(r);
-  renderer_->setWindow(this);
-  auto view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this];
-  view.layer = renderer_->layer();
-  view.wantsLayer = YES;
-  [view createDisplayLink:window_];
-  window_.contentView = view;
-  [view release];
-}
+RenderTarget* WindowNS::renderTarget() { return _render_target; }
 
-void WindowNS::render() {
-  renderer_->begin();
-  delegate()->render(renderer_);
-  renderer_->end();
-}
-
-RendererMTL* WindowNS::getRenderer() { return renderer_; }
+void WindowNS::render() { delegate()->render(); }
 
 void WindowNS::mouseMoved(float x, float y) { delegate()->onMouseMove(x, y); }
 
 void WindowNS::mouseDown(float x, float y) { delegate()->onMouseDown(x, y); }
+
+void WindowNS::setDrawableSize(RectSize size) { _render_target->setSize(size); }
 
 Rect WindowNS::toBacking(Rect rect) {
   NSRect result = [window_ convertRectToBacking:NSMakeRect(rect.origin.x, rect.origin.y,

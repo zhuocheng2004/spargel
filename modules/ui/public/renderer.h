@@ -4,11 +4,15 @@
 
 namespace spargel::ui {
 
+class RenderTarget;
+
 class Renderer {
  public:
   virtual ~Renderer();
 
   virtual void init() = 0;
+
+  virtual void setRenderTarget(RenderTarget* target) = 0;
 
   virtual void begin() = 0;
   virtual void end() = 0;

@@ -5,15 +5,9 @@
 
 #import <AppKit/AppKit.h>
 
-@interface SpargelWindowDelegate : NSObject <NSWindowDelegate>
-@end
-
-@interface SpargelContentView : NSView
-@end
-
 namespace spargel::ui {
 
-class RendererMTL;
+class RenderTargetMTL;
 
 class WindowNS final : public Window {
  public:
@@ -29,15 +23,15 @@ class WindowNS final : public Window {
   int width() override;
   int height() override;
 
-  void setRenderer(Renderer* r) override;
+  RenderTarget* renderTarget() override;
 
+  // called by SpargelMetalView
   void render();
-
-  RendererMTL* getRenderer();
-
   void mouseMoved(float x, float y);
   void mouseDown(float x, float y);
+  void setDrawableSize(RectSize size);
 
+  // called by ??
   Rect toBacking(Rect rect);
 
  private:
@@ -45,7 +39,7 @@ class WindowNS final : public Window {
   int height_;
 
   NSWindow* window_;
-  RendererMTL* renderer_;
+  RenderTargetMTL* _render_target;
 };
 
 Window* createAppKitWindow();

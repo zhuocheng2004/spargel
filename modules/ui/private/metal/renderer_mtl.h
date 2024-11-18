@@ -10,7 +10,7 @@
 
 namespace spargel::ui {
 
-class WindowNS;
+class RenderTargetMTL;
 
 class RendererMTL final : public Renderer {
  public:
@@ -23,11 +23,7 @@ class RendererMTL final : public Renderer {
 
   void drawQuad(Rect rect, Color3 color) override;
 
-  void setDrawableSize(float width, float height);
-
-  CAMetalLayer* layer();
-
-  void setWindow(WindowNS* window);
+  void setRenderTarget(RenderTarget* target) override;
 
  private:
   id<MTLDevice> device_;
@@ -37,13 +33,9 @@ class RendererMTL final : public Renderer {
   id<MTLCommandBuffer> command_buffer_;
   id<MTLRenderCommandEncoder> render_encoder_;
 
-  CAMetalLayer* layer_;
+  RenderTargetMTL* _render_target;
+  CAMetalLayer* _layer;
   id<CAMetalDrawable> current_drawable_;
-
-  WindowNS* window_;
-
-  float width_;
-  float height_;
 
   std::vector<QuadData> quads_;
 };

@@ -3,6 +3,7 @@
 #import <Metal/Metal.h>
 
 #include "modules/ui/private/appkit/window_ns.h"
+#include "modules/ui/private/metal/render_target_mtl.h"
 
 namespace spargel::ui {
 
@@ -11,11 +12,6 @@ RendererMTL::~RendererMTL() {}
 
 void RendererMTL::init() {
   device_ = MTLCreateSystemDefaultDevice();
-  layer_ = [[CAMetalLayer alloc] init];
-  [layer_ setDevice:device_];
-  // default values:
-  // pixelFormat is BGRA8Unorm
-  // maximumDrawableCount is 3
 
   NSError* error;
 
@@ -33,6 +29,18 @@ void RendererMTL::init() {
     return;
   }
 
+  command_queue_ = [device_ newCommandQueue];
+}
+
+void RendererMTL::setRenderTarget(RenderTarget* target) {
+  _render_target = static_cast<RenderTargetMTL*>(target);
+  _layer = _render_target->layer();
+  [_layer setDevice:device_];
+
+  // default values:
+  // pixelFormat is BGRA8Unorm
+  // maximumDrawableCount is 3
+
   id<MTLFunction> vertex_function = [library_ newFunctionWithName:@"quad_vertex"];
   id<MTLFunction> fragment_function = [library_ newFunctionWithName:@"quad_fragment"];
 
@@ -40,7 +48,9 @@ void RendererMTL::init() {
   pipelineStateDescriptor.label = @"quad_pipeline";
   pipelineStateDescriptor.vertexFunction = vertex_function;
   pipelineStateDescriptor.fragmentFunction = fragment_function;
-  pipelineStateDescriptor.colorAttachments[0].pixelFormat = layer_.pixelFormat;
+  pipelineStateDescriptor.colorAttachments[0].pixelFormat = _layer.pixelFormat;
+
+  NSError* error;
 
   pipeline_state_ = [device_ newRenderPipelineStateWithDescriptor:pipelineStateDescriptor
                                                             error:&error];
@@ -52,20 +62,19 @@ void RendererMTL::init() {
     }
     return;
   }
-
-  command_queue_ = [device_ newCommandQueue];
 }
 
 static const vector_float2 unit_vertices[] = {
     {0, 0}, {1, 0}, {1, 1}, {1, 1}, {0, 1}, {0, 0},
 };
 
-void RendererMTL::begin() {
-  quads_.clear();
+void RendererMTL::begin() { quads_.clear(); }
+
+void RendererMTL::end() {
   command_buffer_ = [command_queue_ commandBuffer];
   command_buffer_.label = @"MyCommand";
 
-  current_drawable_ = [layer_ nextDrawable];
+  current_drawable_ = [_layer nextDrawable];
   if (current_drawable_ == nil) {
     return;
   }
@@ -78,10 +87,9 @@ void RendererMTL::begin() {
   render_encoder_ = [command_buffer_ renderCommandEncoderWithDescriptor:render_pass_desc];
   [render_pass_desc release];
   render_encoder_.label = @"MyRenderEncoder";
-}
 
-void RendererMTL::end() {
-  simd::float2 viewport = {width_, height_};
+  auto size = _render_target->size();
+  simd::float2 viewport = {size.width, size.height};
 
   [render_encoder_ setViewport:(MTLViewport){0.0, 0.0, viewport.x, viewport.y, 0.0, 1.0}];
 
@@ -114,24 +122,13 @@ void RendererMTL::end() {
 }
 
 void RendererMTL::drawQuad(Rect rect, Color3 color) {
-  auto backing_rect = window_->toBacking(rect);
+  auto backing_rect = _render_target->toLayer(rect);
   quads_.push_back({
       .origin = {backing_rect.origin.x, backing_rect.origin.y},
       .size = {backing_rect.size.width, backing_rect.size.height},
       .color = {color.r, color.g, color.b, 1},
   });
 }
-
-void RendererMTL::setDrawableSize(float width, float height) {
-  if (width_ == width && height_ == height) return;
-  width_ = width;
-  height_ = height;
-  layer_.drawableSize = {width, height};
-}
-
-CAMetalLayer* RendererMTL::layer() { return layer_; }
-
-void RendererMTL::setWindow(WindowNS* window) { window_ = window; }
 
 Renderer* createMetalRenderer() { return new RendererMTL(); }
 
