@@ -12,15 +12,15 @@
 
 namespace spargel::ui {
 
-class platform_ns final : public platform {
+class PlatformNS final : public Platform {
  public:
-  platform_ns();
-  ~platform_ns() override;
+  PlatformNS();
+  ~PlatformNS() override;
 
   void init() override;
   void run() override;
 };
 
-platform* create_appkit_platform();
+Platform* createAppKitPlatform();
 
 }  // namespace spargel::ui

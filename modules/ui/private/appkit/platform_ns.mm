@@ -12,12 +12,12 @@
 
 namespace spargel::ui {
 
-platform* create_appkit_platform() { return new platform_ns; }
+Platform* createAppKitPlatform() { return new PlatformNS; }
 
-platform_ns::platform_ns() : platform(platform_backend::appkit) {}
-platform_ns::~platform_ns() = default;
+PlatformNS::PlatformNS() : Platform(PlatformBackend::appkit) {}
+PlatformNS::~PlatformNS() = default;
 
-void platform_ns::init() {
+void PlatformNS::init() {
   [NSApplication sharedApplication];
   [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
@@ -37,7 +37,7 @@ void platform_ns::init() {
 
   NSApp.mainMenu = menu_bar;
 }
-void platform_ns::run() {
+void PlatformNS::run() {
   // just start the NSApplication
   [NSApp run];
 }

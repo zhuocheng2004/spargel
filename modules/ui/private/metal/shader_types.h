@@ -2,7 +2,7 @@
 
 #include <simd/simd.h>
 
-struct quad_data {
+struct QuadData {
   simd::float2 origin;
   simd::float2 size;
   simd::float4 color;

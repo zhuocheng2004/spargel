@@ -4,18 +4,18 @@
 
 using namespace metal;
 
-struct quad_vertex_output {
+struct QuadVertexOutput {
   float4 position [[position]];
   float4 color;
 };
 
-vertex quad_vertex_output quad_vertex(
+vertex QuadVertexOutput quad_vertex(
     uint vertex_id [[vertex_id]],
     uint quad_id [[instance_id]],
     constant float2* vertices [[buffer(quad_input_index_vertices)]],
-    constant quad_data* quads [[buffer(quad_input_index_quads)]],
+    constant QuadData* quads [[buffer(quad_input_index_quads)]],
     constant uint2* viewport  [[buffer(quad_input_index_viewport)]]) {
-  quad_vertex_output out;
+  QuadVertexOutput out;
 
   float2 pixelSpacePosition = vertices[vertex_id] * quads[quad_id].size + quads[quad_id].origin;
   float2 viewportSize = float2(*viewport);
@@ -28,6 +28,6 @@ vertex quad_vertex_output quad_vertex(
   return out;
 }
 
-fragment float4 quad_fragment(quad_vertex_output input [[stage_in]]) {
+fragment float4 quad_fragment(QuadVertexOutput input [[stage_in]]) {
   return input.color;
 }

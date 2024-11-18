@@ -13,41 +13,41 @@
 
 namespace spargel::ui {
 
-class renderer_mtl;
+class RendererMTL;
 
-class window_ns final : public window {
+class WindowNS final : public Window {
  public:
-  window_ns();
-  ~window_ns() override;
+  WindowNS();
+  ~WindowNS() override;
 
   void init(int width, int height) override;
 
-  void set_title(char const* str) override;
-  void set_width(int width) override;
-  void set_height(int height) override;
+  void setTitle(char const* str) override;
+  void setWidth(int width) override;
+  void setHeight(int height) override;
 
   int width() override;
   int height() override;
 
-  void bind_renderer(renderer* r) override;
+  void setRenderer(Renderer* r) override;
 
   void render();
 
-  renderer_mtl* get_renderer();
+  RendererMTL* getRenderer();
 
-  void mouse_moved(double x, double y);
-  void mouse_down(double x, double y);
+  void mouseMoved(double x, double y);
+  void mouseDown(double x, double y);
 
-  NSRect to_backing(double x, double y, double width, double height);
+  NSRect toBacking(double x, double y, double width, double height);
 
  private:
   int width_;
   int height_;
 
   NSWindow* window_;
-  renderer_mtl* renderer_;
+  RendererMTL* renderer_;
 };
 
-window* create_appkit_window();
+Window* createAppKitWindow();
 
 }  // namespace spargel::ui

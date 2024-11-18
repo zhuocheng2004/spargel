@@ -5,6 +5,6 @@
 namespace spargel::base {
 
 // a utf-8 string
-class string {};
+class String {};
 
 }  // namespace spargel::base

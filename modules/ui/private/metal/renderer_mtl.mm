@@ -6,10 +6,10 @@
 
 namespace spargel::ui {
 
-renderer_mtl::renderer_mtl() : frame_id_{0} {}
-renderer_mtl::~renderer_mtl() = default;
+RendererMTL::RendererMTL() : frame_id_{0} {}
+RendererMTL::~RendererMTL() = default;
 
-void renderer_mtl::init() {
+void RendererMTL::init() {
   device_ = MTLCreateSystemDefaultDevice();
   layer_ = [[CAMetalLayer alloc] init];
   [layer_ setDevice:device_];
@@ -60,7 +60,7 @@ static const vector_float2 unit_vertices[] = {
     {0, 0}, {1, 0}, {1, 1}, {1, 1}, {0, 1}, {0, 0},
 };
 
-void renderer_mtl::begin() {
+void RendererMTL::begin() {
   quads_.clear();
   command_buffer_ = [command_queue_ commandBuffer];
   command_buffer_.label = @"MyCommand";
@@ -80,7 +80,7 @@ void renderer_mtl::begin() {
   render_encoder_.label = @"MyRenderEncoder";
 }
 
-void renderer_mtl::end() {
+void RendererMTL::end() {
   simd::uint2 _viewportSize = {(unsigned int)width_, (unsigned int)height_};
 
   [render_encoder_ setViewport:(MTLViewport){0.0, 0.0, static_cast<double>(_viewportSize.x),
@@ -93,7 +93,7 @@ void renderer_mtl::end() {
                           atIndex:quad_input_index_vertices];
 
   auto buffer = [device_ newBufferWithBytes:quads_.data()
-                                     length:quads_.size() * sizeof(quad_data)
+                                     length:quads_.size() * sizeof(QuadData)
                                     options:MTLResourceStorageModeManaged];
 
   // [render_encoder_ setVertexBytes:&quads_to_draw
@@ -118,8 +118,8 @@ void renderer_mtl::end() {
   frame_id_++;
 }
 
-void renderer_mtl::draw_quad(float x, float y, float width, float height, color3 color) {
-  auto rect = window_->to_backing(x, y, width, height);
+void RendererMTL::drawQuad(float x, float y, float width, float height, Color3 color) {
+  auto rect = window_->toBacking(x, y, width, height);
   quads_.push_back({
       .origin = {(float)rect.origin.x, (float)rect.origin.y},
       .size = {(float)rect.size.width, (float)rect.size.height},
@@ -127,17 +127,17 @@ void renderer_mtl::draw_quad(float x, float y, float width, float height, color3
   });
 }
 
-void renderer_mtl::set_drawable_size(double width, double height) {
+void RendererMTL::setDrawableSize(double width, double height) {
   if (width_ == width && height_ == height) return;
   width_ = width;
   height_ = height;
   layer_.drawableSize = {width, height};
 }
 
-CAMetalLayer* renderer_mtl::layer() { return layer_; }
+CAMetalLayer* RendererMTL::layer() { return layer_; }
 
-void renderer_mtl::set_window(window_ns* window) { window_ = window; }
+void RendererMTL::setWindow(WindowNS* window) { window_ = window; }
 
-renderer* create_metal_renderer() { return new renderer_mtl(); }
+Renderer* createMetalRenderer() { return new RendererMTL(); }
 
 }  // namespace spargel::ui

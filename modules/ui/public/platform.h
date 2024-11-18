@@ -2,10 +2,10 @@
 
 namespace spargel::ui {
 
-class renderer;
-class window;
+class Renderer;
+class Window;
 
-enum class platform_backend {
+enum class PlatformBackend {
   appkit,
   glfw,
   wayland,
@@ -13,31 +13,31 @@ enum class platform_backend {
   xcb,
 };
 
-class platform {
+class Platform {
  public:
   // create a platform instance with the backend chosen automatically
-  static platform* create();
+  static Platform* create();
   // create a platform instance with the given backend
-  static platform* create(platform_backend backend);
+  static Platform* create(PlatformBackend backend);
 
-  virtual ~platform();
+  virtual ~Platform();
 
   // perform platform initialization
   virtual void init() = 0;
 
-  platform_backend backend() const;
+  PlatformBackend backend() const;
 
   // start the platform main loop
   virtual void run() = 0;
 
-  renderer* create_renderer();
-  window* create_window();
+  Renderer* createRenderer();
+  Window* createWindow();
 
  protected:
-  explicit platform(platform_backend backend);
+  explicit Platform(PlatformBackend backend);
 
  private:
-  platform_backend backend_;
+  PlatformBackend backend_;
 };
 
 }  // namespace spargel::ui

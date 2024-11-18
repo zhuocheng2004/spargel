@@ -10,25 +10,25 @@
 
 namespace spargel::ui {
 
-class window_ns;
+class WindowNS;
 
-class renderer_mtl final : public renderer {
+class RendererMTL final : public Renderer {
  public:
-  renderer_mtl();
-  ~renderer_mtl();
+  RendererMTL();
+  ~RendererMTL();
 
   void init() override;
   void begin() override;
   void end() override;
 
-  void draw_quad(float x, float y, float width, float height,
-                 color3 color) override;
+  void drawQuad(float x, float y, float width, float height,
+                 Color3 color) override;
 
-  void set_drawable_size(double width, double height);
+  void setDrawableSize(double width, double height);
 
   CAMetalLayer* layer();
 
-  void set_window(window_ns* window);
+  void setWindow(WindowNS* window);
 
  private:
   id<MTLDevice> device_;
@@ -41,16 +41,16 @@ class renderer_mtl final : public renderer {
   CAMetalLayer* layer_;
   id<CAMetalDrawable> current_drawable_;
 
-  window_ns* window_;
+  WindowNS* window_;
 
   double width_;
   double height_;
 
-  std::vector<quad_data> quads_;
+  std::vector<QuadData> quads_;
 
   int frame_id_;
 };
 
-renderer* create_metal_renderer();
+Renderer* createMetalRenderer();
 
 }  // namespace spargel::ui

@@ -7,61 +7,61 @@
 #include "modules/ui/public/renderer.h"
 #include "modules/ui/public/window.h"
 
-class element {
+class Element {
  public:
-  element() = default;
-  virtual ~element() {
+  Element() = default;
+  virtual ~Element() {
     for (auto child : children_) {
       delete child;
     }
   }
-  void set_window(spargel::ui::window* window) {
+  void setWindow(spargel::ui::Window* window) {
     window_ = window;
     for (auto child : children_) {
-      child->set_window(window);
+      child->setWindow(window);
     }
   }
 
-  void add_child(element* child) {
+  void addChild(Element* child) {
     children_.push_back(child);
-    child->set_window(window_);
+    child->setWindow(window_);
   }
-  void remove_last() {
+  void removeLast() {
     auto child = children_.back();
     children_.pop_back();
     delete child;
   }
 
-  virtual void on_mouse_move(double x, double y) {
+  virtual void onMouseMove(double x, double y) {
     for (int i = 0; i < children_.size(); i++) {
-      children_[i]->on_mouse_move(x, y);
+      children_[i]->onMouseMove(x, y);
     }
   }
 
-  virtual void on_mouse_down(double x, double y) {
+  virtual void onMouseDown(double x, double y) {
     for (int i = 0; i < children_.size(); i++) {
-      children_[i]->on_mouse_down(x, y);
+      children_[i]->onMouseDown(x, y);
     }
   }
 
-  virtual void render(spargel::ui::renderer* r) {
+  virtual void render(spargel::ui::Renderer* r) {
     for (auto child : children_) {
       child->render(r);
     }
   }
 
-  spargel::ui::window* window() { return window_; }
+  spargel::ui::Window* window() { return window_; }
 
  private:
-  std::vector<element*> children_;
-  spargel::ui::window* window_;
+  std::vector<Element*> children_;
+  spargel::ui::Window* window_;
 };
 
-class button_element : public element {
+class ButtonElement : public Element {
  public:
   // origin is upper left
-  explicit button_element(float x, float y, float width, float height,
-                          spargel::ui::color3 color,
+  explicit ButtonElement(float x, float y, float width, float height,
+                          spargel::ui::Color3 color,
                           std::function<void()> on_click)
       : x_{x},
         y_{y},
@@ -71,7 +71,7 @@ class button_element : public element {
         hovered_{false},
         on_click_(std::move(on_click)) {}
 
-  void on_mouse_move(double x, double y) override {
+  void onMouseMove(double x, double y) override {
     if (x >= x_ && x <= x_ + width_ && y >= y_ && y <= y_ + width_) {
       hovered_ = true;
     } else {
@@ -79,19 +79,19 @@ class button_element : public element {
     }
   }
 
-  void on_mouse_down(double x, double y) override {
+  void onMouseDown(double x, double y) override {
     if (x >= x_ && x <= x_ + width_ && y >= y_ && y <= y_ + width_) {
       on_click_();
     }
   }
 
-  void render(spargel::ui::renderer* r) override {
+  void render(spargel::ui::Renderer* r) override {
     auto render_x = -window()->width() / 2.0 + x_;
     auto render_y = window()->height() / 2.0 - y_ - height_;
     if (hovered_) {
-      r->draw_quad(render_x, render_y, width_, height_, color_);
+      r->drawQuad(render_x, render_y, width_, height_, color_);
     } else {
-      r->draw_quad(render_x, render_y, width_, height_,
+      r->drawQuad(render_x, render_y, width_, height_,
                    {1 - color_.r, 1 - color_.g, 1 - color_.b});
     }
   }
@@ -101,70 +101,70 @@ class button_element : public element {
   float y_;
   float width_;
   float height_;
-  spargel::ui::color3 color_;
+  spargel::ui::Color3 color_;
   bool hovered_;
 
   std::function<void()> on_click_;
 };
 
-class editor final : public spargel::ui::window_delegate {
+class Editor final : public spargel::ui::WindowDelegate {
  public:
-  editor() {
-    root_ = new element;
-    root_->add_child(new button_element(50, 50, 50, 50, {0, 0, 0}, [this]() {
+  Editor() {
+    root_ = new Element;
+    root_->addChild(new ButtonElement(50, 50, 50, 50, {0, 0, 0}, [this]() {
       auto x = rand() % window_->width();
       auto y = rand() % window_->height();
-      root_->add_child(new button_element(
+      root_->addChild(new ButtonElement(
           x, y, 15, 15,
           {sinf(n_ * 2.718281 + 36), sinf(n_ * 0.577215 * 2 + 136),
            sinf(n_ * 3.141592 * 2.718281)},
           [] {}));
       n_++;
     }));
-    root_->add_child(new button_element(100, 100, 50, 50, {0, 1, 0}, [this]() {
-      root_->remove_last();
+    root_->addChild(new ButtonElement(100, 100, 50, 50, {0, 1, 0}, [this]() {
+      root_->removeLast();
       n_--;
     }));
   }
-  ~editor() { delete root_; }
+  ~Editor() { delete root_; }
 
-  void render(spargel::ui::renderer* r) override { root_->render(r); }
+  void render(spargel::ui::Renderer* r) override { root_->render(r); }
 
-  void on_mouse_move(double x, double y) override {
-    root_->on_mouse_move(x, window_->height() - y);
+  void onMouseMove(double x, double y) override {
+    root_->onMouseMove(x, window_->height() - y);
   }
 
-  void on_mouse_down(double x, double y) override {
-    root_->on_mouse_down(x, window_->height() - y);
+  void onMouseDown(double x, double y) override {
+    root_->onMouseDown(x, window_->height() - y);
   }
 
-  void set_window(spargel::ui::window* window) override {
+  void setWindow(spargel::ui::Window* window) override {
     window_ = window;
-    root_->set_window(window);
+    root_->setWindow(window);
   }
 
  private:
-  element* root_;
-  spargel::ui::window* window_;
+  Element* root_;
+  spargel::ui::Window* window_;
   int n_ = 1;
 };
 
 int main() {
   srand(time(nullptr));
 
-  auto platform = spargel::ui::platform::create();
+  auto platform = spargel::ui::Platform::create();
   platform->init();
 
-  editor e;
+  Editor editor;
 
-  auto renderer = platform->create_renderer();
+  auto renderer = platform->createRenderer();
   renderer->init();
 
-  auto window = platform->create_window();
+  auto window = platform->createWindow();
   window->init(500, 500);
-  window->set_title("Spargel Editor");
-  window->set_delegate(&e);
-  window->bind_renderer(renderer);
+  window->setTitle("Spargel Editor");
+  window->setDelegate(&editor);
+  window->setRenderer(renderer);
 
   platform->run();
 

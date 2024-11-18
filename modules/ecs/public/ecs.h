@@ -4,17 +4,17 @@
 
 namespace spargel::ecs {
 
-using entity = ssize;
+using Entity = ssize;
 
-class world {
+class World {
  public:
-  world();
-  ~world();
+  World();
+  ~World();
 
-  entity add_entity();
+  Entity add_entity();
 
  private:
-  entity next_entity();
+  Entity next_entity();
 
   ssize entity_count_;
 };

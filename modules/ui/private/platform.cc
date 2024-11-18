@@ -2,54 +2,54 @@
 
 #if __APPLE__
 namespace spargel::ui {
-platform* create_appkit_platform();
-window* create_appkit_window();
-renderer* create_metal_renderer();
+Platform* createAppKitPlatform();
+Window* createAppKitWindow();
+Renderer* createMetalRenderer();
 }  // namespace spargel::ui
 #endif
 
 namespace spargel::ui {
 
-platform* platform::create() {
+Platform* Platform::create() {
 #if __APPLE__
-  return create_appkit_platform();
+  return createAppKitPlatform();
 #endif
   return nullptr;
 }
 
-platform* platform::create(platform_backend backend) {
+Platform* Platform::create(PlatformBackend backend) {
   switch (backend) {
 #if __APPLE__
-    case platform_backend::appkit:
-      return create_appkit_platform();
+    case PlatformBackend::appkit:
+      return createAppKitPlatform();
 #endif
     default:
       return nullptr;
   }
 }
 
-platform::~platform() = default;
+Platform::~Platform() = default;
 
-platform::platform(platform_backend backend) : backend_{backend} {}
+Platform::Platform(PlatformBackend backend) : backend_{backend} {}
 
-platform_backend platform::backend() const { return backend_; }
+PlatformBackend Platform::backend() const { return backend_; }
 
-renderer* platform::create_renderer() {
+Renderer* Platform::createRenderer() {
   switch (backend_) {
 #if __APPLE__
-    case platform_backend::appkit:
-      return create_metal_renderer();
+    case PlatformBackend::appkit:
+      return createMetalRenderer();
 #endif
     default:
       return nullptr;
   }
 }
 
-window* platform::create_window() {
+Window* Platform::createWindow() {
   switch (backend_) {
 #if __APPLE__
-    case platform_backend::appkit:
-      return create_appkit_window();
+    case PlatformBackend::appkit:
+      return createAppKitWindow();
 #endif
     default:
       return nullptr;

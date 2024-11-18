@@ -2,43 +2,43 @@
 
 namespace spargel::ui {
 
-class renderer;
-class window;
+class Renderer;
+class Window;
 
-class window_delegate {
+class WindowDelegate {
  public:
-  virtual ~window_delegate();
+  virtual ~WindowDelegate();
 
-  virtual void render(renderer* r);
+  virtual void render(Renderer* r);
 
-  virtual void on_mouse_move(double x, double y);
+  virtual void onMouseMove(double x, double y);
 
-  virtual void on_mouse_down(double x, double y);
+  virtual void onMouseDown(double x, double y);
 
-  virtual void set_window(window* window);
+  virtual void setWindow(Window* window);
 };
 
-class window {
+class Window {
  public:
-  window();
-  virtual ~window();
+  Window();
+  virtual ~Window();
 
   virtual void init(int width, int height) = 0;
 
-  virtual void set_title(char const* str) = 0;
-  virtual void set_width(int width) = 0;
-  virtual void set_height(int height) = 0;
+  virtual void setTitle(char const* str) = 0;
+  virtual void setWidth(int width) = 0;
+  virtual void setHeight(int height) = 0;
 
   virtual int width() = 0;
   virtual int height() = 0;
 
-  virtual void bind_renderer(renderer* r) = 0;
+  virtual void setRenderer(Renderer* r) = 0;
 
-  void set_delegate(window_delegate* delegate);
-  window_delegate* delegate();
+  void setDelegate(WindowDelegate* delegate);
+  WindowDelegate* delegate();
 
  private:
-  window_delegate* delegate_;
+  WindowDelegate* delegate_;
 };
 
 }  // namespace spargel::ui

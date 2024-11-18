@@ -5,6 +5,6 @@
 namespace spargel::base {
 
 template <typename T>
-class vector {};
+class Vector {};
 
 }  // namespace spargel::base

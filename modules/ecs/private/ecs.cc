@@ -2,10 +2,10 @@
 
 namespace spargel::ecs {
 
-world::world() = default;
-world::~world() = default;
+World::World() = default;
+World::~World() = default;
 
-entity world::add_entity() {
+Entity World::add_entity() {
   auto e = entity_count_;
   entity_count_++;
   return e;
