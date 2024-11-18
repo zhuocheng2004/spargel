@@ -14,15 +14,9 @@ if (SPARGEL_IS_MACOS)
   )
 endif ()
 if (SPARGEL_IS_WINDOWS)
-  target_sources(vulkan_triangle
-    PRIVATE
-      app_delegate_win.cc
-  )
+#  target_sources(vulkan_triangle
+#    PRIVATE
+#      app_delegate_win.cc
+#  )
 endif ()
-target_link_libraries(vulkan_triangle PRIVATE Vulkan::Headers)
-
-if (SPARGEL_IS_MACOS)
-  find_library(APPKIT AppKit)
-  find_library(QUARTZ_CORE QuartzCore)
-  target_link_libraries(vulkan_triangle PRIVATE ${APPKIT} ${QUARTZ_CORE})
-endif ()
+target_link_libraries(vulkan_triangle PRIVATE ui Vulkan::Headers)

@@ -6,6 +6,7 @@ target_sources(ui
     private/renderer.cc
     private/types.cc
     private/window.cc
+    private/window_delegate.cc
 )
 if (APPLE)
   target_sources(ui

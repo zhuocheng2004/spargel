@@ -6,6 +6,15 @@
 #import <AppKit/AppKit.h>
 
 namespace spargel::ui {
+class WindowNS;
+}
+
+@interface SpargelWindowDelegate : NSObject <NSWindowDelegate> {
+  spargel::ui::WindowNS* _window;
+}
+@end
+
+namespace spargel::ui {
 
 class RenderTargetMTL;
 
@@ -30,6 +39,7 @@ class WindowNS final : public Window {
   void mouseMoved(float x, float y);
   void mouseDown(float x, float y);
   void setDrawableSize(RectSize size);
+  void willClose();
 
   // called by ??
   Rect toBacking(Rect rect);
@@ -39,6 +49,7 @@ class WindowNS final : public Window {
   int height_;
 
   NSWindow* window_;
+  SpargelWindowDelegate* _ns_delegate;
   RenderTargetMTL* _render_target;
 };
 

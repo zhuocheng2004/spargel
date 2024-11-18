@@ -3,6 +3,18 @@
 #import <AppKit/AppKit.h>
 
 #include "modules/ui/private/metal/render_target_mtl.h"
+#include "modules/ui/public/window_delegate.h"
+
+@implementation SpargelWindowDelegate
+- (instancetype)initWithSpargelUIWindow:(spargel::ui::WindowNS*)window {
+  [super init];
+  _window = window;
+  return self;
+}
+- (void)windowWillClose:(NSNotification*)notification {
+  _window->willClose();
+}
+@end
 
 @interface SpargelMetalView : NSView {
   spargel::ui::WindowNS* spargel_window_;
@@ -83,7 +95,11 @@ WindowNS::WindowNS() {
   height_ = 0;
   _render_target = new RenderTargetMTL(this);
 }
-WindowNS::~WindowNS() = default;
+
+WindowNS::~WindowNS() {
+  [window_ release];
+  [_ns_delegate release];
+}
 
 void WindowNS::init(int width, int height) {
   width_ = width;
@@ -98,11 +114,14 @@ void WindowNS::init(int width, int height) {
   rect.origin.x = (screen.frame.size.width - width_) / 2;
   rect.origin.y = (screen.frame.size.height - height_) / 2;
 
+  _ns_delegate = [[SpargelWindowDelegate alloc] initWithSpargelUIWindow:this];
+
   window_ = [[NSWindow alloc] initWithContentRect:rect
                                         styleMask:style
                                           backing:NSBackingStoreBuffered
                                             defer:NO
                                            screen:screen];
+  window_.delegate = _ns_delegate;
   window_.releasedWhenClosed = NO;
   window_.minSize = NSMakeSize(200, 200);
 
@@ -136,6 +155,8 @@ void WindowNS::mouseMoved(float x, float y) { delegate()->onMouseMove(x, y); }
 void WindowNS::mouseDown(float x, float y) { delegate()->onMouseDown(x, y); }
 
 void WindowNS::setDrawableSize(RectSize size) { _render_target->setSize(size); }
+
+void WindowNS::willClose() { delegate()->onClose(); }
 
 Rect WindowNS::toBacking(Rect rect) {
   NSRect result = [window_ convertRectToBacking:NSMakeRect(rect.origin.x, rect.origin.y,

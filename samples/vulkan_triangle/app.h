@@ -3,11 +3,12 @@
 
 #include <vector>
 
-#include "samples/vulkan_triangle/vulkan_headers.h"
+#include "modules/ui/public/window_delegate.h"
 #include "samples/vulkan_triangle/app_delegate.h"
 #include "samples/vulkan_triangle/proc_table.h"
+#include "samples/vulkan_triangle/vulkan_headers.h"
 
-class App {
+class App final : public spargel::ui::WindowDelegate {
  public:
   explicit App(AppDelegate* delegate);
 
@@ -15,7 +16,9 @@ class App {
 
   void Deinit();
 
-  void Run();
+  void render() override;
+
+  void onClose() override;
 
  private:
   bool LoadGeneralProcs();
@@ -154,6 +157,9 @@ class App {
   // note: is it possible that we link with MoltenVK directly in shipping build?
   // todo: consider move this to platform specific logic
   bool has_portability_ = false;
+
+  int frame_count_ = 0;
+  bool closing_ = false;
 };
 
 #endif

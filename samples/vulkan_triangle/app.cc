@@ -836,6 +836,7 @@ void App::Deinit() {
   if (has_debug_utils_) DestroyDebugMessenger();
   DestroyInstance();
   delegate_->Deinit();
+  LOG(Info, "resources all cleaned");
 }
 
 bool App::WaitAndResetFence() {
@@ -1032,51 +1033,55 @@ void App::BeginRenderPass(VkCommandBuffer cmd, uint32_t image_id,
   table_.vkCmdBeginRenderPass(cmd, &info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void App::Run() {
-  uint32_t n = 0;
-  while (!delegate_->ShouldQuit()) {
-    if (!WaitAndResetFence()) return;
+void App::render() {
+  if (closing_) return;
 
-    uint32_t swapchain_image_id;
-    if (!AcquireNextImage(&swapchain_image_id)) return;
-    if (!BeginCommandBuffer()) return;
+  if (!WaitAndResetFence()) return;
 
-    auto cmd = frames_.command_buffer[current_frame_];
-    // auto image = swapchain_images_[swapchain_image_id];
+  uint32_t swapchain_image_id;
+  if (!AcquireNextImage(&swapchain_image_id)) return;
+  if (!BeginCommandBuffer()) return;
 
-    // if (!TransitionImage(cmd, image, VK_IMAGE_LAYOUT_UNDEFINED,
-    //                      VK_IMAGE_LAYOUT_GENERAL))
-    //   return;
+  auto cmd = frames_.command_buffer[current_frame_];
+  // auto image = swapchain_images_[swapchain_image_id];
 
-    float flash = abs(sin(n / 120.f));
-    VkClearColorValue clearValue = {
-        {abs(sin(n / 120.f + 72)), abs(sin(n / 120.f + 36)), flash, 1.0f}};
+  // if (!TransitionImage(cmd, image, VK_IMAGE_LAYOUT_UNDEFINED,
+  //                      VK_IMAGE_LAYOUT_GENERAL))
+  //   return;
 
-    VkImageSubresourceRange clear_range;
-    clear_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    clear_range.baseMipLevel = 0;
-    clear_range.levelCount = 1;
-    clear_range.baseArrayLayer = 0;
-    clear_range.layerCount = 1;
+  float flash = abs(sin(frame_count_ / 120.f));
+  VkClearColorValue clearValue = {{abs(sin(frame_count_ / 120.f + 72)),
+                                   abs(sin(frame_count_ / 120.f + 36)), flash,
+                                   1.0f}};
 
-    BeginRenderPass(cmd, swapchain_image_id, clearValue);
+  VkImageSubresourceRange clear_range;
+  clear_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  clear_range.baseMipLevel = 0;
+  clear_range.levelCount = 1;
+  clear_range.baseArrayLayer = 0;
+  clear_range.layerCount = 1;
 
-    // table_.vkCmdClearColorImage(cmd, image, VK_IMAGE_LAYOUT_GENERAL,
-    //                             &clearValue, 1, &clear_range);
+  BeginRenderPass(cmd, swapchain_image_id, clearValue);
 
-    // if (!TransitionImage(cmd, image, VK_IMAGE_LAYOUT_GENERAL,
-    //                      VK_IMAGE_LAYOUT_PRESENT_SRC_KHR))
-    //   return;
+  // table_.vkCmdClearColorImage(cmd, image, VK_IMAGE_LAYOUT_GENERAL,
+  //                             &clearValue, 1, &clear_range);
 
-    table_.vkCmdEndRenderPass(cmd);
+  // if (!TransitionImage(cmd, image, VK_IMAGE_LAYOUT_GENERAL,
+  //                      VK_IMAGE_LAYOUT_PRESENT_SRC_KHR))
+  //   return;
 
-    if (!EndCommandBuffer()) return;
-    if (!Submit()) return;
-    if (!Present(swapchain_image_id)) return;
+  table_.vkCmdEndRenderPass(cmd);
 
-    current_frame_ = (current_frame_ + 1) % NumFramesInFlight;
-    n++;
-    delegate_->PollEvents();
-  }
+  if (!EndCommandBuffer()) return;
+  if (!Submit()) return;
+  if (!Present(swapchain_image_id)) return;
+
+  current_frame_ = (current_frame_ + 1) % NumFramesInFlight;
+  frame_count_++;
+}
+
+void App::onClose() {
+  if (closing_) return;
   table_.vkDeviceWaitIdle(device_);
+  Deinit();
 }

@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "samples/vulkan_triangle/vulkan_headers.h"
 #include "samples/vulkan_triangle/proc_table.h"
+#include "samples/vulkan_triangle/vulkan_headers.h"
 
 class AppDelegate {
  public:
@@ -30,9 +30,6 @@ class AppDelegate {
 
   virtual uint32_t GetWidth() = 0;
   virtual uint32_t GetHeight() = 0;
-
-  virtual void PollEvents() = 0;
-  virtual bool ShouldQuit() = 0;
 
   virtual void Deinit() = 0;
 

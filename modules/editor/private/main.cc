@@ -7,6 +7,7 @@
 #include "modules/ui/public/platform.h"
 #include "modules/ui/public/renderer.h"
 #include "modules/ui/public/window.h"
+#include "modules/ui/public/window_delegate.h"
 
 class Element {
  public:

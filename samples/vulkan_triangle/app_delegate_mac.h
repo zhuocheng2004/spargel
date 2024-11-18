@@ -5,10 +5,11 @@
 
 #include "samples/vulkan_triangle/vulkan_headers.h"
 #include "samples/vulkan_triangle/app_delegate.h"
+#include "modules/ui/public/window.h"
 
 class AppDelegateMac final : public AppDelegate {
  public:
-  AppDelegateMac();
+  explicit AppDelegateMac(spargel::ui::Window* window);
   ~AppDelegateMac() override;
 
   bool LoadVkLibrary() override;
@@ -29,22 +30,11 @@ class AppDelegateMac final : public AppDelegate {
   uint32_t GetWidth() override;
   uint32_t GetHeight() override;
 
-  void PollEvents() override;
-  bool ShouldQuit() override;
-
   void Deinit() override;
 
-  void SetShouldQuit(bool v);
-
  private:
-  bool CreateWindow();
-
   void* library_ = nullptr;
-
-  bool should_quit_ = false;
-
-  struct ObjcData;
-  ObjcData* data_;
+  spargel::ui::Window* _window;
 };
 
 #endif

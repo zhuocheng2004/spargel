@@ -3,20 +3,7 @@
 namespace spargel::ui {
 
 class RenderTarget;
-class Window;
-
-class WindowDelegate {
- public:
-  virtual ~WindowDelegate();
-
-  virtual void render();
-
-  virtual void onMouseMove(float x, float y);
-
-  virtual void onMouseDown(float x, float y);
-
-  virtual void setWindow(Window* window);
-};
+class WindowDelegate;
 
 class Window {
  public:
