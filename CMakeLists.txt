@@ -7,10 +7,6 @@ project(spargel)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 include(AddSpargel)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
@@ -26,8 +22,7 @@ else()
 endif()
 
 add_subdirectory(games)
-add_subdirectory(modules)
-add_subdirectory(samples)
+add_subdirectory(source)
 
 add_subdirectory(third_party/glad/repo)
 add_subdirectory(third_party/glfw/repo)

@@ -1,0 +1,7 @@
+#spargel_add_library(resource)
+
+spargel_add_executable(demo_EmptyResourceManager)
+target_sources(demo_EmptyResourceManager PRIVATE demo_EmptyResourceManager.cc)
+
+spargel_add_executable(demo_DirectoryResourceManager)
+target_sources(demo_DirectoryResourceManager PRIVATE demo_DirectoryResourceManager.cc)

@@ -8,6 +8,7 @@
 
 ### Naming Convention
 
+- File: `some_file.h`, `some_file.cc`
 - Namespace: `some_namespace`
 - Class: `SomeClass`
 - Function: `someFunction`

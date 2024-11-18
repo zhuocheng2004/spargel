@@ -1,6 +1,0 @@
-add_subdirectory(base)
-add_subdirectory(ecs)
-add_subdirectory(editor)
-add_subdirectory(gpu)
-add_subdirectory(resource)
-add_subdirectory(ui)

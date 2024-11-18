@@ -1,6 +1,11 @@
+# for targets in SpargelEngine
 function(spargel_target_common name)
   target_compile_features(${name} PUBLIC cxx_std_20)
-  target_include_directories(${name} PUBLIC "${PROJECT_SOURCE_DIR}")
+  target_include_directories(${name}
+    PUBLIC
+      "${PROJECT_SOURCE_DIR}/public"
+      "${PROJECT_SOURCE_DIR}/source"
+  )
   # set_target_properties(${name} PROPERTIES LINK_LIBRARIES_STRATEGY REORDER_FREELY)
   target_compile_options(${name} PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall>)
 endfunction()
@@ -22,4 +27,11 @@ function(spargel_add_option name doc value)
   else()
     message(STATUS "${name}: OFF")
   endif()
+endfunction()
+
+function(spargel_target_add_resources_dir name)
+  add_custom_target(${name}_copy_resources
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${CMAKE_CURRENT_SOURCE_DIR}/resources $<TARGET_PROPERTY:${name},BINARY_DIR>/resources
+  )
+  add_dependencies(${name} ${name}_copy_resources)
 endfunction()
