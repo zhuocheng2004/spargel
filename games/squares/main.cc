@@ -127,8 +127,6 @@ void bounce_system(ecs_world world, global_data* data) {
   ecs_query(world, &desc);
 }
 
-constexpr int half_size = 5;
-
 void render_system(ecs_world world, void* data) {
   ZoneScoped;
 
@@ -262,7 +260,6 @@ struct battle_loop_data {
 };
 
 bool intersect(position* p1, float d1, position* p2, float d2) {
-  constexpr int full_size = 2 * half_size;
   auto f = (d1 + d2) / 2.0;
   if (p1->x + f <= p2->x || p2->x + f <= p1->x) {
     return false;
@@ -333,6 +330,7 @@ struct game {
     return true;
   }
   bool init_glfw() {
+    glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, GLFW_FALSE);
     if (!glfwInit()) {
       printf("error: cannot init glfw\n");
       return false;
@@ -403,7 +401,6 @@ struct game {
       auto d = (diameter*)(view->components[3]);
 
       for (int i = 0; i < view->count; i++) {
-        auto id = i + 1;
         pos[i].x = rand() % window_width;
         pos[i].y = rand() % window_height;
         vel[i].vx = rand() % 100 - 50;
