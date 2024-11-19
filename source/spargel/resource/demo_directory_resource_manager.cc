@@ -11,7 +11,7 @@ static void printHex(unsigned char ch) {
 }
 
 static void printRaw(unsigned char ch) {
-  if (ch > ' ' && ch < '~')
+  if (ch >= ' ' && ch <= '~')
     putchar(ch);
   else
     putchar('.');
@@ -37,8 +37,15 @@ int main(int argc, char* argv[]) {
   printf("Size: %ld \n", size);
 
   void* buf = malloc(size);
-  resource->getData(buf);
-  resource->release();
+  if (!resource->getData(buf)) {
+    fprintf(stderr, "Failed to read data from \"%s\" \n", argv[1]);
+    resource->put();
+    free(resource);
+    free(buf);
+    resourceManager.close();
+    return 1;
+  }
+  resource->put();
   free(resource);
 
   printf("Content: \n");

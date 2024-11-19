@@ -6,21 +6,30 @@ namespace spargel::resource {
 
 class DirectoryResource : public Resource {
  public:
-  DirectoryResource(const ResourceID& id, FILE* fp) : Resource(id), _fp(fp) {
-    fseek(fp, 0, SEEK_END);
-    _size = ftell(fp);
+  DirectoryResource(const ResourceID& id, FILE* fp) : Resource(id), _fp(fp) {}
+
+  bool init() {
+    if (fseek(_fp, 0, SEEK_END) < 0) return false;
+    _size = ftell(_fp);
+    if (_size < 0) return false;
+
+    return true;
   }
 
-  void release() { fclose(_fp); }
+  size_t size() override { return _size; }
 
-  size_t size() { return _size; }
+  bool getData(void* dest) override {
+    if (_refcount <= 0) return false;
 
-  void getData(void* dest) {
-    fseek(_fp, 0, SEEK_SET);
-    fread(dest, _size, 1, _fp);
+    if (_size == 0) return true;
+
+    if (fseek(_fp, 0, SEEK_SET) < 0) return false;
+    if (fread(dest, _size, 1, _fp) != 1) return false;
+
+    return true;
   }
 
-  const void* mapData() {
+  const void* mapData() override {
     /* TODO: OS-specific */
     return nullptr;
   }
@@ -28,6 +37,11 @@ class DirectoryResource : public Resource {
  private:
   FILE* _fp;
   size_t _size;
+
+  void _drop() override {
+    fclose(_fp);
+    _size = 0;
+  }
 };
 
 Resource* DirectoryResourceManager::open(const ResourceID& id) {
@@ -42,7 +56,15 @@ Resource* DirectoryResourceManager::open(const ResourceID& id) {
       path.c_str());
   */
   FILE* fp = fopen(path.c_str(), "rb");
-  return fp ? new DirectoryResource(id, fp) : nullptr;
+  if (!fp) return nullptr;
+
+  auto resource = new DirectoryResource(id, fp);
+  if (!resource->init()) {
+    delete resource;
+    return nullptr;
+  }
+
+  return resource;
 }
 
 }  // namespace spargel::resource

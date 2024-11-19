@@ -9,14 +9,14 @@ class DirectoryResourceManager : public ResourceManager {
   DirectoryResourceManager(const std::string& base, bool use_namespace = false)
       : _base(base), _use_namespace(use_namespace) {}
 
-  void close() {}
+  void close() override {}
 
-  bool has(const ResourceID& id) {
+  bool has(const ResourceID& id) override {
     /* TODO: OS-specific */
     return false;
   }
 
-  Resource* open(const ResourceID& id);
+  Resource* open(const ResourceID& id) override;
 
  private:
   const std::string _base;
