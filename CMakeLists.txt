@@ -15,6 +15,12 @@ else()
   set(SPARGEL_IS_MACOS NO CACHE BOOL "")
 endif()
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
+  set(SPARGEL_IS_LINUX YES CACHE BOOL "")
+else()
+  set(SPARGEL_IS_LINUX NO CACHE BOOL "")
+endif()
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
   set(SPARGEL_IS_WINDOWS YES CACHE BOOL "")
 else()
