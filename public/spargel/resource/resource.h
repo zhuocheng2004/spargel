@@ -9,12 +9,12 @@ namespace spargel::resource {
 
 class ResourceID {
  public:
-  const std::string k_default_ns = "core";
+  const std::string NS_DEFAULT = "core";
 
   ResourceID(const std::string& ns, const std::string& path)
       : _ns(ns), _path(path) {}
 
-  explicit ResourceID(const std::string& path) : ResourceID(k_default_ns, path) {}
+  explicit ResourceID(const std::string& path) : ResourceID(NS_DEFAULT, path) {}
 
   bool operator==(const ResourceID& that) {
     return _ns == that._ns && _path == that._path;
@@ -61,7 +61,6 @@ class Resource {
  */
 class ResourceManager {
  public:
-
   virtual void close() = 0;
 
   virtual bool has(const ResourceID& id) = 0;

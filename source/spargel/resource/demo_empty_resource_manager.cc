@@ -1,7 +1,7 @@
 
 #include <assert.h>
 
-#include "spargel/resource/EmptyResourceManager.h"
+#include "spargel/resource/empty_resource_manager.h"
 
 int main() {
   using namespace spargel::resource;

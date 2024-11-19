@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "spargel/resource/DirectoryResourceManager.h"
+#include "spargel/resource/directory_resource_manager.h"
 
 static void printHex(unsigned char ch) {
   const char digits[] = "0123456789ABCDEFG";
