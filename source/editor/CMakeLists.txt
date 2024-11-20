@@ -9,7 +9,7 @@ if(SPARGEL_IS_MACOS)
   )
   add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/MacOS/editor
-    COMMAND cp ${CMAKE_BINARY_DIR}/bin/editor ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/MacOS/editor
+    COMMAND cp ${CMAKE_BINARY_DIR}/source/editor/editor ${CMAKE_BINARY_DIR}/SpargelEditor.app/Contents/MacOS/editor
     DEPENDS editor
   )
   add_custom_command(
