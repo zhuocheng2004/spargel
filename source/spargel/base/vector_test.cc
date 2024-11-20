@@ -20,5 +20,9 @@ int main() {
   assert(vec.count() == 199);
   vec.pop();
   assert(vec.count() == 198);
+  Vector<int> vec2;
+  spargel::base::moveConstruct(vec2, vec);
+  assert(vec2.count() == 198);
+  assert(vec.count() == 0);
   return 0;
 }

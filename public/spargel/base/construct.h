@@ -4,6 +4,9 @@
 
 namespace spargel::base {
 
+template <typename T, typename Traits>
+void copyConstruct(T& dst, T const& src);
+
 template <typename T>
 struct DefaultCopyTraits {
   static void copyConstruct(T& dst, T const& src) {
@@ -13,7 +16,7 @@ struct DefaultCopyTraits {
 
 template <typename T>
 struct DefaultMoveTraits {
-  static void moveConstruct(T& dst, T& src) { memcpy(&dst, &src, sizeof(T)); }
+  static void moveConstruct(T& dst, T& src) { copyConstruct(dst, src); }
 };
 
 template <typename T, typename Traits = DefaultCopyTraits<T>>

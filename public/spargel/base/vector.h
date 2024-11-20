@@ -17,7 +17,8 @@ class Vector {
   }
   ~Vector() {
     if (_data)
-      _alloc->deallocate((u8*)_data, MemoryLayout::defaultArrayLayout<T>(_capacity));
+      _alloc->deallocate((u8*)_data,
+                         MemoryLayout::defaultArrayLayout<T>(_capacity));
   }
 
   ssize count() const { return _count; }
@@ -69,15 +70,27 @@ class Vector {
       _capacity = new_cap;
     } else {
       ssize new_cap = count < MINIMAL_CAPACITY ? MINIMAL_CAPACITY : count;
-      _data = (T*)_alloc->allocate(MemoryLayout::defaultArrayLayout<T>(new_cap));
+      _data =
+          (T*)_alloc->allocate(MemoryLayout::defaultArrayLayout<T>(new_cap));
       _capacity = new_cap;
     }
   }
+
+  friend void DefaultMoveTraits<Vector<T>>::moveConstruct(Vector<T>&,
+                                                          Vector<T>&);
 
   T* _data;
   ssize _count;
   ssize _capacity;
   Allocator* _alloc;
+};
+
+template <typename T>
+struct DefaultMoveTraits<Vector<T>> {
+  static void moveConstruct(Vector<T>& dst, Vector<T>& src) {
+    copyConstruct(dst, src);
+    src = Vector<T>();
+  }
 };
 
 }  // namespace spargel::base
