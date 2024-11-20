@@ -1,7 +1,9 @@
 spargel_add_library(base)
 target_sources(base
   PRIVATE
+    allocator.cc
     string.cc
+    unimplemented.cc
 )
 
 if (SPARGEL_IS_LINUX)
@@ -19,3 +21,7 @@ if (SPARGEL_IS_WINDOWS)
   target_sources(demo_get_executable_path_win PRIVATE demo_get_executable_path_win.cc)
   target_link_libraries(demo_get_executable_path_win PRIVATE base)
 endif ()
+
+spargel_add_executable(test_base_vector)
+target_sources(test_base_vector PRIVATE vector_test.cc)
+target_link_libraries(test_base_vector PRIVATE base)

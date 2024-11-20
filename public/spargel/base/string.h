@@ -4,7 +4,14 @@
 
 namespace spargel::base {
 
-// a utf-8 string
-class String {};
+// utf-8 string
+class String final {
+ public:
+  String();
+  ~String();
+};
+
+// c string, i.e. null terminated
+class CString final {};
 
 }  // namespace spargel::base
