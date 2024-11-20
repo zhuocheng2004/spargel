@@ -21,6 +21,22 @@ class Vector {
                          MemoryLayout::defaultArrayLayout<T>(_capacity));
   }
 
+  /// @brief initialize the vector by copy
+  void initByCopy(Vector const& that) {
+    _alloc = that._alloc;
+    _capacity = that._capacity;
+    _count = that._count;
+    _data =
+        (T*)_alloc->allocate(MemoryLayout::defaultArrayLayout<T>(_capacity));
+    memcpy(_data, that._data, sizeof(T) * _capacity);
+  }
+
+  /// @brief initialize the vector by move
+  void initByMove(Vector& that) {
+    *this = that;
+    that = Vector();
+  }
+
   ssize count() const { return _count; }
   ssize capacity() const { return _capacity; }
   T* data() { return _data; }
@@ -76,9 +92,6 @@ class Vector {
     }
   }
 
-  friend void DefaultMoveTraits<Vector<T>>::moveConstruct(Vector<T>&,
-                                                          Vector<T>&);
-
   T* _data;
   ssize _count;
   ssize _capacity;
@@ -86,10 +99,16 @@ class Vector {
 };
 
 template <typename T>
+struct DefaultCopyTraits<Vector<T>> {
+  static void copyConstruct(Vector<T>& dst, Vector<T> const& src) {
+    dst.initByCopy(src);
+  }
+};
+
+template <typename T>
 struct DefaultMoveTraits<Vector<T>> {
   static void moveConstruct(Vector<T>& dst, Vector<T>& src) {
-    copyConstruct(dst, src);
-    src = Vector<T>();
+    dst.initByMove(src);
   }
 };
 

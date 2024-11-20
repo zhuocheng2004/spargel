@@ -24,5 +24,9 @@ int main() {
   spargel::base::moveConstruct(vec2, vec);
   assert(vec2.count() == 198);
   assert(vec.count() == 0);
+  Vector<int> vec3;
+  spargel::base::copyConstruct(vec3, vec2);
+  assert(vec2.count() == vec3.count());
+  assert(vec2.capacity() == vec3.capacity());
   return 0;
 }
