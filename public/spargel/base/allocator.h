@@ -17,8 +17,8 @@ struct MemoryLayout {
   /// @brief the default layout of an array
   ///
   template <typename T>
-  static constexpr MemoryLayout defaultArrayLayout(ssize length) {
-    return MemoryLayout{(ssize)sizeof(T) * length, alignof(T)};
+  static constexpr MemoryLayout defaultArrayLayout(ssize count) {
+    return MemoryLayout{(ssize)sizeof(T) * count, alignof(T)};
   }
 };
 
@@ -55,6 +55,15 @@ class Allocator {
   ///
   virtual u8* grow(u8* ptr, MemoryLayout old_layout,
                    MemoryLayout new_layout) = 0;
+
+  template <typename T>
+  T* allocateTyped() {
+    return (T*)allocate(MemoryLayout::defaultLayout<T>());
+  }
+  template <typename T>
+  T* allocateTypedArray(ssize count) {
+    return (T*)allocate(MemoryLayout::defaultArrayLayout<T>(count));
+  }
 };
 
 }  // namespace spargel::base

@@ -2,42 +2,80 @@
 
 namespace spargel::gpu {
 
-class adapter;
-class bind_group;
-class bind_group_layout;
-class buffer;
-class buffer_view;
-class command_buffer;
-class compute_pipeline;
-class device;
-class fence;
-class instance;
-class pipeline_layout;
-class queue;
-class render_pipeline;
-class sampler;
-class semaphore;
-class shader_module;
-class texture;
-class texture_view;
+class Adapter;
+class BindGroup;
+class BindGroupLayout;
+class Buffer;
+class BufferView;
+class CommandBuffer;
+class ComputePipeline;
+class Device;
+class Fence;
+class Instance;
+class PipelineLayout;
+class Queue;
+class RenderPipeline;
+class Sampler;
+class Semaphore;
+class ShaderModule;
+class Texture;
+class TextureView;
 
-enum class backend_kind {
+enum class BackendKind {
   directx,
   metal,
   vulkan,
 };
 
-struct instance_descriptor;
+/// @brief everything gpu starts here
+class Instance {
+ public:
+  virtual ~Instance();
 
-struct instance_descriptor {
-  backend_kind backend;
+  /// @brief create an instance with default backend
+  ///
+  /// linux : vulkan
+  /// windows : directx
+  /// macos : metal
+  ///
+  /// @retval nullptr if failed
+  ///
+  static Instance* create();
+
+  /// @brief create an instance with given backend
+  /// @reval nullptr if failed
+  ///
+  static Instance* create(BackendKind backend);
+
+  /// @brief initialize the instance
+  ///
+  virtual void init() = 0;
+
+  /// @brief deinitialize the instance
+  ///
+  virtual void deinit() = 0;
+
+  /// @brief create a default device
+  ///
+  /// on platforms that have default devices, this is the default device
+  /// obtained from the platform; otherwise, it is created from the first
+  /// adapter
+  ///
+  /// @retval nullptr if failed
+  ///
+  virtual Device* createDefaultDevice() = 0;
 };
 
-class instance {
+class Device {
  public:
-  static instance* create(instance_descriptor const& desc);
+  virtual ~Device();
 
-  virtual ~instance();
+  virtual Queue* createQueue();
+
+  virtual Buffer* createBuffer();
+  virtual Texture* createTexture();
+
+
 };
 
 }  // namespace spargel::gpu

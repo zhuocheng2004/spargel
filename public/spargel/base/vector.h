@@ -26,8 +26,7 @@ class Vector {
     _alloc = that._alloc;
     _capacity = that._capacity;
     _count = that._count;
-    _data =
-        (T*)_alloc->allocate(MemoryLayout::defaultArrayLayout<T>(_capacity));
+    _data = _alloc->allocateTypedArray<T>(_capacity);
     memcpy(_data, that._data, sizeof(T) * _capacity);
   }
 
@@ -86,8 +85,7 @@ class Vector {
       _capacity = new_cap;
     } else {
       ssize new_cap = count < MINIMAL_CAPACITY ? MINIMAL_CAPACITY : count;
-      _data =
-          (T*)_alloc->allocate(MemoryLayout::defaultArrayLayout<T>(new_cap));
+      _data = _alloc->allocateTypedArray<T>(new_cap);
       _capacity = new_cap;
     }
   }
