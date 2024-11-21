@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <windows.h>
 
-int main(int argc, char* argv[]) {
+int main() {
   using namespace spargel::base;
 
   char buf[PATH_MAX + 1];

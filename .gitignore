@@ -7,7 +7,7 @@
 .cache
 
 # Build
-/build
+/build*
 CMakeUserPresets.json
 
 # Mac
