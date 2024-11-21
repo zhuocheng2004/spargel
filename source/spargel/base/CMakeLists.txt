@@ -25,3 +25,7 @@ endif ()
 spargel_add_executable(test_base_vector)
 target_sources(test_base_vector PRIVATE vector_test.cc)
 target_link_libraries(test_base_vector PRIVATE base)
+
+spargel_add_executable(test_base_string)
+target_sources(test_base_string PRIVATE string_test.cc)
+target_link_libraries(test_base_string PRIVATE base)
