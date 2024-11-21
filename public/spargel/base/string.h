@@ -18,6 +18,10 @@ class CString final {
   CString();
   ~CString();
 
+  // CString owns memory, and thus cannot be copied trivially
+  CString(CString const&) = delete;
+  CString(CString&&) = delete;
+
   void initWithLiteral(char const* str);
 
   void initByCopy(CString const& that);
@@ -29,6 +33,9 @@ class CString final {
 
   char& operator[](ssize i);
   char const& operator[](ssize i) const;
+
+  friend bool operator==(CString const& lhs, CString const& rhs);
+  friend bool operator!=(CString const& lhs, CString const& rhs);
 
  private:
   char* _data;
