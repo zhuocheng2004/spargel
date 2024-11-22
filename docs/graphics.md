@@ -230,8 +230,19 @@ All the new devices have exactly one GPU.
 Get the GPU by calling `MTLCreateSystemDefaultDevice`
 
 
-## References
+## Related
+
+### Metal
 
 - [Metal Game Window](https://developer.apple.com/documentation/metal/managing_your_game_window_for_metal_in_macos?language=objc)
 - [Custom Metal View](https://developer.apple.com/documentation/metal/onscreen_presentation/creating_a_custom_metal_view?language=objc)
--
+
+### WebGPU
+
+- [WebGPU Bindless Proposal](https://hackmd.io/PCwnjLyVSqmLfTRSqH0viA?view)
+- [WebGPU Next](https://developer.chrome.com/blog/next-for-webgpu)
+
+### Projects
+
+- [Rend3](https://github.com/BVE-Reborn/rend3)
+- [kohi](https://github.com/travisvroman/kohi)

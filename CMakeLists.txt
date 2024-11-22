@@ -27,7 +27,7 @@ else()
   set(SPARGEL_IS_WINDOWS NO CACHE BOOL "")
 endif()
 
-add_subdirectory(games)
+#add_subdirectory(games)
 add_subdirectory(source)
 
 add_subdirectory(third_party/glad/repo)
