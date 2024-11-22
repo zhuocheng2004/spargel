@@ -1,20 +1,12 @@
 spargel_add_library(ui)
 target_sources(ui
   PRIVATE
-    platform.cc
-    render_target.cc
-    renderer.cc
-    types.cc
-    window.cc
-    window_delegate.cc
+    ui.c
 )
 if (APPLE)
   target_sources(ui
     PRIVATE
-      appkit/platform_ns.mm
-      appkit/window_ns.mm
-      metal/render_target_mtl.mm
-      metal/renderer_mtl.mm
+      ui_mac.m
   )
 
   find_library(FRAMEWORK_APP_KIT AppKit)
@@ -24,16 +16,16 @@ if (APPLE)
 
   # compiler metal shaders
   # super hacky
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib
-    COMMAND
-      xcrun -sdk macosx metal -o ${CMAKE_CURRENT_BINARY_DIR}/shader.ir -c ${CMAKE_CURRENT_SOURCE_DIR}/metal/shader.metal -I ${PROJECT_SOURCE_DIR}/source
-    COMMAND
-      xcrun -sdk macosx metallib -o ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib ${CMAKE_CURRENT_BINARY_DIR}/shader.ir
-    DEPENDS
-      metal/shader.metal
-  )
-  add_custom_target(ui_metal_shader
-    DEPENDS
-      ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib)
+  #add_custom_command(
+  #  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib
+  #  COMMAND
+  #    xcrun -sdk macosx metal -o ${CMAKE_CURRENT_BINARY_DIR}/shader.ir -c ${CMAKE_CURRENT_SOURCE_DI#R}/metal/shader.metal -I ${PROJECT_SOURCE_DIR}/source
+  #  COMMAND
+  #    xcrun -sdk macosx metallib -o ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib ${CMAKE_CURRENT_BINARY_DI#R}/shader.ir
+  #  DEPENDS
+  #    metal/shader.metal
+  #)
+  #add_custom_target(ui_metal_shader
+  #  DEPENDS
+  #    ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib)
 endif ()
