@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -16,6 +17,7 @@
 #if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
 #define SPARGEL_ATTRIBUTE_NORETURN __attribute__((noreturn))
 #else
+#define SPARGEL_ATTRIBUTE_NORETURN
 #endif
 
 /* signed size */
@@ -49,4 +51,5 @@ ssize spargel_get_executable_path(char* buf, ssize buf_size);
  * @brief platform independent path to resources
  */
 typedef struct spargel_url {
+  int _dummy;
 } spargel_url;
