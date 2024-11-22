@@ -27,3 +27,6 @@ void spargel_ui_destroy_window(spargel_ui_window_id window);
  */
 void spargel_ui_window_set_title(spargel_ui_window_id window,
                                  char const* title);
+
+void spargel_ui_window_set_render_callback(spargel_ui_window_id window,
+                                           void (*render)(void*), void* data);

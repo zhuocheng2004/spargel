@@ -27,6 +27,12 @@ else()
   set(SPARGEL_IS_WINDOWS NO CACHE BOOL "")
 endif()
 
+if(SPARGEL_IS_MACOS)
+  find_library(FRAMEWORK_APP_KIT AppKit)
+  find_library(FRAMEWORK_METAL Metal)
+  find_library(FRAMEWORK_QUARTZ_CORE QuartzCore)
+endif()
+
 #add_subdirectory(games)
 add_subdirectory(source)
 

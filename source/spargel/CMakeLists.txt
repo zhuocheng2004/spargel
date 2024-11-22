@@ -1,5 +1,7 @@
 add_subdirectory(base)
+add_subdirectory(codec)
 add_subdirectory(ecs)
+add_subdirectory(renderer)
 #add_subdirectory(gpu)
 #add_subdirectory(resource)
 add_subdirectory(ui)

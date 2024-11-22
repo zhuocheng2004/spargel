@@ -1,11 +1,49 @@
-#import <AppKit/AppKit.h>
 #include <spargel/ui/ui.h>
+#include <spargel/ui/ui_mac.h>
 
-@interface SpargelApplicationDelegate : NSObject <NSApplicationDelegate>
-@end
+static void set_drawable_size(struct spargel_ui_window* window, float width, float height);
+static void window_render(struct spargel_ui_window* window);
+
 @implementation SpargelApplicationDelegate
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
   return YES;
+}
+@end
+
+@implementation SpargelMetalView
+- (instancetype)initWithSpargelUIWindow:(struct spargel_ui_window*)window {
+  [super init];
+  _swindow = window;
+  return self;
+}
+- (void)createDisplayLink:(NSWindow*)window {
+  CADisplayLink* display_link = [window displayLinkWithTarget:self selector:@selector(render:)];
+  [display_link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+}
+- (void)render:(CADisplayLink*)sender {
+  window_render(_swindow);
+}
+- (void)viewDidChangeBackingProperties {
+  [super viewDidChangeBackingProperties];
+  [self resizeDrawable:self.window.screen.backingScaleFactor];
+}
+- (void)setFrameSize:(NSSize)size {
+  [super setFrameSize:size];
+  [self resizeDrawable:self.window.screen.backingScaleFactor];
+}
+- (void)setBoundsSize:(NSSize)size {
+  [super setBoundsSize:size];
+  [self resizeDrawable:self.window.screen.backingScaleFactor];
+}
+- (void)resizeDrawable:(CGFloat)scaleFactor {
+  CGSize newSize = self.bounds.size;
+  newSize.width *= scaleFactor;
+  newSize.height *= scaleFactor;
+
+  if (newSize.width <= 0 || newSize.width <= 0) {
+    return;
+  }
+  set_drawable_size(_swindow, (float)newSize.width, (float)newSize.height);
 }
 @end
 
@@ -41,10 +79,6 @@ void spargel_ui_platform_run() {
   [NSApp run];
 }
 
-@interface SpargelWindowDelegate : NSObject <NSWindowDelegate> {
-  struct spargel_ui_window* _swindow;
-}
-@end
 @implementation SpargelWindowDelegate
 - (instancetype)initWithSpargelUIWindow:(struct spargel_ui_window*)window {
   [super init];
@@ -52,11 +86,6 @@ void spargel_ui_platform_run() {
   return self;
 }
 @end
-
-struct spargel_ui_window {
-  NSWindow* window;
-  SpargelWindowDelegate* delegate;
-};
 
 spargel_ui_window_id spargel_ui_create_window(int width, int height) {
   spargel_ui_window_id window = malloc(sizeof(struct spargel_ui_window));
@@ -84,6 +113,17 @@ spargel_ui_window_id spargel_ui_create_window(int width, int height) {
   window->window.releasedWhenClosed = NO;
   window->window.minSize = NSMakeSize(200, 200);
 
+  window->layer = [[CAMetalLayer alloc] init];
+
+  SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:window];
+  view.layer = window->layer;
+  view.wantsLayer = YES;
+  [view createDisplayLink:window->window];
+
+  /* strong reference */
+  window->window.contentView = view;
+  [view release];
+
   [window->window makeKeyAndOrderFront:nil];
 
   return window;
@@ -96,4 +136,20 @@ void spargel_ui_destroy_window(spargel_ui_window_id window) {
 
 void spargel_ui_window_set_title(spargel_ui_window_id window, char const* title) {
   window->window.title = [NSString stringWithUTF8String:title];
+}
+
+void spargel_ui_window_set_render_callback(spargel_ui_window_id window, void (*render)(void*),
+                                           void* data) {
+  window->render_callback = render;
+  window->render_data = data;
+}
+
+static void set_drawable_size(struct spargel_ui_window* window, float width, float height) {
+  window->drawable_width = width;
+  window->drawable_height = height;
+  window->layer.drawableSize = NSMakeSize(width, height);
+}
+
+static void window_render(struct spargel_ui_window* window) {
+  window->render_callback(window->render_data);
 }
