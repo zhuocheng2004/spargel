@@ -32,6 +32,7 @@ typedef uint64_t u64;
  * @brief a code path that shouldn't be reached
  */
 void spargel_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
+void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
 
 /**
  * @brief get the absolute path of the executable file associated to the

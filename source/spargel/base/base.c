@@ -7,3 +7,5 @@ void spargel_unreachable() {
   __assume(false);
 #endif
 }
+
+void sbase_unreachable() { spargel_unreachable(); }
