@@ -34,10 +34,10 @@ def generate_enum_value(registry, target, file, item, val):
 
 def generate_enum(registry, target, file, item):
   enum_name = generate_ident(target, item['name'])
-  file.write(f'typedef enum {enum_name} {{\n')
+  file.write(f'enum {enum_name} {{\n')
   for val in item['values']:
     generate_enum_value(registry, target, file, item, val)
-  file.write(f'}} {enum_name};\n')
+  file.write(f'}};\n')
 
 def translate_type(registry, target, name):
   name_parts = name.split(':')
@@ -46,8 +46,10 @@ def translate_type(registry, target, name):
   type_def = [x for x in registry['types'] if x['name'] == base_name][0]
   if type_def['kind'] == 'external':
     result = base_name
-  elif type_def['kind'] == 'struct' or type_def['kind'] == 'enum':
-    result = generate_ident('interface', base_name)
+  elif type_def['kind'] == 'struct':
+    result = 'struct ' + generate_ident('interface', base_name)
+  elif type_def['kind'] == 'enum':
+    result = 'int'
   else:
     result = generate_ident(target, base_name)
   if type_def['kind'] == 'opaque':
@@ -66,10 +68,10 @@ def generate_struct_fields(registry, target, file, item, field):
 
 def generate_struct(registry, target, file, item):
   struct_name = generate_ident(target, item['name'])
-  file.write(f'typedef struct {struct_name} {{\n')
+  file.write(f'struct {struct_name} {{\n')
   for field in item['fields']:
     generate_struct_fields(registry, target, file, item, field)
-  file.write(f'}} {struct_name};\n')
+  file.write(f'}};\n')
 
 def generate_type(registry, target, file, item):
   kind = item['kind']
@@ -104,9 +106,6 @@ def generate_functions(registry, target, file):
   functions = registry['functions']
   for item in functions:
     generate_function(registry, target, file, item)
-
-def generate_interface(registry, file):
-  pass
 
 def generate(registry, target, file):
   generate_header(registry, target, file)
@@ -144,7 +143,7 @@ def generate_func_impl(registry, file, item):
   if is_root:
     file.write(f'  switch (descriptor->backend) {{\n')
   else:
-    file.write(f'  sgpu_backend backend = *(sgpu_backend*){dispatch_name};\n')
+    file.write(f'  int backend = *(int*){dispatch_name};\n')
     file.write(f'  switch (backend) {{\n')
 
   file.write(f'#if SPARGEL_GPU_ENABLE_METAL\n')

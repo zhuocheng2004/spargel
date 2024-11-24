@@ -1,6 +1,6 @@
 spargel_add_executable(editor)
 target_sources(editor PRIVATE main.c)
-target_link_libraries(editor PRIVATE ui renderer codec)
+target_link_libraries(editor PRIVATE codec gpu renderer ui)
 
 if(SPARGEL_IS_MACOS)
   add_custom_command(

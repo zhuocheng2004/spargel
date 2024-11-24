@@ -5,7 +5,7 @@ if(SPARGEL_IS_MACOS)
     PRIVATE
       renderer_mtl.m
   )
-  target_link_libraries(renderer ${FRAMEWORK_METAL} ${FRAMEWORK_QUARTZ_CORE})
+  target_link_libraries(renderer PRIVATE ${FRAMEWORK_METAL} ${FRAMEWORK_QUARTZ_CORE})
 
   # compiler metal shaders
   # super hacky

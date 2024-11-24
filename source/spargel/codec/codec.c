@@ -103,16 +103,16 @@ static bool parse_ppm_pixels(struct ppm_parser* ctx) {
     if (!parse_uint(ctx, &r) || !parse_uint(ctx, &g) || !parse_uint(ctx, &b)) {
       return false;
     }
-    ctx->pixels[i].r = r;
-    ctx->pixels[i].g = g;
-    ctx->pixels[i].b = b;
-    ctx->pixels[i].a = 255;
+    /* todo: hack */
+    ctx->pixels[i] = (struct spargel_codec_color4){b, g, r, 255};
   }
   return true;
 }
 
-enum spargel_codec_decode_result spargel_codec_load_ppm_image(
-    char const* path, struct spargel_codec_image* image) {
+int spargel_codec_load_ppm_image(char const* path,
+                                 struct spargel_codec_image* image) {
+  int result;
+
   char* data = NULL;
   ssize size = 0;
   if (!read_file(path, &data, &size)) return SPARGEL_CODEC_DECODE_FAILED;
@@ -122,32 +122,35 @@ enum spargel_codec_decode_result spargel_codec_load_ppm_image(
   parser.end = data + size;
 
   if (!parse_ppm_magic(&parser)) {
-    free(data);
-    return SPARGEL_CODEC_DECODE_FAILED;
+    result = SPARGEL_CODEC_DECODE_FAILED;
+    goto free_data;
   }
   if (!parse_ppm_info(&parser)) {
-    free(data);
-    return SPARGEL_CODEC_DECODE_FAILED;
+    result = SPARGEL_CODEC_DECODE_FAILED;
+    goto free_data;
   }
 
   parser.pixels = malloc(sizeof(struct spargel_codec_color4) * parser.width *
                          parser.height);
   if (!parser.pixels) {
-    free(data);
-    return SPARGEL_CODEC_DECODE_FAILED;
+    result = SPARGEL_CODEC_DECODE_FAILED;
+    goto free_data;
   }
   if (!parse_ppm_pixels(&parser)) {
     free(parser.pixels);
-    free(data);
-    return SPARGEL_CODEC_DECODE_FAILED;
+    result = SPARGEL_CODEC_DECODE_FAILED;
+    goto free_data;
   }
 
   image->width = parser.width;
   image->height = parser.height;
   image->pixels = parser.pixels;
 
+  result = SPARGEL_CODEC_DECODE_SUCCESS;
+
+free_data:
   free(data);
-  return SPARGEL_CODEC_DECODE_SUCCESS;
+  return result;
 }
 
 void spargel_codec_destroy_image(struct spargel_codec_image* image) {

@@ -8,8 +8,7 @@ int main(int argc, char* argv[]) {
   }
   char* file = argv[1];
   struct spargel_codec_image image;
-  enum spargel_codec_decode_result result =
-      spargel_codec_load_ppm_image(file, &image);
+  int result = spargel_codec_load_ppm_image(file, &image);
   if (result != SPARGEL_CODEC_DECODE_SUCCESS) {
     printf("error: cannot parse ppm file %s\n", file);
     return 1;

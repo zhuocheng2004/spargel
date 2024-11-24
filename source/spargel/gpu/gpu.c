@@ -13,7 +13,7 @@
 #include <spargel/gpu/gpu_dx.h>
 #endif
 
-sgpu_result sgpu_create_instance(sgpu_instance_id* instance, sgpu_instance_descriptor const* descriptor) {
+int sgpu_create_instance(sgpu_instance_id* instance, struct sgpu_instance_descriptor const* descriptor) {
   switch (descriptor->backend) {
 #if SPARGEL_GPU_ENABLE_METAL
     case SGPU_BACKEND_METAL:
@@ -32,7 +32,7 @@ sgpu_result sgpu_create_instance(sgpu_instance_id* instance, sgpu_instance_descr
   }
 }
 void sgpu_destroy_instance(sgpu_instance_id instance) {
-  sgpu_backend backend = *(sgpu_backend*)instance;
+  int backend = *(int*)instance;
   switch (backend) {
 #if SPARGEL_GPU_ENABLE_METAL
     case SGPU_BACKEND_METAL:
@@ -53,8 +53,8 @@ void sgpu_destroy_instance(sgpu_instance_id instance) {
       sbase_unreachable();
   }
 }
-sgpu_result sgpu_create_default_device(sgpu_instance_id instance, sgpu_device_id* device) {
-  sgpu_backend backend = *(sgpu_backend*)instance;
+int sgpu_create_default_device(sgpu_instance_id instance, sgpu_device_id* device) {
+  int backend = *(int*)instance;
   switch (backend) {
 #if SPARGEL_GPU_ENABLE_METAL
     case SGPU_BACKEND_METAL:
@@ -73,7 +73,7 @@ sgpu_result sgpu_create_default_device(sgpu_instance_id instance, sgpu_device_id
   }
 }
 void sgpu_destroy_device(sgpu_device_id device) {
-  sgpu_backend backend = *(sgpu_backend*)device;
+  int backend = *(int*)device;
   switch (backend) {
 #if SPARGEL_GPU_ENABLE_METAL
     case SGPU_BACKEND_METAL:

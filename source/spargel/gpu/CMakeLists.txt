@@ -25,6 +25,7 @@ target_compile_definitions(gpu
     SPARGEL_GPU_ENABLE_METAL=$<BOOL:${SPARGEL_GPU_ENABLE_METAL}>
     SPARGEL_GPU_ENABLE_VULKAN=$<BOOL:${SPARGEL_GPU_ENABLE_VULKAN}>
 )
+target_link_libraries(gpu PRIVATE base)
 
 # if(${SPARGEL_GPU_ENABLE_DIRECTX})
 #   target_sources(gpu
@@ -38,6 +39,7 @@ if(${SPARGEL_GPU_ENABLE_METAL})
     PRIVATE
       gpu_mtl.m
   )
+  target_link_libraries(gpu PRIVATE ${FRAMEWORK_METAL})
 endif()
 
 if(${SPARGEL_GPU_ENABLE_VULKAN})

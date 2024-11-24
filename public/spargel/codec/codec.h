@@ -33,7 +33,7 @@ enum spargel_codec_decode_result {
 /**
  * @brief ppm loader
  */
-enum spargel_codec_decode_result spargel_codec_load_ppm_image(
+int spargel_codec_load_ppm_image(
     char const* path, struct spargel_codec_image* image);
 
 void spargel_codec_destroy_image(struct spargel_codec_image* image);
