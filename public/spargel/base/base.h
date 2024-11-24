@@ -28,6 +28,11 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
+typedef int8_t i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
+
 /**
  * @brief a code path that shouldn't be reached
  */
@@ -51,6 +56,20 @@ ssize spargel_get_executable_path(char* buf, ssize buf_size);
 /**
  * @brief platform independent path to resources
  */
-typedef struct spargel_url {
+struct sbase_url {
   int _dummy;
-} spargel_url;
+};
+
+struct sbase_string {
+  char* data;
+  ssize length;
+};
+
+#define sbase_string_from_literal(str) \
+  ((struct sbase_string){sizeof(str) - 1, str})
+
+struct sbase_string sbase_string_from_range(char const* begin, char const* end);
+
+bool sbase_string_is_equal(struct sbase_string lhs, struct sbase_string rhs);
+
+void sbase_string_deinit(struct sbase_string str);

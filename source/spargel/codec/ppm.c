@@ -1,5 +1,6 @@
 #include <spargel/base/base.h>
 #include <spargel/codec/codec.h>
+#include <spargel/codec/cursor.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,8 +34,7 @@ static bool read_file(char const* path, char** data, ssize* size) {
 }
 
 struct ppm_parser {
-  char* cur;
-  char* end;
+  struct scodec_cursor cursor;
   int width;
   int height;
   int max_color;
@@ -42,13 +42,15 @@ struct ppm_parser {
 };
 
 static void eat_whitespace(struct ppm_parser* ctx) {
-  while (ctx->cur < ctx->end) {
-    char ch = *ctx->cur;
+  struct scodec_cursor* cursor = &ctx->cursor;
+  while (!scodec_cursor_is_end(cursor)) {
+    char ch = scodec_cursor_peek(cursor);
     if (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
-      ctx->cur++;
+      scodec_cursor_advance(cursor);
     } else if (ch == '#') {
-      while (ctx->cur < ctx->end && *ctx->cur != '\n') {
-        ctx->cur++;
+      while (!scodec_cursor_is_end(cursor) &&
+             scodec_cursor_peek(cursor) != '\n') {
+        scodec_cursor_advance(cursor);
       }
     } else {
       break;
@@ -59,25 +61,22 @@ static void eat_whitespace(struct ppm_parser* ctx) {
 /* the magic is P3 */
 static bool parse_ppm_magic(struct ppm_parser* ctx) {
   eat_whitespace(ctx);
-  if (ctx->cur + 2 > ctx->end) return false;
-  if (ctx->cur[0] == 'P' && ctx->cur[1] == '3') {
-    ctx->cur += 2;
-    return true;
-  }
-  return false;
+  static u8 const magic[] = "P3";
+  return scodec_cursor_try_eat_bytes(&ctx->cursor, magic, 2);
 }
 
 static bool parse_uint(struct ppm_parser* ctx, int* value) {
   eat_whitespace(ctx);
-  if (ctx->cur >= ctx->end) return false;
-  char ch = *ctx->cur;
+  struct scodec_cursor* cursor = &ctx->cursor;
+  if (scodec_cursor_is_end(cursor)) return false;
+  char ch = scodec_cursor_peek(cursor);
   if (ch < '0' || ch > '9') return false;
   int result = 0;
-  while (ctx->cur < ctx->end) {
-    char ch = *ctx->cur;
+  while (!scodec_cursor_is_end(cursor)) {
+    char ch = scodec_cursor_peek(cursor);
     if (ch >= '0' && ch <= '9') {
       result = result * 10 + (ch - '0');
-      ctx->cur++;
+      scodec_cursor_advance(cursor);
     } else {
       break;
     }
@@ -118,8 +117,8 @@ int spargel_codec_load_ppm_image(char const* path,
   if (!read_file(path, &data, &size)) return SPARGEL_CODEC_DECODE_FAILED;
 
   struct ppm_parser parser;
-  parser.cur = data;
-  parser.end = data + size;
+  parser.cursor.cur = data;
+  parser.cursor.end = data + size;
 
   if (!parse_ppm_magic(&parser)) {
     result = SPARGEL_CODEC_DECODE_FAILED;
@@ -153,6 +152,6 @@ free_data:
   return result;
 }
 
-void spargel_codec_destroy_image(struct spargel_codec_image* image) {
+void spargel_codec_destroy_image(struct spargel_codec_image const* image) {
   free(image->pixels);
 }
