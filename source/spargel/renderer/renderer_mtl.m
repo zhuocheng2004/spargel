@@ -64,6 +64,9 @@ spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window) {
   renderer->textures = NULL;
   renderer->texture_count = 0;
   renderer->texture_capacity = 0;
+  renderer->quads = NULL;
+  renderer->quad_count = 0;
+  renderer->quad_capacity = 0;
 
   window->layer.device = renderer->device;
   renderer->window = window;

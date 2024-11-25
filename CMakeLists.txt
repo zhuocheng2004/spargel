@@ -27,6 +27,8 @@ else()
   set(SPARGEL_IS_WINDOWS NO CACHE BOOL "")
 endif()
 
+spargel_add_option(SPARGEL_ENABLE_SANITIZER_ADDRESS "enable asan" ON)
+
 if(SPARGEL_IS_MACOS)
   find_library(FRAMEWORK_APP_KIT AppKit)
   find_library(FRAMEWORK_METAL Metal)
