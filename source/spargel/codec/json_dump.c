@@ -62,9 +62,10 @@ static char* read_file(char const* path) {
   FILE* file = fopen(path, "rb");
   fseek(file, 0, SEEK_END);
   ssize len = ftell(file);
-  char* data = malloc(len);
+  char* data = malloc(len + 1);
   fseek(file, 0, SEEK_SET);
   fread(data, len, 1, file);
+  data[len] = 0;
   return data;
 }
 
