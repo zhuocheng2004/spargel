@@ -17,11 +17,11 @@ int main(int argc, char* argv[]) {
   spargel_ui_window_set_title(window, "Spargel Editor");
   sgpu_instance_id instance;
 #if __APPLE__
-  sgpu_create_instance(&instance,
-                       &(struct sgpu_instance_descriptor){SGPU_BACKEND_METAL});
+  sgpu_create_instance(&(struct sgpu_instance_descriptor){SGPU_BACKEND_METAL},
+                       &instance);
 #else
-  sgpu_create_instance(&instance,
-                       &(struct sgpu_instance_descriptor){SGPU_BACKEND_VULKAN});
+  sgpu_create_instance(&(struct sgpu_instance_descriptor){SGPU_BACKEND_VULKAN},
+                       &instance);
 #endif
   spargel_renderer_id renderer = spargel_create_renderer(window);
   struct spargel_codec_image image;

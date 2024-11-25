@@ -1,42 +1,55 @@
 #import <Metal/Metal.h>
-#include <spargel/gpu/gpu_mtl.h>
+#include <spargel/gpu/gpu.h>
+#include <spargel/gpu/operations.h>
 #include <stdlib.h>
+
+const struct sgpu_operations sgpu_mtl_operations;
 
 /**
  * We only target Apple Silicon.
  * This in particular guarantees that there is only one GPU.
  */
 
-struct sgpu_mtl_instance {
-  int backend;
+struct instance {
+  const struct sgpu_operations* _ops;
 };
 
-struct sgpu_mtl_device {
-  int backend;
+struct device {
+  const struct sgpu_operations* _ops;
   id<MTLDevice> device;
 };
 
-int sgpu_mtl_create_instance(sgpu_mtl_instance_id* instance,
-                             struct sgpu_instance_descriptor const* descriptor) {
-  struct sgpu_mtl_instance* inst = malloc(sizeof(struct sgpu_mtl_instance));
+int create_instance(struct sgpu_instance_descriptor const* descriptor, sgpu_instance_id* instance) {
+  struct instance* inst = malloc(sizeof(struct instance));
   if (!inst) return SGPU_RESULT_ALLOCATION_FAILED;
-  inst->backend = SGPU_BACKEND_METAL;
-  *instance = inst;
+  inst->_ops = &sgpu_mtl_operations;
+  *instance = (struct sgpu_instance*)inst;
   return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_mtl_destroy_instance(sgpu_mtl_instance_id instance) { free(instance); }
+static void destroy_instance(sgpu_instance_id i) {
+  struct instance* instance = (struct instance*)i;
+  free(instance);
+}
 
-int sgpu_mtl_create_default_device(sgpu_mtl_instance_id instance, sgpu_mtl_device_id* device) {
-  struct sgpu_mtl_device* d = malloc(sizeof(struct sgpu_mtl_device));
+static int create_default_device(sgpu_instance_id instance, sgpu_device_id* device) {
+  struct device* d = malloc(sizeof(struct device));
   if (!d) return SGPU_RESULT_ALLOCATION_FAILED;
-  d->backend = SGPU_BACKEND_METAL;
+  d->_ops = &sgpu_mtl_operations;
   d->device = MTLCreateSystemDefaultDevice();
-  *device = d;
+  *device = (struct sgpu_device*)d;
   return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_mtl_destroy_device(sgpu_mtl_device_id device) {
+static void destroy_device(sgpu_device_id d) {
+  struct device* device = (struct device*)d;
   [device->device release];
   free(device);
 }
+
+const struct sgpu_operations sgpu_mtl_operations = {
+    .create_instance = create_instance,
+    .destroy_instance = destroy_instance,
+    .create_default_device = create_default_device,
+    .destroy_device = destroy_device,
+};
