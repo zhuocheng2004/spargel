@@ -1,8 +1,6 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <spargel/base/types.h>
 
 #if defined(__clang__)
 #define SPARGEL_COMPILER_IS_CLANG
@@ -19,19 +17,6 @@
 #else
 #define SPARGEL_ATTRIBUTE_NORETURN
 #endif
-
-/* signed size */
-typedef ptrdiff_t ssize;
-
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
 
 /**
  * @brief a code path that shouldn't be reached
@@ -78,8 +63,29 @@ void sbase_string_deinit(struct sbase_string str);
 
 void sbase_print_backtrace();
 
+/* fiber (abandoned) */
+
+/*
+typedef void* sbase_fiber_context;
+
+sbase_fiber_context sbase_create_fiber_context(void* stack, ssize stack_size,
+                                               void (*func)());
+
+void sbase_switch_fiber_context(sbase_fiber_context* from,
+                                sbase_fiber_context to);
+*/
+
 /* task pool */
 
 typedef struct sbase_task_pool* sbase_task_pool_id;
+typedef u64 sbase_task_id;
+
+struct sbase_task_descriptor {
+  void (*callback)(void*);
+  void* data;
+};
 
 sbase_task_pool_id sbase_create_task_pool();
+
+sbase_task_id sbase_create_task(sbase_task_pool_id pool,
+                                struct sbase_task_descriptor const* descriptor);

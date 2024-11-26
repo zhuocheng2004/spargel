@@ -2,40 +2,60 @@
 
 #include <spargel/base/base.h>
 
-typedef struct spargel_ecs_world_impl* spargel_ecs_world;
-typedef struct spargel_ecs_view spargel_ecs_view;
+typedef struct secs_world* secs_world_id;
+typedef u64 secs_component_id;
+typedef u64 secs_entity_id;
 
-typedef void (*spargel_ecs_view_callback_t)(spargel_ecs_view* view, void* data);
+enum secs_result {
+  SECS_RESULT_SUCCESS,
+  SECS_RESULT_DUPLICATE_COMPONENT,
+};
 
-struct spargel_ecs_spawn_desc {
-  int num_components;
-  char const** components;
+struct secs_view {
+  ssize entity_count;
+  secs_entity_id* entities;
+  void** components;
+};
+
+struct secs_component_descriptor {
+  /* ownership is taken by the world */
+  struct sbase_string name;
+  ssize size;
+};
+
+struct secs_spawn_descriptor {
+  ssize component_count;
+  secs_component_id const* components;
   /* number of entities */
-  int count;
-  spargel_ecs_view_callback_t callback;
+  ssize entity_count;
+  void (*callback)(struct secs_view* view, void* data);
   void* callback_data;
 };
 
-struct spargel_ecs_query_desc {
-  int count;
-  char const** components;
-  spargel_ecs_view_callback_t callback;
-  void* data;
-  char const* query_name;
+struct secs_query_descriptor {
+  ssize component_count;
+  secs_component_id const* components;
+  void (*callback)(struct secs_view* view, void* data);
+  void* callback_data;
 };
 
-struct spargel_ecs_view {
-  ssize count;
-  void** components;
-  /* internal use */
-  struct spargel_ecs_archetype* type_;
-};
+/**
+ * @brief create a new ecs world
+ */
+secs_world_id secs_create_world();
 
-spargel_ecs_world spargel_ecs_create_world();
-void spargel_ecs_destroy_world(spargel_ecs_world world);
-void spargel_ecs_register_component(spargel_ecs_world world, char const* name,
-                                    ssize size);
-void spargel_ecs_spawn_entities(spargel_ecs_world world,
-                                struct spargel_ecs_spawn_desc* desc);
-void spargel_ecs_query(spargel_ecs_world world, struct spargel_ecs_query_desc* desc);
-void spargel_ecs_view_delete(spargel_ecs_view* view, int id);
+/**
+ * @brief destroy an ecs world
+ */
+void secs_destroy_world(secs_world_id world);
+
+/**
+ * @brief register a component type in an ecs world
+ */
+int secs_register_component(secs_world_id world,
+                            struct secs_component_descriptor const* descriptor);
+
+void secs_spawn_entities(secs_world_id world,
+                         struct secs_spawn_descriptor* desc);
+
+void secs_query(secs_world_id world, struct secs_query_descriptor* desc);
