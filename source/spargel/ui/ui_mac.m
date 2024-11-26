@@ -1,3 +1,5 @@
+#include <Carbon/Carbon.h>
+#include <spargel/base/base.h>
 #include <spargel/ui/ui.h>
 #include <spargel/ui/ui_mac.h>
 
@@ -44,6 +46,17 @@ static void window_render(struct spargel_ui_window* window);
     return;
   }
   set_drawable_size(_swindow, (float)newSize.width, (float)newSize.height);
+}
+- (void)keyDown:(NSEvent*)event {
+  NSLog(@"keyDown!");
+  unsigned short keyCode = [event keyCode];
+  if (keyCode == kVK_Escape) {
+    sbase_print_backtrace();
+  }
+  [self interpretKeyEvents:@[ event ]];
+}
+- (BOOL)acceptsFirstResponder {
+  return YES;
 }
 @end
 

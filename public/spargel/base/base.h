@@ -73,3 +73,13 @@ struct sbase_string sbase_string_from_range(char const* begin, char const* end);
 bool sbase_string_is_equal(struct sbase_string lhs, struct sbase_string rhs);
 
 void sbase_string_deinit(struct sbase_string str);
+
+/* backtrace */
+
+void sbase_print_backtrace();
+
+/* task pool */
+
+typedef struct sbase_task_pool* sbase_task_pool_id;
+
+sbase_task_pool_id sbase_create_task_pool();

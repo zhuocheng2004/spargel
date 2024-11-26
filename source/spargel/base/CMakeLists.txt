@@ -19,3 +19,7 @@ endif ()
 spargel_add_executable(demo_get_executable_path)
 target_sources(demo_get_executable_path PRIVATE demo_get_executable_path.c)
 target_link_libraries(demo_get_executable_path PRIVATE base)
+
+spargel_add_executable(demo_backtrace)
+target_sources(demo_backtrace PRIVATE demo_backtrace.c)
+target_link_libraries(demo_backtrace PRIVATE base)
