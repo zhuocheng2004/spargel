@@ -3,13 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// static char const* json_data =
-//     "{"
-//     "\"abc\": \"def\","
-//     "\"x123\": [ true, false ],"
-//     "\"y456\": { \"a\": \"b\", \"c\": \"d\" }"
-//     "}";
-
 static void dump_json_value(struct scodec_json_value const* value);
 
 static void dump_json_array(struct scodec_json_array const* array) {
@@ -75,10 +68,6 @@ int main(int argc, char* argv[]) {
 
   struct scodec_json_value value;
   int result = scodec_json_parse(json_data, strlen(json_data), &value);
-  // if (result != SCODEC_JSON_PARSE_RESULT_SUCCESS) {
-  //   printf("error: parse failed\n");
-  //   return 1;
-  // }
 
   free(json_data);
 

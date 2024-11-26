@@ -34,7 +34,8 @@ void secs_destroy_world(secs_world_id world) { free(world); }
  * @param ptr *ptr points to start of array
  * @param capacity pointer to current capacity
  * @param stride item size
- * @param need the min capacity after growing */
+ * @param need the min capacity after growing
+ */
 static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need) {
   ssize cap2 = *capacity * 2;
   ssize new_cap = cap2 > need ? cap2 : need;

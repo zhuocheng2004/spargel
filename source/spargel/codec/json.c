@@ -35,7 +35,8 @@ static void ensure_object_capacity(struct scodec_json_object* object);
  * @param ptr *ptr points to start of array
  * @param capacity pointer to current capacity
  * @param size item size
- * @param need the min capacity after growing */
+ * @param need the min capacity after growing
+ */
 static void grow_array(void** ptr, ssize* capacity, ssize size, ssize need) {
   ssize cap2 = *capacity * 2;
   ssize new_cap = cap2 > need ? cap2 : need;
@@ -79,7 +80,8 @@ static int parse_element(struct parser* ctx, struct scodec_json_value* value) {
 
 static int parse_value(struct parser* ctx, struct scodec_json_value* value) {
   struct scodec_cursor* cursor = &ctx->cursor;
-  if (scodec_cursor_is_end(cursor)) return SCODEC_JSON_PARSE_RESULT_EXPECT_VALUE;
+  if (scodec_cursor_is_end(cursor))
+    return SCODEC_JSON_PARSE_RESULT_EXPECT_VALUE;
   char ch = scodec_cursor_peek(cursor);
   int result;
   switch (ch) {
@@ -118,6 +120,11 @@ static int parse_object(struct parser* ctx, struct scodec_json_value* value) {
   scodec_cursor_advance(cursor); /* { */
   value->kind = SCODEC_JSON_VALUE_KIND_OBJECT;
   scodec_json_object_init(&value->object);
+  eat_whitespace(ctx);
+  if (scodec_cursor_is_end(cursor))
+    return SCODEC_JSON_PARSE_RESULT_EXPECT_RIGHT_CURLY;
+  if (scodec_cursor_try_eat_char(cursor, '}'))
+    return SCODEC_JSON_PARSE_RESULT_SUCCESS;
   int result = parse_members(ctx, &value->object);
   if (result != SCODEC_JSON_PARSE_RESULT_SUCCESS) return result;
   if (!scodec_cursor_try_eat_char(cursor, '}'))
@@ -130,6 +137,10 @@ static int parse_array(struct parser* ctx, struct scodec_json_value* value) {
   scodec_cursor_advance(cursor); /* [ */
   value->kind = SCODEC_JSON_VALUE_KIND_ARRAY;
   scodec_json_array_init(&value->array);
+  if (scodec_cursor_is_end(cursor))
+    return SCODEC_JSON_PARSE_RESULT_EXPECT_RIGHT_SQUARE;
+  if (scodec_cursor_try_eat_char(cursor, ']'))
+    return SCODEC_JSON_PARSE_RESULT_SUCCESS;
   int result = parse_elements(ctx, &value->array);
   if (result != SCODEC_JSON_PARSE_RESULT_SUCCESS) return result;
   if (!scodec_cursor_try_eat_char(cursor, ']'))
@@ -140,7 +151,8 @@ static int parse_array(struct parser* ctx, struct scodec_json_value* value) {
 static int parse_string(struct parser* ctx, struct sbase_string* string) {
   struct scodec_cursor* cursor = &ctx->cursor;
   scodec_cursor_advance(cursor); /* " */
-  if (scodec_cursor_is_end(cursor)) return SCODEC_JSON_PARSE_RESULT_EXPECT_END_OF_STRING;
+  if (scodec_cursor_is_end(cursor))
+    return SCODEC_JSON_PARSE_RESULT_EXPECT_END_OF_STRING;
   char const* begin = cursor->cur;
   char const* end;
   while (!scodec_cursor_is_end(cursor)) {
@@ -151,10 +163,10 @@ static int parse_string(struct parser* ctx, struct sbase_string* string) {
     }
     scodec_cursor_advance(cursor);
   }
-  if (scodec_cursor_is_end(cursor)) return SCODEC_JSON_PARSE_RESULT_EXPECT_END_OF_STRING;
+  if (scodec_cursor_is_end(cursor))
+    return SCODEC_JSON_PARSE_RESULT_EXPECT_END_OF_STRING;
   scodec_cursor_advance(cursor);
   *string = sbase_string_from_range(begin, end);
-  // printf("debug: parse string: %s\n", string->data);
   return SCODEC_JSON_PARSE_RESULT_SUCCESS;
 }
 
@@ -196,6 +208,7 @@ static int parse_members(struct parser* ctx,
     /* get an entry with key */
     struct scodec_json_value* value = scodec_json_object_insert(object, key);
     result = parse_element(ctx, value);
+    if (result != SCODEC_JSON_PARSE_RESULT_SUCCESS) break;
     bool has_next = scodec_cursor_try_eat_char(cursor, ',');
     if (!has_next) {
       result = SCODEC_JSON_PARSE_RESULT_SUCCESS;
@@ -214,12 +227,12 @@ static int parse_elements(struct parser* ctx, struct scodec_json_array* array) {
     struct scodec_json_value* value = scodec_json_array_push(array);
     result = parse_element(ctx, value);
     if (result != SCODEC_JSON_PARSE_RESULT_SUCCESS) break;
-    result = SCODEC_JSON_PARSE_RESULT_UNKNOWN_ERROR;
     bool has_next = scodec_cursor_try_eat_char(cursor, ',');
     if (!has_next) {
       result = SCODEC_JSON_PARSE_RESULT_SUCCESS;
       break;
     }
+    result = SCODEC_JSON_PARSE_RESULT_UNKNOWN_ERROR;
   }
   return result;
 }
@@ -246,9 +259,9 @@ static struct scodec_json_object_entry* find_entry(
 }
 
 static void ensure_object_capacity(struct scodec_json_object* object) {
-  ssize safe_capacity = object->count * 2 + 1;
-  if (object->capacity >= safe_capacity) return;
+  // if (object->count < object->capacity / 8 * 7) return;
   /* need to grow */
+  ssize safe_capacity = object->capacity * 2;
   safe_capacity = safe_capacity < 8 ? 8 : safe_capacity;
   struct scodec_json_object_entry* entries =
       malloc(sizeof(struct scodec_json_object_entry) * safe_capacity);
@@ -287,7 +300,7 @@ struct scodec_json_value* scodec_json_object_insert(
 
 struct scodec_json_value* scodec_json_object_get(
     struct scodec_json_object* object, struct sbase_string key) {
-  ensure_object_capacity(object);
+  // ensure_object_capacity(object);
   u32 hash = hash_string(key);
   struct scodec_json_object_entry* entry =
       find_entry(key, hash, object->entries, object->capacity);
