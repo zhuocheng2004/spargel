@@ -5,6 +5,8 @@ cmake_policy(SET CMP0156 NEW)
 
 project(spargel)
 
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(AddSpargel)
@@ -28,6 +30,7 @@ else()
 endif()
 
 spargel_add_option(SPARGEL_ENABLE_SANITIZER_ADDRESS "enable asan" ON)
+spargel_add_option(SPARGEL_ENABLE_COVERAGE "enable coverge" OFF)
 
 if(SPARGEL_IS_MACOS)
   find_library(FRAMEWORK_APP_KIT AppKit)

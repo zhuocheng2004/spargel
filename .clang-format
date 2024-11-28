@@ -1,3 +1,15 @@
 BasedOnStyle: Google
+
+IndentWidth: 4
+
+AccessModifierOffset: -4
+
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterFunction: true
+
 DerivePointerAlignment: false
 PointerAlignment: Left
