@@ -47,6 +47,7 @@ static void window_render(struct spargel_ui_window* window);
   }
   set_drawable_size(_swindow, (float)newSize.width, (float)newSize.height);
 }
+/*
 - (void)keyDown:(NSEvent*)event {
   NSLog(@"keyDown!");
   unsigned short keyCode = [event keyCode];
@@ -55,6 +56,7 @@ static void window_render(struct spargel_ui_window* window);
   }
   [self interpretKeyEvents:@[ event ]];
 }
+*/
 - (BOOL)acceptsFirstResponder {
   return YES;
 }
@@ -103,6 +105,8 @@ void spargel_ui_platform_run() {
 spargel_ui_window_id spargel_ui_create_window(int width, int height) {
   spargel_ui_window_id window = malloc(sizeof(struct spargel_ui_window));
   if (!window) return NULL;
+  window->render_callback = NULL;
+  window->render_data = NULL;
 
   NSScreen* screen = [NSScreen mainScreen];
 
@@ -164,5 +168,7 @@ static void set_drawable_size(struct spargel_ui_window* window, float width, flo
 }
 
 static void window_render(struct spargel_ui_window* window) {
-  window->render_callback(window->render_data);
+  if (window->render_callback) {
+    window->render_callback(window->render_data);
+  }
 }

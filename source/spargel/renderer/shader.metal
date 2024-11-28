@@ -9,7 +9,7 @@ struct rasterize_data {
   // int texture_id;
 };
 
-vertex rasterize_data vertex_shader(
+[[vertex]] rasterize_data vertex_shader(
   uint vertex_id [[vertex_id]],
   uint quad_id [[instance_id]],
   constant float2* vertices [[buffer(SPARGEL_VERTEX_INPUT_INDEX_VERTICES)]],
@@ -29,7 +29,7 @@ vertex rasterize_data vertex_shader(
   return out;
 }
 
-fragment float4 fragment_shader(
+[[fragment]] float4 fragment_shader(
   rasterize_data in [[stage_in]],
   texture2d<half> color_texture [[texture(SPARGEL_TEXTURE_INDEX_BASE_COLOR)]]) {
 

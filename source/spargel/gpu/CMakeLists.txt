@@ -47,4 +47,9 @@ if(${SPARGEL_GPU_ENABLE_VULKAN})
     PRIVATE
       gpu_vk.c
   )
+  target_link_libraries(gpu PRIVATE Vulkan::Headers)
 endif()
+
+spargel_add_executable(demo_gpu)
+target_sources(demo_gpu PRIVATE demo_gpu.c)
+target_link_libraries(demo_gpu PRIVATE gpu ui)

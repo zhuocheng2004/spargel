@@ -3,6 +3,13 @@
 #include <spargel/gpu/operations.h>
 #include <stdlib.h>
 
+#define alloc_object(type, name)                   \
+  struct type* name = malloc(sizeof(struct type)); \
+  if (!name) return SGPU_RESULT_ALLOCATION_FAILED; \
+  name->_ops = &sgpu_mtl_operations;
+
+#define cast_object(type, name, object) struct type* name = (struct type*)(object);
+
 const struct sgpu_operations sgpu_mtl_operations;
 
 /**
@@ -10,46 +17,109 @@ const struct sgpu_operations sgpu_mtl_operations;
  * This in particular guarantees that there is only one GPU.
  */
 
-struct instance {
-  const struct sgpu_operations* _ops;
-};
-
 struct device {
   const struct sgpu_operations* _ops;
   id<MTLDevice> device;
 };
 
-int create_instance(struct sgpu_instance_descriptor const* descriptor, sgpu_instance_id* instance) {
-  struct instance* inst = malloc(sizeof(struct instance));
-  if (!inst) return SGPU_RESULT_ALLOCATION_FAILED;
-  inst->_ops = &sgpu_mtl_operations;
-  *instance = (struct sgpu_instance*)inst;
-  return SGPU_RESULT_SUCCESS;
-}
+struct command_queue {
+  const struct sgpu_operations* _ops;
+  id<MTLCommandQueue> queue;
+};
 
-static void destroy_instance(sgpu_instance_id i) {
-  struct instance* instance = (struct instance*)i;
-  free(instance);
-}
+struct shader_library {
+  const struct sgpu_operations* _ops;
+  id<MTLLibrary> library;
+};
 
-static int create_default_device(sgpu_instance_id instance, sgpu_device_id* device) {
-  struct device* d = malloc(sizeof(struct device));
-  if (!d) return SGPU_RESULT_ALLOCATION_FAILED;
-  d->_ops = &sgpu_mtl_operations;
+struct shader_function {
+  const struct sgpu_operations* _ops;
+  id<MTLFunction> function;
+};
+
+static int create_default_device(sgpu_device_id* device) {
+  alloc_object(device, d);
   d->device = MTLCreateSystemDefaultDevice();
-  *device = (struct sgpu_device*)d;
+  *device = (sgpu_device_id)d;
   return SGPU_RESULT_SUCCESS;
 }
 
-static void destroy_device(sgpu_device_id d) {
-  struct device* device = (struct device*)d;
-  [device->device release];
+static void destroy_device(sgpu_device_id device) {
+  cast_object(device, d, device);
+  [d->device release];
   free(device);
 }
 
+static int create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue) {
+  alloc_object(command_queue, q);
+  cast_object(device, d, device);
+  q->queue = [d->device newCommandQueue];
+  *queue = (sgpu_command_queue_id)q;
+  return SGPU_RESULT_SUCCESS;
+}
+
+static void destroy_command_queue(sgpu_command_queue_id command_queue) {
+  cast_object(command_queue, q, command_queue);
+  [q->queue release];
+  free(q);
+}
+
+static int create_metal_shader_library(
+    sgpu_device_id device, struct sgpu_metal_shader_library_descriptor const* descriptor,
+    sgpu_metal_shader_library_id* library) {
+  alloc_object(shader_library, lib);
+  cast_object(device, d, device);
+
+  dispatch_data_t lib_data =
+      dispatch_data_create(descriptor->code, descriptor->size,
+                           dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+                           DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+
+  NSError* error;
+  lib->library = [d->device newLibraryWithData:lib_data error:&error];
+  if (lib->library == nil) {
+    free(lib);
+    return SGPU_RESULT_CANNOT_CREATE_METAL_LIBRARY;
+  }
+  *library = (sgpu_metal_shader_library_id)lib;
+  return SGPU_RESULT_SUCCESS;
+}
+
+static void destroy_metal_shader_library(sgpu_metal_shader_library_id shader_library) {
+  cast_object(shader_library, lib, shader_library);
+  [lib->library release];
+  free(lib);
+}
+
+static int create_shader_function(sgpu_device_id device,
+                                  struct sgpu_shader_function_descriptor const* descriptor,
+                                  sgpu_shader_function_id* func) {
+  alloc_object(shader_function, f);
+  cast_object(shader_library, lib, descriptor->metal.library);
+
+  f->function =
+      [lib->library newFunctionWithName:[NSString stringWithUTF8String:descriptor->metal.name]];
+  if (f->function == nil) {
+    free(f);
+    return SGPU_RESULT_CANNOT_CREATE_SHADER_FUNCTION;
+  }
+  *func = (sgpu_shader_function_id)f;
+  return SGPU_RESULT_SUCCESS;
+}
+
+static void destroy_shader_function(sgpu_shader_function_id func) {
+  cast_object(shader_function, f, func);
+  [f->function release];
+  free(f);
+}
+
 const struct sgpu_operations sgpu_mtl_operations = {
-    .create_instance = create_instance,
-    .destroy_instance = destroy_instance,
     .create_default_device = create_default_device,
     .destroy_device = destroy_device,
+    .create_command_queue = create_command_queue,
+    .destroy_command_queue = destroy_command_queue,
+    .create_metal_shader_library = create_metal_shader_library,
+    .destroy_metal_shader_library = destroy_metal_shader_library,
+    .create_shader_function = create_shader_function,
+    .destroy_shader_function = destroy_shader_function,
 };
