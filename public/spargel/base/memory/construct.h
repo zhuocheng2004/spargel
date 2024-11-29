@@ -8,7 +8,7 @@ namespace spargel::base {
 template <typename T, typename... Args>
 constexpr T* construct_at(void* ptr, Args&&... args)
 {
-    return new (ptr) T(forward<Args>(args)...);
+    return new (ptr, placement_new_tag{}) T(forward<Args>(args)...);
 }
 
 }  // namespace spargel::base

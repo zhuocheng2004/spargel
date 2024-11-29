@@ -4,6 +4,7 @@
 
 namespace spargel::base {
 
+namespace __string {
 class string {
 public:
     string() = default;
@@ -27,7 +28,8 @@ public:
     struct cstring {
         cstring() = default;
         cstring(char* d, ssize l) : data{d}, length{l} {}
-        cstring(cstring&& other) {
+        cstring(cstring&& other)
+        {
             data = other.data;
             length = other.length;
             other.data = nullptr;
@@ -54,5 +56,8 @@ public:
 private:
     vector<char> _bytes;
 };
+}  // namespace __string
+
+using __string::string;
 
 }  // namespace spargel::base

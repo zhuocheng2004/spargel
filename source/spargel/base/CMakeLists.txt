@@ -4,6 +4,7 @@ target_sources(base
     base.c
     platform.c
     allocator/allocator.cpp
+    memory/placement_new.cpp
     string/string.cpp
 )
 
