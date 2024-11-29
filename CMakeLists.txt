@@ -9,6 +9,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+include(CTest)
 include(AddSpargel)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL Darwin)

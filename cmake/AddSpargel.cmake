@@ -41,6 +41,11 @@ function(spargel_add_library name)
   spargel_target_common(${name})
 endfunction()
 
+function(spargel_add_test name)
+  spargel_add_executable(${name})
+  add_test(NAME ${name} COMMAND ${name})
+endfunction()
+
 function(spargel_add_option name doc value)
   option(${name} ${doc} ${value})
   if(${name})

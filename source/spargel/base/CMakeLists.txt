@@ -3,6 +3,8 @@ target_sources(base
   PRIVATE
     base.c
     platform.c
+    allocator/allocator.cpp
+    string/string.cpp
 )
 
 if (SPARGEL_IS_LINUX)
@@ -24,3 +26,15 @@ target_link_libraries(demo_get_executable_path PRIVATE base)
 spargel_add_executable(demo_backtrace)
 target_sources(demo_backtrace PRIVATE demo_backtrace.c)
 target_link_libraries(demo_backtrace PRIVATE base)
+
+spargel_add_test(vector_test)
+target_sources(vector_test PRIVATE container/vector_test.cpp)
+target_link_libraries(vector_test PRIVATE base)
+
+spargel_add_test(coroutine_test)
+target_sources(coroutine_test PRIVATE coroutine/coroutine_test.cpp)
+target_link_libraries(coroutine_test PRIVATE base)
+
+spargel_add_test(string_test)
+target_sources(string_test PRIVATE string/string_test.cpp)
+target_link_libraries(string_test PRIVATE base)
