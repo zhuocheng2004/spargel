@@ -22,3 +22,13 @@ if(SPARGEL_IS_MACOS)
     DEPENDS
       ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib)
 endif()
+
+# TODO
+if (SPARGEL_IS_LINUX)
+  target_sources(renderer PRIVATE dummy.c)
+endif ()
+
+# TODO
+if (SPARGEL_IS_WINDOWS)
+  target_sources(renderer PRIVATE dummy.c)
+endif ()
