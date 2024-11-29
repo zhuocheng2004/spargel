@@ -1,14 +1,12 @@
-#include <spargel/base/base.h>
 #include <stdio.h>
 
-/* stupid value */
-#define PATH_MAX 1024
+#include <spargel/base/platform.h>
 
-int main() {
-  char buf[PATH_MAX + 1];
-  ssize len = spargel_get_executable_path(buf, PATH_MAX);
-  buf[len] = '\0';
-  printf("Current executable path: \"%s\" \n", buf);
-  printf("Path length: %td\n", len);
-  return 0;
+int main()
+{
+    struct sbase_string path = spgl_get_executable_path();
+    printf("Current executable path: \"%s\" \n", path.data);
+    printf("Path length: %td\n", path.length);
+    sbase_string_deinit(path);
+    return 0;
 }

@@ -13,3 +13,5 @@ BraceWrapping:
 
 DerivePointerAlignment: false
 PointerAlignment: Left
+
+SortIncludes: false

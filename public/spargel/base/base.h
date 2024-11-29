@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spargel/base/types.h>
+#include <spargel/base/const.h>
 
 #if defined(__clang__)
 #define SPARGEL_COMPILER_IS_CLANG
@@ -25,20 +26,6 @@ void spargel_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
 void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
 
 /**
- * @brief get the absolute path of the executable file associated to the
- * currently process
- *
- * When the actually path string is longer than buf_size, the content of the
- * buffer is undefined.
- *
- * @param buf the buffer to which the path string will be written to
- * @param buf_size the size of the buffer
- * @return the length of the path string; zero if the
- * path cannot be got
- */
-ssize spargel_get_executable_path(char* buf, ssize buf_size);
-
-/**
  * @brief platform independent path to resources
  */
 struct sbase_url {
@@ -58,6 +45,11 @@ struct sbase_string sbase_string_from_range(char const* begin, char const* end);
 bool sbase_string_is_equal(struct sbase_string lhs, struct sbase_string rhs);
 
 void sbase_string_deinit(struct sbase_string str);
+
+void sbase_string_copy(struct sbase_string* dst, struct sbase_string src);
+
+struct sbase_string sbase_string_concat(struct sbase_string str1,
+                                        struct sbase_string str2);
 
 /* backtrace */
 

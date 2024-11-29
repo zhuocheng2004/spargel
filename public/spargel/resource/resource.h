@@ -3,77 +3,79 @@
 #include <spargel/base/base.h>
 
 /* defines */
-#define SRESOURCE_DEFAULT_NS "core"
+#define SPGL_RESOURCE_DEFAULT_NS "core"
 
-#define SREOURCE_ID_WITH_NS(ns, path)                     \
-    ((struct sresource_id){sbase_string_from_literal(ns), \
-                           sbase_string_from_literal(path)})
+#define SPGL_REOURCE_ID_WITH_NS(ns, path)                     \
+    ((struct spgl_resource_id){sbase_string_from_literal(ns), \
+                               sbase_string_from_literal(path)})
 
-#define SRESOURCE_ID(path) SREOURCE_ID_WITH_NS(SRESOURCE_DEFAULT_NS, path)
+#define SPGL_RESOURCE_ID(path) \
+    SPGL_REOURCE_ID_WITH_NS(SPGL_RESOURCE_DEFAULT_NS, path)
 
 /* types */
 
-typedef int sresource_err;
+typedef int spgl_resource_err;
 
-struct sresource_id {
+struct spgl_resource_id {
     struct sbase_string ns;
     struct sbase_string path;
 };
 
-struct sresource {
+struct spgl_resource {
     ssize size;
     int ref_cnt;
-    struct sresource_operations* op;
+    struct spgl_resource_operations* op;
 
     void* data;
 };
 
-struct sresource_operations {
-    void (*close)(struct sresource*);
-    sresource_err (*get_data)(struct sresource*, void* addr);
+struct spgl_resource_operations {
+    void (*close)(struct spgl_resource*);
+    spgl_resource_err (*get_data)(struct spgl_resource*, void* addr);
 };
 
-struct sresource_manager {
-    struct sresource_manager_operations* op;
+struct spgl_resource_manager {
+    struct spgl_resource_manager_operations* op;
 
     void* data;
 };
 
-struct sresource_manager_operations {
-    void (*close)(struct sresource_manager*);
-    struct sresource* (*open_resource)(struct sresource_manager*,
-                                       struct sresource_id id);
+struct spgl_resource_manager_operations {
+    void (*close)(struct spgl_resource_manager*);
+    struct spgl_resource* (*open_resource)(struct spgl_resource_manager*,
+                                           struct spgl_resource_id id);
 };
 
 /* functions */
 
 /* reference +1 */
-static inline void sresource_get(struct sresource* resource)
+static inline void spgl_resource_get(struct spgl_resource* resource)
 {
     resource->ref_cnt++;
 }
 
 /* reference -1 ; close resource if there are no references */
-void sresource_put(struct sresource* resource);
+void spgl_resource_put(struct spgl_resource* resource);
 
-static inline ssize sresource_size(struct sresource* resource)
+static inline ssize spgl_resource_size(struct spgl_resource* resource)
 {
     return resource->size;
 }
 
-static inline sresource_err sresource_get_data(struct sresource* resource,
-                                               void* addr)
+static inline spgl_resource_err spgl_resource_get_data(
+    struct spgl_resource* resource, void* addr)
 {
     return resource->op->get_data(resource, addr);
 }
 
-static inline struct sresource* sresource_open_resource(
-    struct sresource_manager* manager, struct sresource_id id)
+static inline struct spgl_resource* spgl_resource_open_resource(
+    struct spgl_resource_manager* manager, struct spgl_resource_id id)
 {
     return manager->op->open_resource(manager, id);
 }
 
-static inline void sresource_close_manager(struct sresource_manager* manager)
+static inline void spgl_resource_close_manager(
+    struct spgl_resource_manager* manager)
 {
     manager->op->close(manager);
 }

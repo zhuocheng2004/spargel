@@ -2,4 +2,4 @@
 
 #include <spargel/resource/resource.h>
 
-void sresource_empty_manager_init(struct sresource_manager* manager);
+void spgl_resource_empty_manager_init(struct spgl_resource_manager* manager);

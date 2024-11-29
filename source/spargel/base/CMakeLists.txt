@@ -2,18 +2,19 @@ spargel_add_library(base)
 target_sources(base
   PRIVATE
     base.c
+    platform.c
 )
 
 if (SPARGEL_IS_LINUX)
-  target_sources(base PRIVATE base_linux.c)
+  target_sources(base PRIVATE platform_linux.c)
 endif ()
 
 if (SPARGEL_IS_WINDOWS)
-  target_sources(base PRIVATE base_win.c)
+  target_sources(base PRIVATE platform_win.c)
 endif ()
 
 if (SPARGEL_IS_MACOS)
-  target_sources(base PRIVATE base_mac.c)
+  target_sources(base PRIVATE platform_mac.c)
 endif ()
 
 spargel_add_executable(demo_get_executable_path)
