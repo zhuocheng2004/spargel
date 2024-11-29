@@ -1,13 +1,10 @@
 spargel_add_library(resource)
 target_sources(resource
   PRIVATE
-    directory_resource_manager.cc
+    resource.c
+    empty.c
 )
 
-spargel_add_executable(demo_empty_resource_manager)
-target_sources(demo_empty_resource_manager PRIVATE demo_empty_resource_manager.cc)
-target_link_libraries(demo_empty_resource_manager PRIVATE resource)
-
-spargel_add_executable(demo_directory_resource_manager)
-target_sources(demo_directory_resource_manager PRIVATE demo_directory_resource_manager.cc)
-target_link_libraries(demo_directory_resource_manager PRIVATE resource)
+spargel_add_executable(demo_resource_empty)
+target_sources(demo_resource_empty PRIVATE demo_empty.c)
+target_link_libraries(demo_resource_empty PRIVATE base resource)

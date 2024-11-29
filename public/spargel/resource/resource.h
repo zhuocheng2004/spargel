@@ -1,122 +1,79 @@
 #pragma once
 
-// FIXME: Avoid the standard library.
-#include <stdint.h>
+#include <spargel/base/base.h>
 
-#include <string>
+/* defines */
+#define SRESOURCE_DEFAULT_NS "core"
 
-namespace spargel::resource {
+#define SREOURCE_ID_WITH_NS(ns, path)                     \
+    ((struct sresource_id){sbase_string_from_literal(ns), \
+                           sbase_string_from_literal(path)})
 
-class ResourceID {
- public:
-  const std::string NS_DEFAULT = "core";
+#define SRESOURCE_ID(path) SREOURCE_ID_WITH_NS(SRESOURCE_DEFAULT_NS, path)
 
-  ResourceID(const std::string& ns, const std::string& path)
-      : _ns(ns), _path(path) {}
+/* types */
 
-  explicit ResourceID(const std::string& path) : ResourceID(NS_DEFAULT, path) {}
+typedef int sresource_err;
 
-  bool operator==(const ResourceID& that) {
-    return _ns == that._ns && _path == that._path;
-  }
-
-  const std::string& getNS() const { return _ns; }
-
-  const std::string& getPath() const { return _path; }
-
- private:
-  const std::string _ns;
-  const std::string _path;
+struct sresource_id {
+    struct sbase_string ns;
+    struct sbase_string path;
 };
 
-/**
- * a handle of opened resource
- */
-class Resource {
- public:
-  /*
-   * When creating, reference count is set to one.
-   */
-  Resource(const ResourceID& id) : _id(id), _refcount(1) {}
+struct sresource {
+    ssize size;
+    int ref_cnt;
+    struct sresource_operations* op;
 
-  virtual ~Resource() { drop(); }
-
-  const ResourceID& getID() const { return _id; }
-
-  /** reference +1 */
-  void get() { _refcount++; }
-
-  /** reference -1
-   *
-   * The resource will be released after all reference are removed, and is no
-   * longer usable.
-   */
-  void put() {
-    _refcount--;
-    if (_refcount <= 0) _drop();
-  }
-
-  /**
-   * immediately remove all references and release the resource
-   */
-  void drop() {
-    _refcount = 0;
-    _drop();
-  }
-
-  virtual size_t size() = 0;
-
-  /**
-   * write resource data to memory
-   *
-   * @return `true` if the operation is done successfully, otherwise `false`
-   */
-  virtual bool getData(void* dest) = 0;
-
-  /**
-   * obtain a read-only memory map of the resource
-   *
-   * @return pointer to the mapped memory, or `nullptr` if the mapping cannot be
-   * done or is not supported/implemented
-   */
-  virtual const void* mapData() = 0;
-
- protected:
-  const ResourceID& _id;
-  int _refcount;
-
-  /** will be called when the last reference is removed */
-  virtual void _drop() = 0;
+    void* data;
 };
 
-/**
- * a place from where you can open resources
- */
-class ResourceManager {
- public:
-  /**
-   * shut down the resource manager
-   *
-   * We can no longer ask/open resources from the manager after this operation.
-   */
-  virtual void close() = 0;
-
-  /**
-   * ask if a resource exists
-   */
-  virtual bool has(const ResourceID& id) = 0;
-
-  /**
-   * obtain a handle of the opened resource
-   *
-   * The reference count of the returned handle is set to one.
-   *
-   * FIXME: Return the resource content with error handling in the future.
-   * Currently: returns nullptr if the resource cannot be opened. When the
-   * handle is no longer used, the caller should delete this handle pointer
-   * (will automatically release the resource).
-   */
-  virtual Resource* open(const ResourceID& id) = 0;
+struct sresource_operations {
+    void (*close)(struct sresource*);
+    sresource_err (*get_data)(struct sresource*, void* addr);
 };
 
-}  // namespace spargel::resource
+struct sresource_manager {
+    struct sresource_manager_operations* op;
+
+    void* data;
+};
+
+struct sresource_manager_operations {
+    void (*close)(struct sresource_manager*);
+    struct sresource* (*open_resource)(struct sresource_manager*,
+                                       struct sresource_id id);
+};
+
+/* functions */
+
+/* reference +1 */
+static inline void sresource_get(struct sresource* resource)
+{
+    resource->ref_cnt++;
+}
+
+/* reference -1 ; close resource if there are no references */
+void sresource_put(struct sresource* resource);
+
+static inline ssize sresource_size(struct sresource* resource)
+{
+    return resource->size;
+}
+
+static inline sresource_err sresource_get_data(struct sresource* resource,
+                                               void* addr)
+{
+    return resource->op->get_data(resource, addr);
+}
+
+static inline struct sresource* sresource_open_resource(
+    struct sresource_manager* manager, struct sresource_id id)
+{
+    return manager->op->open_resource(manager, id);
+}
+
+static inline void sresource_close_manager(struct sresource_manager* manager)
+{
+    manager->op->close(manager);
+}

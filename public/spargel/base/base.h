@@ -42,16 +42,16 @@ ssize spargel_get_executable_path(char* buf, ssize buf_size);
  * @brief platform independent path to resources
  */
 struct sbase_url {
-  int _dummy;
+    int _dummy;
 };
 
 struct sbase_string {
-  char* data;
-  ssize length;
+    ssize length;
+    char* data;
 };
 
 #define sbase_string_from_literal(str) \
-  ((struct sbase_string){sizeof(str) - 1, str})
+    ((struct sbase_string){sizeof(str) - 1, str})
 
 struct sbase_string sbase_string_from_range(char const* begin, char const* end);
 
@@ -87,8 +87,8 @@ typedef struct sbase_task_pool* sbase_task_pool_id;
 typedef u64 sbase_task_id;
 
 struct sbase_task_descriptor {
-  void (*callback)(void*);
-  void* data;
+    void (*callback)(void*);
+    void* data;
 };
 
 sbase_task_pool_id sbase_create_task_pool();
