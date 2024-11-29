@@ -8,8 +8,8 @@ void sresource_empty_manager_init(struct sresource_manager* manager)
     manager->op = &empty_manager_operations;
 }
 
-static struct sresource* empty_manager_open_resource(struct sresource_manager*,
-                                                     struct sresource_id)
+static struct sresource* empty_manager_open_resource(
+    struct sresource_manager* manager, struct sresource_id id)
 {
     return NULL;
 }
