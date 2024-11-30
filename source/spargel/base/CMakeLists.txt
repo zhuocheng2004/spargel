@@ -4,8 +4,18 @@ target_sources(base
     base.c
     platform.c
     allocator/allocator.cpp
+    assert/panic.cpp
+    assert/unreachable.cpp
     memory/placement_new.cpp
     string/string.cpp
+    test/test.cpp
+    test/test_manager.cpp
+)
+
+spargel_add_library(base_test_main)
+target_sources(base_test_main
+  PRIVATE
+    test/test_main.cpp
 )
 
 if (SPARGEL_IS_LINUX)
@@ -39,3 +49,11 @@ target_link_libraries(coroutine_test PRIVATE base)
 spargel_add_test(string_test)
 target_sources(string_test PRIVATE string/string_test.cpp)
 target_link_libraries(string_test PRIVATE base)
+
+spargel_add_executable(panic_test)
+target_sources(panic_test PRIVATE assert/panic_test.cpp)
+target_link_libraries(panic_test PRIVATE base)
+
+spargel_add_executable(unreachable_test)
+target_sources(unreachable_test PRIVATE assert/unreachable_test.cpp)
+target_link_libraries(unreachable_test PRIVATE base)

@@ -1,4 +1,5 @@
 #include <spargel/base/coroutine/coroutine.h>
+#include <spargel/base/test/test.h>
 
 struct basic_coro {
     struct promise {
@@ -40,8 +41,6 @@ basic_coro coro()
     co_return;
 }
 
-int main()
-{
+TEST(coroutine, basic_coro) {
     coro();
-    return 0;
 }

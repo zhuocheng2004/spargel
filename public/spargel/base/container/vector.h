@@ -2,6 +2,7 @@
 
 #include <spargel/base/algorithm/max.h>
 #include <spargel/base/algorithm/swap.h>
+#include <spargel/base/assert/assert.h>
 #include <spargel/base/memory/allocator.h>
 #include <spargel/base/memory/construct.h>
 #include <spargel/base/memory/destroy.h>
@@ -23,7 +24,8 @@ public:
     /// @brief create empty vector
     vector() = default;
 
-    vector(T const* begin, T const* end) {
+    vector(T const* begin, T const* end)
+    {
         init_with_copy(begin, end);
     }
 
@@ -58,20 +60,20 @@ public:
     ~vector()
     {
         if (_begin != nullptr) {
-            for (; _begin < _end; _end--) {
-                destroy_at(_end - 1);
-            }
-            default_allocator{}.deallocate(_begin, sizeof(T) * capacity());
+            destroy(_begin, _end);
+            deallocate();
         }
     }
 
     /// @brief access element by offset
     T& operator[](ssize i)
     {
+        EXPECTS(i >= 0 && i < count());
         return _begin[i];
     }
     T const& operator[](ssize i) const
     {
+        EXPECTS(i >= 0 && i < count());
         return _begin[i];
     }
 
@@ -133,46 +135,85 @@ private:
 
     void grow_one()
     {
-        ssize new_cap = next_capacity(count() + 1);
+        auto const cnt = count();
+        ssize new_cap = next_capacity(cnt + 1);
         T* new_begin =
             static_cast<T*>(default_allocator{}.allocate(sizeof(T) * new_cap));
-        if constexpr (is_trivially_relocatable<T>) {
-            memcpy(new_begin, _begin, count() * sizeof(T));
-        } else {
-            for (T* iter = new_begin; _begin < _end; _begin++, new_begin++) {
-                construct_at<T>(iter, move(*_begin));
-            }
-        }
         if (_begin != nullptr) {
-            for (T* iter = _end - 1; iter >= _begin; iter--) {
-                destroy_at(iter);
-            }
-            default_allocator{}.deallocate(_begin, sizeof(T) * capacity());
+            relocate(new_begin, _begin, _end);
+            destroy(_begin, _end);
+            deallocate();
         }
-        _capacity = new_begin + new_cap;
-        _end = new_begin + count();
         _begin = new_begin;
+        _end = _begin + cnt;
+        _capacity = _begin + new_cap;
     }
 
     void init_with_copy(T const* begin, T const* end)
     {
-        auto count = end - begin;
-        allocate(count);
-        copy_to_end(begin, end);
+        if (begin != nullptr) {
+            auto count = end - begin;
+            allocate(count);
+            relocate(_end, begin, end);
+            _end = _begin + count;
+        }
     }
+
+    // 1. allocate
+    // 2. deallocate
+    // 3. relocate to end
+    // 4. destroy
 
     void allocate(ssize count)
     {
+        EXPECTS(count > 0);
         _begin =
             static_cast<T*>(default_allocator{}.allocate(sizeof(T) * count));
         _end = _begin;
         _capacity = _begin + count;
     }
 
-    void copy_to_end(T const* begin, T const* end)
+    void deallocate()
     {
-        for (; begin != end; begin++, _end++) {
-            construct_at<T>(_end, *begin);
+        default_allocator{}.deallocate(_begin, sizeof(T) * capacity());
+        _begin = nullptr;
+        _end = nullptr;
+        _capacity = nullptr;
+    }
+
+    // relocate objects in [begin, end) to target
+    void relocate(T* target, T* begin, T* end)
+    {
+        EXPECTS(begin < end);
+        if constexpr (is_trivially_relocatable<T>) {
+            ssize cnt = end - begin;
+            memcpy(target, begin, sizeof(T) * cnt);
+        } else {
+            for (; begin != end; target++, begin++) {
+                construct_at<T>(target, move(*begin));
+            }
+        }
+    }
+    void relocate(T* target, T const* begin, T const* end)
+    {
+        EXPECTS(begin < end);
+        if constexpr (is_trivially_relocatable<T>) {
+            ssize cnt = end - begin;
+            memcpy(target, begin, sizeof(T) * cnt);
+        } else {
+            for (; begin != end; target++, begin++) {
+                construct_at<T>(target, *begin);
+            }
+        }
+    }
+
+    // destroy objects in [begin, end) from back to front
+    void destroy(T* begin, T* end)
+    {
+        EXPECTS(begin < end);
+        T* iter = end;
+        while (iter != begin) {
+            destroy_at(--iter);
         }
     }
 

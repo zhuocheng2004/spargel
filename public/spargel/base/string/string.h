@@ -1,6 +1,8 @@
 #pragma once
 
+#include <spargel/base/assert/assert.h>
 #include <spargel/base/container/vector.h>
+#include <spargel/base/string/cstring.h>
 
 namespace spargel::base {
 
@@ -18,39 +20,15 @@ public:
 
     char& operator[](ssize i)
     {
+        EXPECTS(i >= 0 && i < length());
         return _bytes[i];
     }
     char const& operator[](ssize i) const
     {
+        EXPECTS(i >= 0 && i < length());
         return _bytes[i];
     }
 
-    struct cstring {
-        cstring() = default;
-        cstring(char* d, ssize l) : data{d}, length{l} {}
-        cstring(cstring&& other)
-        {
-            data = other.data;
-            length = other.length;
-            other.data = nullptr;
-            other.length = 0;
-        }
-        ~cstring()
-        {
-            if (data != nullptr) {
-                default_allocator{}.deallocate(data, length + 1);
-            }
-        }
-        operator char*()
-        {
-            return data;
-        }
-        char* data = nullptr;
-        ssize length = 0;
-    };
-
-    /// @warning caller should free
-    /// todo: change this behaviour
     cstring c_str() const;
 
 private:

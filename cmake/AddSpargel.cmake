@@ -44,6 +44,7 @@ endfunction()
 function(spargel_add_test name)
   spargel_add_executable(${name})
   add_test(NAME ${name} COMMAND ${name})
+  target_link_libraries(${name} PRIVATE base base_test_main)
 endfunction()
 
 function(spargel_add_option name doc value)

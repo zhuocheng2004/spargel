@@ -1,7 +1,8 @@
 #include <assert.h>
 #include <spargel/base/container/vector.h>
+#include <spargel/base/test/test.h>
 
-int main()
+TEST(vector, basic_asserts)
 {
     spargel::base::vector<int> vec;
     assert(vec.count() == 0);
@@ -25,5 +26,10 @@ int main()
     spargel::base::vector<int> vec3(vec2);
     assert(vec2.count() == 5);
     assert(vec3.count() == 5);
-    return 0;
 }
+
+// int main()
+// {
+
+//     return 0;
+// }
