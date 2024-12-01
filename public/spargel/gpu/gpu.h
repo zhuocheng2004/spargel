@@ -2,6 +2,17 @@
 
 #include <spargel/base/types.h>
 
+#if __cplusplus
+namespace spargel::gpu {
+
+class device {
+public:
+    virtual ~device()
+};
+
+}  // namespace spargel::gpu
+#endif
+
 typedef struct sgpu_device* sgpu_device_id;
 typedef struct sgpu_command_queue* sgpu_command_queue_id;
 typedef struct sgpu_render_pipeline* sgpu_render_pipeline_id;
@@ -11,23 +22,23 @@ typedef struct sgpu_shader_function* sgpu_shader_function_id;
 typedef struct sgpu_metal_shader_library* sgpu_metal_shader_library_id;
 
 enum sgpu_result {
-  SGPU_RESULT_SUCCESS,
-  SGPU_RESULT_NO_BACKEND,
-  SGPU_RESULT_ALLOCATION_FAILED,
-  SGPU_RESULT_CANNOT_CREATE_METAL_LIBRARY,
-  SGPU_RESULT_CANNOT_CREATE_SHADER_FUNCTION,
+    SGPU_RESULT_SUCCESS,
+    SGPU_RESULT_NO_BACKEND,
+    SGPU_RESULT_ALLOCATION_FAILED,
+    SGPU_RESULT_CANNOT_CREATE_METAL_LIBRARY,
+    SGPU_RESULT_CANNOT_CREATE_SHADER_FUNCTION,
 };
 
 enum sgpu_backend {
-  SGPU_BACKEND_DIRECTX,
-  SGPU_BACKEND_METAL,
-  SGPU_BACKEND_VULKAN,
+    SGPU_BACKEND_DIRECTX,
+    SGPU_BACKEND_METAL,
+    SGPU_BACKEND_VULKAN,
 };
 
 /* todo: refactor using sbase_url and asset loading */
 struct sgpu_metal_shader_library_descriptor {
-  void* code;
-  ssize size;
+    void* code;
+    ssize size;
 };
 
 /**
@@ -38,15 +49,15 @@ struct sgpu_metal_shader_library_descriptor {
  *  - one SPIR-V module for one shader
  */
 struct sgpu_shader_function_descriptor {
-  struct {
-    sgpu_metal_shader_library_id library;
-    char const* name;
-  } metal;
-  struct {
-    void* code;
-    ssize size;
-    char const* name;
-  } vulkan;
+    struct {
+        sgpu_metal_shader_library_id library;
+        char const* name;
+    } metal;
+    struct {
+        void* code;
+        ssize size;
+        char const* name;
+    } vulkan;
 };
 
 struct sgpu_render_pipeline_descriptor {};

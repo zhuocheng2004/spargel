@@ -104,7 +104,7 @@ public:
     void push_back(Args&&... args)
     {
         if (_end >= _capacity) {
-            grow_one();
+            grow_to(count() + 1);
         }
         construct_at<T>(_end, forward<Args>(args)...);
         _end++;
@@ -116,6 +116,20 @@ public:
         auto ptr = _end - 1;
         ptr->~T();
         _end--;
+    }
+
+    void reserve(ssize n)
+    {
+        if (n > capacity()) {
+            grow_to(n);
+        }
+    }
+
+    /// unsafe
+    /// this will not construct/destruct/allocate/deallocate
+    void set_count(ssize cnt)
+    {
+        _end = _begin + cnt;
     }
 
 private:
@@ -133,10 +147,10 @@ private:
         return max<ssize>(2 * cap, request);
     }
 
-    void grow_one()
+    void grow_to(ssize req)
     {
         auto const cnt = count();
-        ssize new_cap = next_capacity(cnt + 1);
+        ssize new_cap = next_capacity(req);
         T* new_begin =
             static_cast<T*>(default_allocator{}.allocate(sizeof(T) * new_cap));
         if (_begin != nullptr) {

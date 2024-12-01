@@ -26,10 +26,17 @@ TEST(vector, basic_asserts)
     spargel::base::vector<int> vec3(vec2);
     assert(vec2.count() == 5);
     assert(vec3.count() == 5);
+
+    vec3.pop_back();
+    assert(vec3.count() == 4);
 }
 
-// int main()
-// {
-
-//     return 0;
-// }
+TEST(vector, reserve) {
+    spargel::base::vector<int> vec;
+    vec.push_back(1);
+    vec.push_back(2);
+    vec.push_back(3);
+    assert(vec.count() == 3);
+    vec.reserve(100);
+    assert(vec.capacity() >= 100);
+}
