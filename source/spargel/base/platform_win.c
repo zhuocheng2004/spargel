@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <spargel/base/base.h>
 
 typedef void* HMODULE;
@@ -12,4 +14,9 @@ __declspec(dllimport) DWORD __stdcall GetModuleFileNameA(HMODULE hModule,
 ssize _spgl_get_executable_path(char* buf, ssize buf_size)
 {
     return GetModuleFileNameA(NULL, buf, buf_size);
+}
+
+void sbase_print_backtrace()
+{
+    printf("<unknown backtrace>\n");
 }

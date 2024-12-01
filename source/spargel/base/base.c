@@ -2,18 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-void spargel_unreachable()
+void sbase_unreachable()
 {
+    sbase_print_backtrace();
 #if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
     __builtin_unreachable();
 #elif defined(SPARGEL_COMPILER_IS_MSVC)
     __assume(false);
 #endif
-}
-
-void sbase_unreachable()
-{
-    spargel_unreachable();
 }
 
 struct sbase_string sbase_string_from_range(char const* begin, char const* end)

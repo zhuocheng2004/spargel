@@ -7,36 +7,39 @@ typedef u64 secs_component_id;
 typedef u64 secs_entity_id;
 
 enum secs_result {
-  SECS_RESULT_SUCCESS,
-  SECS_RESULT_DUPLICATE_COMPONENT,
+    SECS_RESULT_SUCCESS,
+    SECS_RESULT_DUPLICATE_COMPONENT,
+    SECS_RESULT_INCOMPLETE,
+    SECS_RESULT_QUERY_END,
 };
 
 struct secs_view {
-  ssize entity_count;
-  secs_entity_id* entities;
-  void** components;
+    u64 archetype_id;
+    ssize entity_count;
+    secs_entity_id* entities;
+    void** components;
 };
 
 struct secs_component_descriptor {
-  /* ownership is taken by the world */
-  struct sbase_string name;
-  ssize size;
+    /* ownership is taken by the world */
+    struct sbase_string name;
+    ssize size;
 };
 
 struct secs_spawn_descriptor {
-  ssize component_count;
-  secs_component_id const* components;
-  /* number of entities */
-  ssize entity_count;
-  void (*callback)(struct secs_view* view, void* data);
-  void* callback_data;
+    ssize component_count;
+    secs_component_id const* components;
+    ssize entity_count;
+    // void (*callback)(struct secs_view* view, void* data);
+    // void* callback_data;
 };
 
 struct secs_query_descriptor {
-  ssize component_count;
-  secs_component_id const* components;
-  void (*callback)(struct secs_view* view, void* data);
-  void* callback_data;
+    u64 start_archetype_id;
+    ssize component_count;
+    secs_component_id const* components;
+    // void (*callback)(struct secs_view* view, void* data);
+    // void* callback_data;
 };
 
 /**
@@ -53,9 +56,11 @@ void secs_destroy_world(secs_world_id world);
  * @brief register a component type in an ecs world
  */
 int secs_register_component(secs_world_id world,
-                            struct secs_component_descriptor const* descriptor);
+                            struct secs_component_descriptor const* descriptor,
+                            secs_component_id* id);
 
-void secs_spawn_entities(secs_world_id world,
-                         struct secs_spawn_descriptor* desc);
+int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
+                        struct secs_view* view);
 
-void secs_query(secs_world_id world, struct secs_query_descriptor* desc);
+int secs_query(secs_world_id world, struct secs_query_descriptor* desc,
+               struct secs_view* view);
