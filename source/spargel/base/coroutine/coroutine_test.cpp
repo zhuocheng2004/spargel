@@ -1,5 +1,7 @@
-#include <spargel/base/coroutine/coroutine.h>
 #include <spargel/base/test/test.h>
+
+import spargel.base.coroutine;
+import spargel.base.test;
 
 struct basic_coro {
     struct promise {

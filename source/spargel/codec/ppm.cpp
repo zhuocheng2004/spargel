@@ -1,5 +1,3 @@
-#include <spargel/base/base.h>
-#include <spargel/codec/codec.h>
 #include <spargel/codec/cursor.h>
 #include <stdio.h>
 #include <stdlib.h>

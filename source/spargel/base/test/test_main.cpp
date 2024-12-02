@@ -1,4 +1,4 @@
-#include <spargel/base/test/test_manager.h>
+import spargel.base.test;
 
 int main() {
     return spargel::base::test_manager::instance().run();

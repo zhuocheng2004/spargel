@@ -1,8 +1,13 @@
+module;
+
 #include <stdlib.h>
 #include <string.h>
 
-#include <spargel/base/base.h>
-#include <spargel/ecs/ecs.h>
+#include <spargel/base/types.h>
+
+module spargel.ecs;
+
+import spargel.base.c;
 
 struct archetype {
     ssize col_count;
@@ -24,7 +29,7 @@ struct secs_world {
     ssize entity_capacity;
     /* component name -> component info */
     struct {
-        // struct sbase_string* names;
+        // sbase_string* names;
         ssize* sizes;
         ssize count;
         ssize capacity;
@@ -75,7 +80,7 @@ static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need)
     *capacity = new_cap;
 }
 
-// static u32 hash_string(struct sbase_string str)
+// static u32 hash_string(sbase_string str)
 // {
 //     u32 hash = 2166136261; /* FNV offset base */
 //     for (ssize i = 0; i < str.length; i++) {
@@ -91,7 +96,7 @@ int secs_register_component(secs_world_id world,
 {
     if (world->components.count + 1 > world->components.capacity) {
         // grow_array((void**)&world->components.names,
-        //            &world->components.capacity, sizeof(struct sbase_string),
+        //            &world->components.capacity, sizeof(sbase_string),
         //            world->components.count + 1);
         grow_array((void**)&world->components.sizes,
                    &world->components.capacity, sizeof(ssize),

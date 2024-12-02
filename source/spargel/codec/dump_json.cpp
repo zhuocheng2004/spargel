@@ -1,11 +1,14 @@
-#include <spargel/codec/codec.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static void dump_json_value(struct scodec_json_value const* value);
+#include <spargel/base/types.h>
 
-static void dump_json_array(struct scodec_json_array const* array)
+import spargel.codec;
+
+static void dump_json_value(scodec_json_value const* value);
+
+static void dump_json_array(scodec_json_array const* array)
 {
     printf("[");
     for (ssize i = 0; i < array->count; i++) {
@@ -14,7 +17,7 @@ static void dump_json_array(struct scodec_json_array const* array)
     }
     printf("]");
 }
-static void dump_json_object(struct scodec_json_object const* object)
+static void dump_json_object(scodec_json_object const* object)
 {
     printf("{");
     int cnt = 0;
@@ -30,7 +33,7 @@ static void dump_json_object(struct scodec_json_object const* object)
     printf("}");
 }
 
-static void dump_json_value(struct scodec_json_value const* value)
+static void dump_json_value(scodec_json_value const* value)
 {
     switch (value->kind) {
     case SCODEC_JSON_VALUE_KIND_ARRAY:

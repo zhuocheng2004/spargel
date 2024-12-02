@@ -1,6 +1,11 @@
 #include <assert.h>
-#include <spargel/base/container/vector.h>
+
 #include <spargel/base/test/test.h>
+
+import spargel.base.algorithm;
+import spargel.base.container;
+import spargel.base.meta;
+import spargel.base.test;
 
 TEST(vector, basic_asserts)
 {

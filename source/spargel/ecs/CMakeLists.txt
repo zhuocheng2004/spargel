@@ -1,7 +1,9 @@
 spargel_add_library(ecs)
 target_sources(ecs
-  PRIVATE
-    ecs.cpp
+    PUBLIC FILE_SET CXX_MODULES FILES
+        ecs.mpp
+    PRIVATE
+        ecs.cpp
 )
 target_link_libraries(ecs PRIVATE base)
 

@@ -1,0 +1,32 @@
+module;
+
+#include <spargel/base/types.h>
+
+export module spargel.base.memory;
+
+import spargel.base.meta;
+
+export namespace spargel::base {
+
+struct placement_new_tag {};
+
+template <typename T>
+struct allocator_traits {};
+
+template <typename T, typename... Args>
+constexpr T* construct_at(void* ptr, Args&&... args)
+{
+    return new (ptr, placement_new_tag{}) T(forward<Args>(args)...);
+}
+
+template <typename T>
+constexpr void destroy_at(T* ptr)
+{
+    ptr->~T();
+}
+
+}
+
+export
+void* operator new(size_t size, void* ptr,
+                   spargel::base::placement_new_tag) noexcept;

@@ -1,4 +1,4 @@
-#include <spargel/base/assert/unreachable.h>
+import spargel.base.assert;
 
 int main()
 {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <spargel/base/base.h>
 #include <spargel/ui/ui.h>
 
 typedef struct spargel_renderer* spargel_renderer_id;

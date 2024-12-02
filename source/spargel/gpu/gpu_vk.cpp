@@ -1,4 +1,4 @@
-#include <spargel/base/base.h>
+// #include <spargel/base/base.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/gpu/operations.h>
 #include <stdlib.h>
@@ -10,6 +10,8 @@
 #if defined(__APPLE__)
 #include <vulkan/vulkan_metal.h>
 #endif
+
+import spargel.base.c;
 
 #define alloc_object(type, name)                                   \
     struct type* name = (struct type*)malloc(sizeof(struct type)); \

@@ -1,8 +1,11 @@
-#import <Metal/Metal.h>
+#include <stdlib.h>
+
+#include <spargel/base/types.h>
 #include <spargel/renderer/renderer.h>
 #include <spargel/renderer/shader_types_mtl.h>
 #include <spargel/ui/ui_mac.h>
-#include <stdlib.h>
+
+#import <Metal/Metal.h>
 
 struct spargel_renderer {
     id<MTLDevice> device;

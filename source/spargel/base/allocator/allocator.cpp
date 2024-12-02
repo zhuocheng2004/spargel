@@ -1,11 +1,16 @@
-#include <spargel/base/memory/allocator.h>
+module;
+
 #include <stdlib.h>
+
+#include <spargel/base/types.h>
 
 #define SPARGEL_TRACE_ALLOCATION 1
 
 #if SPARGEL_TRACE_ALLOCATION
 #include <stdio.h>
 #endif
+
+module spargel.base.allocator;
 
 namespace spargel::base {
 

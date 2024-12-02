@@ -1,9 +1,12 @@
 #pragma once
 
-#include <spargel/base/base.h>
+#include <spargel/base/types.h>
 
 /* defines */
 #define SPGL_RESOURCE_DEFAULT_NS "core"
+
+#define sbase_string_from_literal(str) \
+    ((sbase_string){sizeof(str) - 1, str})
 
 #define SPGL_REOURCE_ID_WITH_NS(ns, path)                     \
     ((struct spgl_resource_id){sbase_string_from_literal(ns), \
@@ -17,8 +20,8 @@
 typedef int spgl_resource_err;
 
 struct spgl_resource_id {
-    struct sbase_string ns;
-    struct sbase_string path;
+    sbase_string ns;
+    sbase_string path;
 };
 
 struct spgl_resource {

@@ -1,5 +1,6 @@
-#include <spargel/codec/codec.h>
 #include <stdio.h>
+
+import spargel.codec;
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {

@@ -1,0 +1,11 @@
+module;
+
+export module spargel.base.assert;
+
+export
+namespace spargel::base {
+
+[[noreturn]] void panic();
+[[noreturn]] void unreachable();
+
+}

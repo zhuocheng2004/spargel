@@ -1,7 +1,8 @@
-#include <spargel/codec/codec.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/renderer/renderer.h>
 #include <spargel/ui/ui.h>
+
+import spargel.codec;
 
 static void render(spargel_renderer_id renderer) {
   spargel_renderer_start_frame(renderer);

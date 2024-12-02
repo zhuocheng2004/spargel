@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+import spargel.base.c;
+
 #include <spargel/resource/empty.h>
 
 extern struct spgl_resource_manager_operations empty_manager_operations;

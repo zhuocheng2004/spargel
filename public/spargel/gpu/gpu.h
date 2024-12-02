@@ -1,6 +1,6 @@
 #pragma once
 
-#include <spargel/base/base.h>
+#include <spargel/base/types.h>
 
 namespace spargel::gpu {
 

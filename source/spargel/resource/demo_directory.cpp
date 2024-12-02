@@ -1,5 +1,7 @@
 #include <assert.h>
 
+import spargel.base.c;
+
 #include <spargel/resource/directory.h>
 
 int main()

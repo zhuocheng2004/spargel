@@ -1,4 +1,4 @@
-#include <spargel/base/base.h>
+import spargel.base.c;
 
 static void foo() { sbase_print_backtrace(); }
 

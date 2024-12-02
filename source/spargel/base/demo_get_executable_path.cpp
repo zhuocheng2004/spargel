@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include <spargel/base/platform.h>
+import spargel.base.c;
 
 int main()
 {

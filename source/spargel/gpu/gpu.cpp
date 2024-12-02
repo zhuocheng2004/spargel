@@ -1,6 +1,8 @@
-#include <spargel/base/base.h>
+// #include <spargel/base/base.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/gpu/operations.h>
+
+import spargel.base.c;
 
 #if SPARGEL_GPU_ENABLE_METAL
 extern const struct sgpu_operations sgpu_mtl_operations;

@@ -1,33 +1,39 @@
 spargel_add_library(base)
 target_sources(base
-  PRIVATE
-    base.cpp
-    platform.cpp
-    allocator/allocator.cpp
-    assert/panic.cpp
-    assert/unreachable.cpp
-    memory/placement_new.cpp
-    string/string.cpp
-    test/test.cpp
-    test/test_manager.cpp
+    PUBLIC FILE_SET CXX_MODULES FILES
+        base.mpp
+        base_c.mpp
+        algorithm/algorithm.mpp
+        allocator/allocator.mpp
+        assert/assert.mpp
+        container/container.mpp
+        coroutine/coroutine.mpp
+        memory/memory.mpp
+        meta/meta.mpp
+        string/string.mpp
+        test/test.mpp
+    PUBLIC
+        base_c.cpp
+        allocator/allocator.cpp
+        assert/assert.cpp
+        memory/memory.cpp
+        string/string.cpp
+        test/test.cpp
 )
 
 spargel_add_library(base_test_main)
 target_sources(base_test_main
-  PRIVATE
-    test/test_main.cpp
+    PRIVATE
+        test/test_main.cpp
 )
+target_link_libraries(base_test_main PRIVATE base)
 
 if (SPARGEL_IS_LINUX)
-  target_sources(base PRIVATE platform_linux.cpp)
+    target_sources(base PRIVATE platform_linux.cpp)
 endif ()
 
 if (SPARGEL_IS_WINDOWS)
-  target_sources(base PRIVATE platform_win.cpp)
-endif ()
-
-if (SPARGEL_IS_MACOS)
-  target_sources(base PRIVATE platform_mac.cpp)
+    target_sources(base PRIVATE platform_win.cpp)
 endif ()
 
 spargel_add_executable(demo_get_executable_path)
@@ -44,7 +50,7 @@ target_link_libraries(vector_test PRIVATE base)
 
 spargel_add_test(coroutine_test)
 target_sources(coroutine_test PRIVATE coroutine/coroutine_test.cpp)
-target_link_libraries(coroutine_test PRIVATE base)
+target_link_libraries(coroutine_test PRIVATE base base_test_main)
 
 spargel_add_test(string_test)
 target_sources(string_test PRIVATE string/string_test.cpp)

@@ -1,5 +1,8 @@
-#include <spargel/base/string/string.h>
+module;
+
 #include <string.h>
+
+module spargel.base.string;
 
 namespace spargel::base {
 

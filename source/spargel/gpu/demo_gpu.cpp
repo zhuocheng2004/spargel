@@ -1,7 +1,9 @@
-#include <spargel/gpu/gpu.h>
-#include <spargel/ui/ui.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <spargel/base/types.h>
+#include <spargel/gpu/gpu.h>
+#include <spargel/ui/ui.h>
 
 static bool load_file(char const* path, void** data, ssize* size)
 {

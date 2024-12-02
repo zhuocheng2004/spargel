@@ -5,6 +5,7 @@ target_sources(resource
     empty.cpp
     directory.cpp
 )
+target_link_libraries(resource PRIVATE base)
 
 spargel_add_executable(demo_resource_empty)
 target_sources(demo_resource_empty PRIVATE demo_empty.cpp)

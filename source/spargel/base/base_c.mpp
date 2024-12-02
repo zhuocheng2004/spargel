@@ -1,0 +1,31 @@
+module;
+
+#include <spargel/base/macros.h>
+#include <spargel/base/types.h>
+
+export module spargel.base.c;
+
+export void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
+
+export void sbase_print_backtrace();
+
+export struct sbase_string {
+    ssize length;
+    char* data;
+};
+
+export struct sbase_string sbase_string_from_range(char const* begin,
+                                                   char const* end);
+
+export bool sbase_string_is_equal(struct sbase_string lhs,
+                                  struct sbase_string rhs);
+
+export void sbase_string_deinit(struct sbase_string str);
+
+export void sbase_string_copy(struct sbase_string* dst,
+                              struct sbase_string src);
+
+export struct sbase_string sbase_string_concat(struct sbase_string str1,
+                                               struct sbase_string str2);
+
+export struct sbase_string spgl_get_executable_path();

@@ -1,3 +1,5 @@
+import spargel.base.c;
+
 #include <spargel/resource/resource.h>
 
 void spgl_resource_put(struct spgl_resource* resource)

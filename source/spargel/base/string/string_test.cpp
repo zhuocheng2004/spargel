@@ -1,7 +1,11 @@
-#include <spargel/base/string/string.h>
 #include <stdio.h>
 #include <assert.h>
 #include <spargel/base/test/test.h>
+
+import spargel.base.algorithm;
+import spargel.base.string;
+import spargel.base.meta;
+import spargel.base.test;
 
 TEST(string, basic_asserts)
 {

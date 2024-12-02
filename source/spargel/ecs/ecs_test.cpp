@@ -1,6 +1,9 @@
-#include <spargel/ecs/ecs.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <spargel/base/types.h>
+
+import spargel.ecs;
 
 struct position {
     float x;

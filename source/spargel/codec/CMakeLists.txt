@@ -1,9 +1,12 @@
 spargel_add_library(codec)
 target_sources(codec
+  PUBLIC FILE_SET CXX_MODULES FILES
+    codec.mpp
   PRIVATE
     cursor.cpp
-    json.cpp
-    ppm.cpp
+    codec.cpp
+    #json.cpp
+    #ppm.cpp
 )
 target_link_libraries(codec PRIVATE base)
 

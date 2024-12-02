@@ -1,4 +1,4 @@
-#include <spargel/base/assert/panic.h>
+import spargel.base.assert;
 
 int main()
 {

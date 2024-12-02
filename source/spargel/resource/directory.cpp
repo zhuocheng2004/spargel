@@ -1,18 +1,21 @@
 #include <stdlib.h>
 
-#include <spargel/base/base.h>
+// #include <spargel/base/base.h>
 #include <spargel/base/const.h>
+
+import spargel.base.c;
+
 #include <spargel/resource/directory.h>
 
 extern struct spgl_resource_manager_operations directory_manager_operations;
 
 struct directory_manager_data {
-    struct sbase_string base;
+    sbase_string base;
 };
 
-const struct sbase_string DOT = sbase_string_from_literal(".");
+const sbase_string DOT = sbase_string_from_literal(".");
 
-static void normalize_path(struct sbase_string* path)
+static void normalize_path(sbase_string* path)
 {
     if (path->length == 0) {
         sbase_string_deinit(*path);
@@ -28,7 +31,7 @@ static void normalize_path(struct sbase_string* path)
 }
 
 void spgl_resource_directory_manager_init(struct spgl_resource_manager* manager,
-                                          struct sbase_string base_path)
+                                           sbase_string base_path)
 {
     struct directory_manager_data* data =
         (struct directory_manager_data*)malloc(
