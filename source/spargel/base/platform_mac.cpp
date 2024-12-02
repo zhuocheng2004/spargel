@@ -2,9 +2,11 @@
 #include <errno.h>
 #include <execinfo.h>
 #include <mach-o/dyld.h>
-#include <spargel/base/base.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <spargel/base/base.h>
+#include <spargel/base/platform.h>
 
 /**
  * > the total bufsize needed could be more than MAXPATHLEN

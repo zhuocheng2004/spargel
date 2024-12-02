@@ -1,12 +1,9 @@
 spargel_add_library(ui)
-target_sources(ui
-  PRIVATE
-    ui.c
-)
+
 if (APPLE)
   target_sources(ui
     PRIVATE
-      ui_mac.m
+      ui_mac.mm
   )
 
   find_library(FRAMEWORK_APP_KIT AppKit)
@@ -32,10 +29,10 @@ endif ()
 
 # TODO
 if (SPARGEL_IS_LINUX)
-  target_sources(ui PRIVATE dummy.c)
+  target_sources(ui PRIVATE dummy.cpp)
 endif ()
 
 # TODO
 if (SPARGEL_IS_WINDOWS)
-  target_sources(ui PRIVATE dummy.c)
+  target_sources(ui PRIVATE dummy.cpp)
 endif ()

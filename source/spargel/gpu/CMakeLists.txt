@@ -17,7 +17,7 @@ spargel_add_option(SPARGEL_GPU_ENABLE_VULKAN "enable vulkan backend" ON)
 spargel_add_library(gpu)
 target_sources(gpu
   PRIVATE
-    gpu.c
+    gpu.cpp
 )
 target_compile_definitions(gpu
   PRIVATE
@@ -37,7 +37,7 @@ target_link_libraries(gpu PRIVATE base)
 if(${SPARGEL_GPU_ENABLE_METAL})
   target_sources(gpu
     PRIVATE
-      gpu_mtl.m
+      gpu_mtl.mm
   )
   target_link_libraries(gpu PRIVATE ${FRAMEWORK_METAL})
 endif()
@@ -45,11 +45,11 @@ endif()
 if(${SPARGEL_GPU_ENABLE_VULKAN})
   target_sources(gpu
     PRIVATE
-      gpu_vk.c
+      gpu_vk.cpp
   )
   target_link_libraries(gpu PRIVATE Vulkan::Headers)
 endif()
 
 spargel_add_executable(demo_gpu)
-target_sources(demo_gpu PRIVATE demo_gpu.c)
+target_sources(demo_gpu PRIVATE demo_gpu.cpp)
 target_link_libraries(demo_gpu PRIVATE gpu ui)

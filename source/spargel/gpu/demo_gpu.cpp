@@ -49,20 +49,17 @@ int main()
         goto cleanup_queue;
     }
     sgpu_metal_shader_library_id metal_library;
-    result = sgpu_create_metal_shader_library(
-        device,
-        &(struct sgpu_metal_shader_library_descriptor){metal_library_data,
-                                                       metal_library_size},
-        &metal_library);
+    struct sgpu_metal_shader_library_descriptor sl_desc;
+    sl_desc = {metal_library_data, metal_library_size};
+    result = sgpu_create_metal_shader_library(device, &sl_desc, &metal_library);
     if (result != 0) goto cleanup_queue;
     printf("info: metal shader library created\n");
 
     sgpu_shader_function_id vertex_func;
-    result = sgpu_create_shader_function(
-        device,
-        &(struct sgpu_shader_function_descriptor){
-            .metal.library = metal_library, .metal.name = "vertex_shader"},
-        &vertex_func);
+    struct sgpu_shader_function_descriptor sf_desc;
+    sf_desc.metal.library = metal_library;
+    sf_desc.metal.name = "vertex_shader";
+    result = sgpu_create_shader_function(device, &sf_desc, &vertex_func);
     if (result != 0) goto cleanup_shader_library;
     printf("info: vertex shader function created\n");
 

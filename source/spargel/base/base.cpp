@@ -16,7 +16,7 @@ struct sbase_string sbase_string_from_range(char const* begin, char const* end)
 {
     struct sbase_string str;
     str.length = end - begin;
-    str.data = malloc(str.length + 1);
+    str.data = (char*)malloc(str.length + 1);
     memcpy(str.data, begin, str.length);
     str.data[str.length] = 0;
     return str;
@@ -47,7 +47,7 @@ struct sbase_string sbase_string_concat(struct sbase_string str1,
 {
     struct sbase_string str;
     str.length = str1.length + str2.length;
-    str.data = malloc(str.length + 1);
+    str.data = (char*)malloc(str.length + 1);
     memcpy(str.data, str1.data, str1.length);
     memcpy(str.data + str1.length, str2.data, str2.length);
     str.data[str.length] = '\0';

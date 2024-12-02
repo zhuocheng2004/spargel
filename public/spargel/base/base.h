@@ -22,7 +22,6 @@
 /**
  * @brief a code path that shouldn't be reached
  */
-void spargel_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
 void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
 
 /**
@@ -53,13 +52,7 @@ struct sbase_string sbase_string_concat(struct sbase_string str1,
 
 /* backtrace */
 
-#if __cplusplus
-#define EXTERN_C extern "C"
-#else
-#define EXTERN_C
-#endif
-
-EXTERN_C void sbase_print_backtrace();
+void sbase_print_backtrace();
 
 /* fiber (abandoned) */
 

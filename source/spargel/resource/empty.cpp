@@ -2,7 +2,7 @@
 
 #include <spargel/resource/empty.h>
 
-static struct spgl_resource_manager_operations empty_manager_operations;
+extern struct spgl_resource_manager_operations empty_manager_operations;
 
 void spgl_resource_empty_manager_init(struct spgl_resource_manager* manager)
 {
@@ -17,7 +17,7 @@ static struct spgl_resource* empty_manager_open_resource(
 
 static void empty_manager_close(struct spgl_resource_manager* manager) {}
 
-static struct spgl_resource_manager_operations empty_manager_operations = {
+struct spgl_resource_manager_operations empty_manager_operations = {
     .close = empty_manager_close,
     .open_resource = empty_manager_open_resource,
 };

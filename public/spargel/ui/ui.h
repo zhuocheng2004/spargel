@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spargel/base/base.h>
+
 /**
  * @brief platform specific initialization
  */

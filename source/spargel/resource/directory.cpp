@@ -4,7 +4,7 @@
 #include <spargel/base/const.h>
 #include <spargel/resource/directory.h>
 
-static struct spgl_resource_manager_operations directory_manager_operations;
+extern struct spgl_resource_manager_operations directory_manager_operations;
 
 struct directory_manager_data {
     struct sbase_string base;
@@ -54,7 +54,7 @@ static struct spgl_resource* directory_manager_open_resource(
     return NULL;
 }
 
-static struct spgl_resource_manager_operations directory_manager_operations = {
+struct spgl_resource_manager_operations directory_manager_operations = {
     .close = directory_manager_close,
     .open_resource = directory_manager_open_resource,
 };

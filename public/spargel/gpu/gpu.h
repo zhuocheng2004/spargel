@@ -1,17 +1,15 @@
 #pragma once
 
-#include <spargel/base/types.h>
+#include <spargel/base/base.h>
 
-#if __cplusplus
 namespace spargel::gpu {
 
 class device {
 public:
-    virtual ~device()
+    virtual ~device();
 };
 
 }  // namespace spargel::gpu
-#endif
 
 typedef struct sgpu_device* sgpu_device_id;
 typedef struct sgpu_command_queue* sgpu_command_queue_id;

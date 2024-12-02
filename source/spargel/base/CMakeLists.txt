@@ -1,8 +1,8 @@
 spargel_add_library(base)
 target_sources(base
   PRIVATE
-    base.c
-    platform.c
+    base.cpp
+    platform.cpp
     allocator/allocator.cpp
     assert/panic.cpp
     assert/unreachable.cpp
@@ -19,23 +19,23 @@ target_sources(base_test_main
 )
 
 if (SPARGEL_IS_LINUX)
-  target_sources(base PRIVATE platform_linux.c)
+  target_sources(base PRIVATE platform_linux.cpp)
 endif ()
 
 if (SPARGEL_IS_WINDOWS)
-  target_sources(base PRIVATE platform_win.c)
+  target_sources(base PRIVATE platform_win.cpp)
 endif ()
 
 if (SPARGEL_IS_MACOS)
-  target_sources(base PRIVATE platform_mac.c)
+  target_sources(base PRIVATE platform_mac.cpp)
 endif ()
 
 spargel_add_executable(demo_get_executable_path)
-target_sources(demo_get_executable_path PRIVATE demo_get_executable_path.c)
+target_sources(demo_get_executable_path PRIVATE demo_get_executable_path.cpp)
 target_link_libraries(demo_get_executable_path PRIVATE base)
 
 spargel_add_executable(demo_backtrace)
-target_sources(demo_backtrace PRIVATE demo_backtrace.c)
+target_sources(demo_backtrace PRIVATE demo_backtrace.cpp)
 target_link_libraries(demo_backtrace PRIVATE base)
 
 spargel_add_test(vector_test)

@@ -3,7 +3,7 @@ spargel_add_library(renderer)
 if(SPARGEL_IS_MACOS)
   target_sources(renderer
     PRIVATE
-      renderer_mtl.m
+      renderer_mtl.mm
   )
   target_link_libraries(renderer PRIVATE ${FRAMEWORK_METAL} ${FRAMEWORK_QUARTZ_CORE})
 
@@ -25,10 +25,10 @@ endif()
 
 # TODO
 if (SPARGEL_IS_LINUX)
-  target_sources(renderer PRIVATE dummy.c)
+  target_sources(renderer PRIVATE dummy.cpp)
 endif ()
 
 # TODO
 if (SPARGEL_IS_WINDOWS)
-  target_sources(renderer PRIVATE dummy.c)
+  target_sources(renderer PRIVATE dummy.cpp)
 endif ()

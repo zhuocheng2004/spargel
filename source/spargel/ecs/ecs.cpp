@@ -37,7 +37,7 @@ struct secs_world {
 
 secs_world_id secs_create_world()
 {
-    struct secs_world* world = malloc(sizeof(struct secs_world));
+    struct secs_world* world = (secs_world*)malloc(sizeof(struct secs_world));
     memset(world, 0, sizeof(struct secs_world));
     return world;
 }
@@ -158,10 +158,10 @@ static ssize create_archetype(secs_world_id world, ssize component_count,
     archetype->entities = NULL;
     archetype->row_count = component_count;
     archetype->component_ids =
-        malloc(sizeof(secs_component_id) * component_count);
+        (secs_component_id*)malloc(sizeof(secs_component_id) * component_count);
     memcpy(archetype->component_ids, component_ids,
            sizeof(secs_component_id) * component_count);
-    archetype->components = malloc(sizeof(void*) * component_count);
+    archetype->components = (void**)malloc(sizeof(void*) * component_count);
     memset(archetype->components, 0, sizeof(void*) * component_count);
     return id;
 }
