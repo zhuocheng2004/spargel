@@ -1,6 +1,8 @@
-#include <spargel/ecs/ecs.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <spargel/base/base.h>
+#include <spargel/ecs/ecs.h>
 
 struct archetype {
     ssize col_count;
@@ -11,15 +13,15 @@ struct archetype {
     void** components;
 };
 
+struct entity_info {
+    ssize archetype_id;
+    ssize index;
+};
+
 struct secs_world {
-    struct {
-        /* entity_id -> archetype_id */
-        ssize* archetype_ids;
-        /* entity_id -> index in its archetype */
-        ssize* indices;
-        ssize count;
-        ssize capacity;
-    } entities;
+    struct entity_info* entities;
+    ssize entity_count;
+    ssize entity_capacity;
     /* component name -> component info */
     struct {
         // struct sbase_string* names;
@@ -42,18 +44,18 @@ secs_world_id secs_create_world()
 
 void secs_destroy_world(secs_world_id world)
 {
-    free(world->entities.archetype_ids);
-    free(world->entities.indices);
-    free(world->components.sizes);
+    if (!world) return;
+    if (world->entities) free(world->entities);
+    if (world->components.sizes) free(world->components.sizes);
     for (ssize i = 0; i < world->archetype_count; i++) {
         struct archetype* archetype = &world->archetypes[i];
-        free(archetype->entities);
-        free(archetype->component_ids);
+        if (archetype->entities) free(archetype->entities);
+        if (archetype->component_ids) free(archetype->component_ids);
         for (ssize j = 0; j < archetype->row_count; j++) {
-            free(archetype->components[j]);
+            if (archetype->components[j]) free(archetype->components[j]);
         }
     }
-    free(world->archetypes);
+    if (world->archetypes) free(world->archetypes);
     free(world);
 }
 
@@ -190,10 +192,21 @@ int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
 
     view->archetype_id = archetype_id;
     view->entity_count = desc->entity_count;
+
+    if (world->entity_count + desc->entity_count > world->entity_capacity) {
+        grow_array((void**)&world->entities, &world->entity_capacity,
+                   sizeof(struct entity_info),
+                   world->entity_count + desc->entity_count);
+    }
+
     view->entities = archetype->entities + offset;
     for (ssize i = 0; i < desc->entity_count; i++) {
-        view->entities[i] = world->entities.count++;
+        ssize entity = world->entity_count++;
+        view->entities[i] = entity;
+        world->entities[entity].archetype_id = archetype_id;
+        world->entities[entity].index = offset + i;
     }
+
     for (ssize i = 0; i < desc->component_count; i++) {
         ssize j = 0;
         for (; j < archetype->row_count; j++) {
@@ -246,4 +259,35 @@ int secs_query(secs_world_id world, struct secs_query_descriptor* desc,
     }
 
     return SECS_RESULT_INCOMPLETE;
+}
+
+static void delete_in_archetype(secs_world_id world,
+                                struct archetype* archetype, ssize index)
+{
+    ssize last = archetype->col_count - 1;
+    if (index == last) {
+        archetype->col_count--;
+        return;
+    }
+    secs_entity_id last_id = archetype->entities[last];
+    archetype->entities[index] = last_id;
+    world->entities[last_id].index = index;
+    for (ssize i = 0; i < archetype->row_count; i++) {
+        ssize size = world->components.sizes[archetype->component_ids[i]];
+        memcpy((char*)archetype->components[i] + size * index,
+               (char*)archetype->components[i] + size * last, size);
+    }
+    archetype->col_count--;
+}
+
+void secs_delete_entities(secs_world_id world, ssize count,
+                          secs_entity_id* entities)
+{
+    for (ssize i = 0; i < count; i++) {
+        secs_entity_id id = entities[i];
+        ssize archetype_id = world->entities[id].archetype_id;
+        ssize index = world->entities[id].index;
+        struct archetype* archetype = &world->archetypes[archetype_id];
+        delete_in_archetype(world, archetype, index);
+    }
 }

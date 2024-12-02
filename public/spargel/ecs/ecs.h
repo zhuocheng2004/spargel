@@ -64,3 +64,6 @@ int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
 
 int secs_query(secs_world_id world, struct secs_query_descriptor* desc,
                struct secs_view* view);
+
+void secs_delete_entities(secs_world_id world, ssize count,
+                          secs_entity_id* entities);

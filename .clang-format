@@ -15,3 +15,5 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 
 SortIncludes: false
+
+IndentCaseLabels: false
