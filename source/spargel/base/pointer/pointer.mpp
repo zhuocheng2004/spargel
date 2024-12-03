@@ -4,36 +4,44 @@ export module spargel.base.pointer;
 
 import spargel.base.allocator;
 import spargel.base.memory;
+import spargel.base.meta;
 
+export
 namespace spargel::base {
 
-template <typename T>
-class UniquePtr {
-public:
-    UniquePtr() = default;
-
-    UniquePtr(T* ptr) : _ptr{ptr} {}
-
-    UniquePtr(UniquePtr const&) = delete;
-
-    UniquePtr(UniquePtr&& other) : _ptr{other._ptr} {
-        other._ptr = nullptr;
-    }
-
-    ~UniquePtr() {
-        if (_ptr != nullptr) {
-            destroy_at(_ptr);
-            default_allocator{}.deallocate(_ptr, sizeof(T));
+    template <typename T>
+    class UniquePtr {
+    public:
+        UniquePtr() = default;
+    
+        UniquePtr(T* ptr) : _ptr{ptr} {}
+    
+        UniquePtr(UniquePtr const&) = delete;
+    
+        UniquePtr(UniquePtr&& other) : _ptr{other._ptr} {
+            other._ptr = nullptr;
         }
+    
+        ~UniquePtr() {
+            if (_ptr != nullptr) {
+                destroy_at(_ptr);
+                default_allocator{}.deallocate(_ptr, sizeof(T));
+            }
+        }
+    
+        T* operator->() {
+            return _ptr;
+        }
+    
+    private:
+        T* _ptr = nullptr;
+    };
+    
+    template <typename T, typename... Args>
+    UniquePtr<T> MakeUnique(Args&&... args) {
+        T* ptr = default_allocator{}.allocate(sizeof(T));
+        construct_at<T>(ptr, forward<Args>(args)...);
+        return UniquePtr<T>(ptr);
     }
-
-    T* operator->() {
-        return _ptr;
-    }
-
-private:
-    T* _ptr = nullptr;
-};
-
 
 }

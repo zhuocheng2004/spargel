@@ -1,3 +1,5 @@
+#if 0
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -76,4 +78,13 @@ cleanup_device:
     sgpu_destroy_device(device);
 cleanup_nothing:
     return result;
+}
+
+#endif
+
+import spargel.gpu;
+
+int main() {
+    auto device = spargel::gpu::CreateDevice();
+    return 0;
 }

@@ -2,12 +2,16 @@ module;
 
 export module spargel.gpu;
 
+import spargel.base.pointer;
+
+export
 namespace spargel::gpu {
 
-    export
-    class Device {};
-
-    export
+    class Device {
+    public:
+        virtual ~Device() = default;
+    };
+    
     base::UniquePtr<Device> CreateDevice();
 
 }
