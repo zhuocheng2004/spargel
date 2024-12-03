@@ -12,6 +12,11 @@ module;
 #include <unistd.h>
 #endif
 
+#if defined(SPARGEL_IS_LINUX)
+#include <unistd.h>
+#include <stdio.h>
+#endif
+
 #include <spargel/base/types.h>
 #include <spargel/base/const.h>
 #include <spargel/base/macros.h>
@@ -156,4 +161,28 @@ static bool symbolize(void* pc, char* buf, ssize size)
     return false;
 }
 
+#endif
+
+#if defined(SPARGEL_IS_LINUX)
+ssize _spgl_get_executable_path(char* buf, ssize buf_size)
+{
+    return readlink("/proc/self/exe", buf, buf_size);
+}
+
+void sbase_print_backtrace()
+{
+    printf("<unknown backtrace>\n");
+}
+#endif
+
+#if defined(SPARGEL_IS_WINDOWS)
+ssize _spgl_get_executable_path(char* buf, ssize buf_size)
+{
+    sbase_unreachable();
+}
+
+void sbase_print_backtrace()
+{
+    sbase_unreachable();
+}
 #endif
