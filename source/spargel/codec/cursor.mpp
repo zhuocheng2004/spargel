@@ -1,6 +1,10 @@
-#pragma once
+module;
 
 #include <spargel/base/types.h>
+
+export module spargel.codec:cursor;
+
+export {
 
 struct scodec_cursor {
   char const* cur;
@@ -13,3 +17,5 @@ void scodec_cursor_advance(struct scodec_cursor* cursor);
 bool scodec_cursor_try_eat_char(struct scodec_cursor* cursor, char c);
 bool scodec_cursor_try_eat_str(struct scodec_cursor* cursor, char const* str);
 bool scodec_cursor_try_eat_bytes(struct scodec_cursor* cursor, u8 const* bytes, ssize len);
+
+}

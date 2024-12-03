@@ -10,6 +10,7 @@ target_sources(base
         coroutine/coroutine.mpp
         memory/memory.mpp
         meta/meta.mpp
+        pointer/pointer.mpp
         string/string.mpp
         test/test.mpp
     PUBLIC
@@ -27,14 +28,6 @@ target_sources(base_test_main
         test/test_main.cpp
 )
 target_link_libraries(base_test_main PRIVATE base)
-
-if (SPARGEL_IS_LINUX)
-    target_sources(base PRIVATE platform_linux.cpp)
-endif ()
-
-if (SPARGEL_IS_WINDOWS)
-    target_sources(base PRIVATE platform_win.cpp)
-endif ()
 
 spargel_add_executable(demo_get_executable_path)
 target_sources(demo_get_executable_path PRIVATE demo_get_executable_path.cpp)

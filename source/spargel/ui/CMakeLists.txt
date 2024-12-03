@@ -1,9 +1,13 @@
 spargel_add_library(ui)
+target_sources(ui
+    PUBLIC FILE_SET CXX_MODULES FILES
+        ui.mpp
+)
 
 if (APPLE)
   target_sources(ui
-    PRIVATE
-      ui_mac.mm
+    PUBLIC FILE_SET CXX_MODULES FILES
+        #ui_mac.mpp
   )
 
   find_library(FRAMEWORK_APP_KIT AppKit)

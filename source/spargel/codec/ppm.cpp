@@ -1,6 +1,13 @@
-#include <spargel/codec/cursor.h>
+module;
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <spargel/base/types.h>
+
+module spargel.codec;
+
+import :cursor;
 
 static bool read_file(char const* path, char** data, ssize* size)
 {

@@ -1,9 +1,16 @@
-#include <spargel/codec/cursor.h>
+module;
+
 #include <stdlib.h>
 #include <string.h>
 
+#include <spargel/base/types.h>
+
+module spargel.codec;
+
+import :cursor;
+
 /* FNV-1a */
-static u32 hash_string(struct sbase_string str)
+static u32 hash_string(sbase_string str)
 {
     u32 hash = 2166136261; /* FNV offset base */
     for (ssize i = 0; i < str.length; i++) {
@@ -22,7 +29,7 @@ static u32 hash_string(struct sbase_string str)
  * @warning when the hash map if full, this method will not return
  */
 static struct scodec_json_object_entry* find_entry(
-    struct sbase_string key, u32 hash, struct scodec_json_object_entry* entries,
+    sbase_string key, u32 hash, struct scodec_json_object_entry* entries,
     ssize capacity);
 
 /**
@@ -66,7 +73,7 @@ static int parse_element(struct parser* ctx, struct scodec_json_value* value);
 static int parse_value(struct parser* ctx, struct scodec_json_value* value);
 static int parse_object(struct parser* ctx, struct scodec_json_value* value);
 static int parse_array(struct parser* ctx, struct scodec_json_value* value);
-static int parse_string(struct parser* ctx, struct sbase_string* string);
+static int parse_string(struct parser* ctx, sbase_string* string);
 static int parse_true(struct parser* ctx, struct scodec_json_value* value);
 static int parse_false(struct parser* ctx, struct scodec_json_value* value);
 static int parse_members(struct parser* ctx, struct scodec_json_object* object);
@@ -154,7 +161,7 @@ static int parse_array(struct parser* ctx, struct scodec_json_value* value)
     return SCODEC_JSON_PARSE_RESULT_SUCCESS;
 }
 
-static int parse_string(struct parser* ctx, struct sbase_string* string)
+static int parse_string(struct parser* ctx, sbase_string* string)
 {
     struct scodec_cursor* cursor = &ctx->cursor;
     scodec_cursor_advance(cursor); /* " */
@@ -203,7 +210,7 @@ static int parse_members(struct parser* ctx, struct scodec_json_object* object)
     scodec_json_object_init(object);
     int result = SCODEC_JSON_PARSE_RESULT_UNKNOWN_ERROR;
     while (!scodec_cursor_is_end(cursor)) {
-        struct sbase_string key;
+        sbase_string key;
         eat_whitespace(ctx);
         if (scodec_cursor_is_end(cursor)) break;
         if (scodec_cursor_peek(cursor) != '"') break;
@@ -258,7 +265,7 @@ int scodec_json_parse(char const* str, ssize len,
 }
 
 static struct scodec_json_object_entry* find_entry(
-    struct sbase_string key, u32 hash, struct scodec_json_object_entry* entries,
+    sbase_string key, u32 hash, struct scodec_json_object_entry* entries,
     ssize capacity)
 {
     ssize index = hash % capacity;
@@ -300,7 +307,7 @@ void scodec_json_object_init(struct scodec_json_object* object)
 }
 
 struct scodec_json_value* scodec_json_object_insert(
-    struct scodec_json_object* object, struct sbase_string key)
+    struct scodec_json_object* object, sbase_string key)
 {
     ensure_object_capacity(object);
     u32 hash = hash_string(key);
@@ -316,7 +323,7 @@ struct scodec_json_value* scodec_json_object_insert(
 }
 
 struct scodec_json_value* scodec_json_object_get(
-    struct scodec_json_object* object, struct sbase_string key)
+    struct scodec_json_object* object, sbase_string key)
 {
     // ensure_object_capacity(object);
     u32 hash = hash_string(key);

@@ -1,0 +1,13 @@
+module;
+
+export module spargel.gpu;
+
+namespace spargel::gpu {
+
+    export
+    class Device {};
+
+    export
+    base::UniquePtr<Device> CreateDevice();
+
+}

@@ -1,5 +1,12 @@
-#include <spargel/codec/cursor.h>
+module;
+
 #include <string.h>
+
+#include <spargel/base/types.h>
+
+module spargel.codec;
+
+import :cursor;
 
 bool scodec_cursor_is_end(struct scodec_cursor const* cursor) {
   return cursor->cur >= cursor->end;

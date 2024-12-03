@@ -1,0 +1,15 @@
+module;
+
+export module spargel.ui.platform;
+
+namespace spargel::ui {
+
+export
+class Platform {
+public:
+    static Platform& Instance();
+
+    void Init();
+};
+
+}

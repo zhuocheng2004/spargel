@@ -1,0 +1,39 @@
+module;
+
+export module spargel.base.pointer;
+
+import spargel.base.allocator;
+import spargel.base.memory;
+
+namespace spargel::base {
+
+template <typename T>
+class UniquePtr {
+public:
+    UniquePtr() = default;
+
+    UniquePtr(T* ptr) : _ptr{ptr} {}
+
+    UniquePtr(UniquePtr const&) = delete;
+
+    UniquePtr(UniquePtr&& other) : _ptr{other._ptr} {
+        other._ptr = nullptr;
+    }
+
+    ~UniquePtr() {
+        if (_ptr != nullptr) {
+            destroy_at(_ptr);
+            default_allocator{}.deallocate(_ptr, sizeof(T));
+        }
+    }
+
+    T* operator->() {
+        return _ptr;
+    }
+
+private:
+    T* _ptr = nullptr;
+};
+
+
+}
