@@ -3,6 +3,7 @@
 
 #include <spargel/base/types.h>
 
+import spargel.base.container;
 import spargel.ecs;
 
 struct position {
@@ -16,43 +17,6 @@ struct velocity {
 struct health {
     float h;
 };
-
-struct delete_queue {
-    secs_entity_id* ids;
-    ssize count;
-    ssize capacity;
-};
-
-/**
- * @brief grow an array
- * @param ptr *ptr points to start of array
- * @param capacity pointer to current capacity
- * @param stride item size
- * @param need the min capacity after growing
- */
-static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need)
-{
-    ssize cap2 = *capacity * 2;
-    ssize new_cap = cap2 > need ? cap2 : need;
-    if (new_cap < 8) new_cap = 8;
-    *ptr = realloc(*ptr, new_cap * stride);
-    *capacity = new_cap;
-}
-
-static void delete_queue_push(struct delete_queue* queue, secs_entity_id id)
-{
-    if (queue->count + 1 > queue->capacity) {
-        grow_array((void**)&queue->ids, &queue->capacity,
-                   sizeof(secs_entity_id), queue->count + 1);
-    }
-    queue->ids[queue->count] = id;
-    queue->count++;
-}
-
-static void destroy_delete_queue(struct delete_queue* queue)
-{
-    if (queue->ids) free(queue->ids);
-}
 
 int main()
 {
@@ -213,7 +177,7 @@ int main()
         }
     }
 
-    struct delete_queue queue = {};
+    spargel::base::vector<secs_entity_id> queue;
 
     {
         secs_component_id ids[] = {position_id};
@@ -235,14 +199,14 @@ int main()
             auto pos = (position*)components[0];
             for (ssize i = 0; i < view.entity_count; i++) {
                 if (pos[i].x >= 5 || pos[i].x <= -5) {
-                    delete_queue_push(&queue, view.entities[i]);
+                    queue.push_back(view.entities[i]);
                 }
             }
         }
     }
 
-    secs_delete_entities(world, queue.count, queue.ids);
-    printf("info: deleted %td entities\n", queue.count);
+    secs_delete_entities(world, queue.count(), queue.data());
+    printf("info: deleted %td entities\n", queue.count());
 
     {
         secs_component_id ids[] = {position_id};
@@ -269,7 +233,6 @@ int main()
         }
     }
 
-    destroy_delete_queue(&queue);
     secs_destroy_world(world);
     return 0;
 }

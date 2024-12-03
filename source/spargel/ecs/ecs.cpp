@@ -7,7 +7,10 @@ module;
 
 module spargel.ecs;
 
+import spargel.base.allocator;
 import spargel.base.c;
+import spargel.base.container;
+import spargel.base.memory;
 
 struct archetype {
     ssize col_count;
@@ -23,36 +26,27 @@ struct entity_info {
     ssize index;
 };
 
+struct component_info {
+    ssize size;
+};
+
 struct secs_world {
-    struct entity_info* entities;
-    ssize entity_count;
-    ssize entity_capacity;
-    /* component name -> component info */
-    struct {
-        // sbase_string* names;
-        ssize* sizes;
-        ssize count;
-        ssize capacity;
-    } components;
-    /* 56 bytes */
-    struct archetype* archetypes;
-    ssize archetype_count;
-    ssize archetype_capacity;
+    spargel::base::vector<entity_info> entities;
+    spargel::base::vector<component_info> components;
+    spargel::base::vector<archetype> archetypes;
 };
 
 secs_world_id secs_create_world()
 {
-    struct secs_world* world = (secs_world*)malloc(sizeof(struct secs_world));
-    memset(world, 0, sizeof(struct secs_world));
+    secs_world* world = (secs_world*)spargel::base::default_allocator{}.allocate(sizeof(secs_world));
+    spargel::base::construct_at<secs_world>(world);
     return world;
 }
 
 void secs_destroy_world(secs_world_id world)
 {
     if (!world) return;
-    if (world->entities) free(world->entities);
-    if (world->components.sizes) free(world->components.sizes);
-    for (ssize i = 0; i < world->archetype_count; i++) {
+    for (ssize i = 0; i < world->archetypes.count(); i++) {
         struct archetype* archetype = &world->archetypes[i];
         if (archetype->entities) free(archetype->entities);
         if (archetype->component_ids) free(archetype->component_ids);
@@ -60,17 +54,10 @@ void secs_destroy_world(secs_world_id world)
             if (archetype->components[j]) free(archetype->components[j]);
         }
     }
-    if (world->archetypes) free(world->archetypes);
-    free(world);
+    spargel::base::destroy_at(world);
+    spargel::base::default_allocator{}.deallocate(world, sizeof(secs_world));
 }
 
-/**
- * @brief grow an array
- * @param ptr *ptr points to start of array
- * @param capacity pointer to current capacity
- * @param stride item size
- * @param need the min capacity after growing
- */
 static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need)
 {
     ssize cap2 = *capacity * 2;
@@ -80,32 +67,12 @@ static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need)
     *capacity = new_cap;
 }
 
-// static u32 hash_string(sbase_string str)
-// {
-//     u32 hash = 2166136261; /* FNV offset base */
-//     for (ssize i = 0; i < str.length; i++) {
-//         hash ^= str.data[i];
-//         hash *= 16777619; /* FNV prime */
-//     }
-//     return hash;
-// }
-
 int secs_register_component(secs_world_id world,
                             struct secs_component_descriptor const* descriptor,
                             secs_component_id* id)
 {
-    if (world->components.count + 1 > world->components.capacity) {
-        // grow_array((void**)&world->components.names,
-        //            &world->components.capacity, sizeof(sbase_string),
-        //            world->components.count + 1);
-        grow_array((void**)&world->components.sizes,
-                   &world->components.capacity, sizeof(ssize),
-                   world->components.count + 1);
-    }
-    ssize i = world->components.count;
-    world->components.count++;
-    // world->components.names[i] = descriptor->name;
-    world->components.sizes[i] = descriptor->size;
+    ssize i = world->components.count();
+    world->components.push_back(descriptor->size);
     *id = i;
     return SECS_RESULT_SUCCESS;
 }
@@ -134,7 +101,7 @@ static ssize find_archetype(secs_world_id world, ssize count,
                             secs_component_id const* ids)
 {
     ssize result = -1;
-    for (ssize i = 0; i < world->archetype_count; i++) {
+    for (ssize i = 0; i < world->archetypes.count(); i++) {
         struct archetype* archetype = &world->archetypes[i];
         if (archetype->row_count != count) continue;
         if (is_subset(count, ids, archetype->row_count,
@@ -151,23 +118,14 @@ static ssize find_archetype(secs_world_id world, ssize count,
 static ssize create_archetype(secs_world_id world, ssize component_count,
                               secs_component_id const* component_ids)
 {
-    if (world->archetype_count + 1 > world->archetype_capacity) {
-        grow_array((void**)&world->archetypes, &world->archetype_capacity,
-                   sizeof(struct archetype), world->archetype_count + 1);
-    }
-    ssize id = world->archetype_count;
-    world->archetype_count++;
-    struct archetype* archetype = &world->archetypes[id];
-    archetype->col_count = 0;
-    archetype->col_capacity = 0;
-    archetype->entities = NULL;
-    archetype->row_count = component_count;
-    archetype->component_ids =
+    ssize id = world->archetypes.count();
+    auto component_ids_copy =
         (secs_component_id*)malloc(sizeof(secs_component_id) * component_count);
-    memcpy(archetype->component_ids, component_ids,
+    memcpy(component_ids_copy, component_ids,
            sizeof(secs_component_id) * component_count);
-    archetype->components = (void**)malloc(sizeof(void*) * component_count);
-    memset(archetype->components, 0, sizeof(void*) * component_count);
+    auto components = (void**)malloc(sizeof(void*) * component_count);
+    memset(components, 0, sizeof(void*) * component_count);
+    world->archetypes.push_back(0, 0, nullptr, component_count, component_ids_copy, components);
     return id;
 }
 
@@ -188,7 +146,7 @@ int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
         for (ssize i = 0; i < archetype->row_count; i++) {
             archetype->components[i] =
                 realloc(archetype->components[i],
-                        world->components.sizes[archetype->component_ids[i]] *
+                        world->components[archetype->component_ids[i]].size *
                             archetype->col_capacity);
         }
     }
@@ -198,18 +156,13 @@ int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
     view->archetype_id = archetype_id;
     view->entity_count = desc->entity_count;
 
-    if (world->entity_count + desc->entity_count > world->entity_capacity) {
-        grow_array((void**)&world->entities, &world->entity_capacity,
-                   sizeof(struct entity_info),
-                   world->entity_count + desc->entity_count);
-    }
+    world->entities.reserve(world->entities.count() + desc->entity_count);
 
     view->entities = archetype->entities + offset;
     for (ssize i = 0; i < desc->entity_count; i++) {
-        ssize entity = world->entity_count++;
+        ssize entity = world->entities.count();
         view->entities[i] = entity;
-        world->entities[entity].archetype_id = archetype_id;
-        world->entities[entity].index = offset + i;
+        world->entities.push_back(archetype_id, offset + i);
     }
 
     for (ssize i = 0; i < desc->component_count; i++) {
@@ -219,7 +172,7 @@ int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
         }
         view->components[i] =
             (char*)archetype->components[j] +
-            offset * world->components.sizes[archetype->component_ids[j]];
+            offset * world->components[archetype->component_ids[j]].size;
     }
     return SECS_RESULT_SUCCESS;
 }
@@ -230,7 +183,7 @@ static ssize find_base_archetype(secs_world_id world, ssize component_count,
 {
     ssize i = start_archetype;
     ssize result = -1;
-    while (i < world->archetype_count) {
+    while (i < world->archetypes.count()) {
         if (is_subset(component_count, component_ids,
                       world->archetypes[i].row_count,
                       world->archetypes[i].component_ids)) {
@@ -278,7 +231,7 @@ static void delete_in_archetype(secs_world_id world,
     archetype->entities[index] = last_id;
     world->entities[last_id].index = index;
     for (ssize i = 0; i < archetype->row_count; i++) {
-        ssize size = world->components.sizes[archetype->component_ids[i]];
+        ssize size = world->components[archetype->component_ids[i]].size;
         memcpy((char*)archetype->components[i] + size * index,
                (char*)archetype->components[i] + size * last, size);
     }

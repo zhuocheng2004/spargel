@@ -27,8 +27,6 @@ struct secs_view {
 };
 
 struct secs_component_descriptor {
-    /* ownership is taken by the world */
-    sbase_string name;
     ssize size;
 };
 
@@ -36,16 +34,12 @@ struct secs_spawn_descriptor {
     ssize component_count;
     secs_component_id const* components;
     ssize entity_count;
-    // void (*callback)(struct secs_view* view, void* data);
-    // void* callback_data;
 };
 
 struct secs_query_descriptor {
     u64 start_archetype_id;
     ssize component_count;
     secs_component_id const* components;
-    // void (*callback)(struct secs_view* view, void* data);
-    // void* callback_data;
 };
 
 /**
