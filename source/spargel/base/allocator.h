@@ -4,7 +4,7 @@
 
 namespace spargel::base {
 
-class default_allocator {
+class DefaultAllocator {
 public:
     void* allocate(ssize size);
     void deallocate(void* ptr, ssize size);

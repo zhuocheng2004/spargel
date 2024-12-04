@@ -1,6 +1,6 @@
 #pragma once
 
-#include <spargel/base/container/vector.h>
+#include <spargel/base/vector.h>
 
 namespace spargel::base {
 

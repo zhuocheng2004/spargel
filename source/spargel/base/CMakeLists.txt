@@ -5,7 +5,7 @@ spargel_add_library(
         output_stream.cpp
         panic.cpp
         platform.cpp
-        allocator/allocator.cpp
+        allocator.cpp
         memory/placement_new.cpp
         string/string.cpp
         test/test.cpp
@@ -67,18 +67,12 @@ spargel_add_executable(
     DEPS base
 )
 
-#spargel_add_executable(
-#    NAME print_demo
-#    PRIVATE print_demo.cpp
-#    DEPS base
-#)
-
 spargel_add_test(vector_test)
-target_sources(vector_test PRIVATE container/vector_test.cpp)
+target_sources(vector_test PRIVATE vector_test.cpp)
 target_link_libraries(vector_test PRIVATE base)
 
 spargel_add_test(coroutine_test)
-target_sources(coroutine_test PRIVATE coroutine/coroutine_test.cpp)
+target_sources(coroutine_test PRIVATE coroutine_test.cpp)
 target_link_libraries(coroutine_test PRIVATE base)
 
 spargel_add_test(string_test)

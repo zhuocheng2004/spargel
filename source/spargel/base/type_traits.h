@@ -21,8 +21,7 @@ namespace spargel::base {
     using decay = __decay(T);
 
     template <typename T>
-    add_rvalue_reference<T> declval()
-    {
+    add_rvalue_reference<T> declval() {
         static_assert(false, "declval not allowed in an evaluated context");
     }
 
@@ -34,8 +33,7 @@ namespace spargel::base {
         is_assignable<add_lvalue_reference<T>, add_lvalue_reference<add_const<T>>>;
 
     template <typename T>
-    concept is_move_assignable =
-        is_assignable<add_lvalue_reference<T>, add_rvalue_reference<T>>;
+    concept is_move_assignable = is_assignable<add_lvalue_reference<T>, add_rvalue_reference<T>>;
 
     template <typename B, typename D>
     concept is_base = __is_base_of(B, D);
@@ -44,12 +42,10 @@ namespace spargel::base {
     concept is_constructible = __is_constructible(T, Args...);
 
     template <typename T>
-    concept is_copy_constructible =
-        is_constructible<T, add_lvalue_reference<add_const<T>>>;
+    concept is_copy_constructible = is_constructible<T, add_lvalue_reference<add_const<T>>>;
 
     template <typename T>
-    concept is_move_constructible =
-        is_constructible<T, add_rvalue_reference<T>>;
+    concept is_move_constructible = is_constructible<T, add_rvalue_reference<T>>;
 
     template <typename From, typename To>
     concept is_conertible = __is_convertible(From, To);
@@ -66,16 +62,4 @@ namespace spargel::base {
     template <typename L, typename R>
     concept is_same = __is_same(L, R);
 
-    template <typename T>
-    constexpr remove_reference<T>&& move(T&& t)
-    {
-        return static_cast<remove_reference<T>&&>(t);
-    }
-
-    template <typename T>
-    constexpr T&& forward(remove_reference<T>& t)
-    {
-        return static_cast<T&&>(t);
-    }
-
-}
+}  // namespace spargel::base

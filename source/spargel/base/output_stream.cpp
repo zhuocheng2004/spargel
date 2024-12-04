@@ -1,6 +1,6 @@
 #include <spargel/base/output_stream.h>
 
-#include <spargel/base/memory/allocator.h>
+#include <spargel/base/allocator.h>
 #include <spargel/base/panic.h>
 
 #include <string.h>
@@ -32,14 +32,14 @@ namespace spargel::base {
     }
 
     void OutputStream::CreateBuffer() {
-        _begin = static_cast<char*>(default_allocator{}.allocate(BufferSize));
+        _begin = static_cast<char*>(DefaultAllocator{}.allocate(BufferSize));
         _end = _begin + BufferSize;
         _cur = _begin;
     }
 
     void OutputStream::DestroyBuffer() {
         if (_begin != nullptr) {
-            default_allocator{}.deallocate(_begin, _end - _begin);
+            DefaultAllocator{}.deallocate(_begin, _end - _begin);
         }
     }
 

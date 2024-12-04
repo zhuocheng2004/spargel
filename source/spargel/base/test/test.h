@@ -1,6 +1,6 @@
 #pragma once
 
-#include <spargel/base/memory/allocator.h>
+#include <spargel/base/allocator.h>
 #include <spargel/base/memory/construct.h>
 #include <spargel/base/test/test_manager.h>
 
