@@ -1,6 +1,6 @@
 #pragma once
 
-#include <spargel/base/base.h>
+#include <spargel/base/types.h>
 
 typedef struct secs_world* secs_world_id;
 typedef u64 secs_component_id;
@@ -21,8 +21,6 @@ struct secs_view {
 };
 
 struct secs_component_descriptor {
-    /* ownership is taken by the world */
-    struct sbase_string name;
     ssize size;
 };
 
@@ -30,16 +28,12 @@ struct secs_spawn_descriptor {
     ssize component_count;
     secs_component_id const* components;
     ssize entity_count;
-    // void (*callback)(struct secs_view* view, void* data);
-    // void* callback_data;
 };
 
 struct secs_query_descriptor {
     u64 start_archetype_id;
     ssize component_count;
     secs_component_id const* components;
-    // void (*callback)(struct secs_view* view, void* data);
-    // void* callback_data;
 };
 
 /**
@@ -55,15 +49,12 @@ void secs_destroy_world(secs_world_id world);
 /**
  * @brief register a component type in an ecs world
  */
-int secs_register_component(secs_world_id world,
-                            struct secs_component_descriptor const* descriptor,
+int secs_register_component(secs_world_id world, struct secs_component_descriptor const* descriptor,
                             secs_component_id* id);
 
 int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
                         struct secs_view* view);
 
-int secs_query(secs_world_id world, struct secs_query_descriptor* desc,
-               struct secs_view* view);
+int secs_query(secs_world_id world, struct secs_query_descriptor* desc, struct secs_view* view);
 
-void secs_delete_entities(secs_world_id world, ssize count,
-                          secs_entity_id* entities);
+void secs_delete_entities(secs_world_id world, ssize count, secs_entity_id* entities);

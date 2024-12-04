@@ -21,7 +21,7 @@ int test_manager::run()
     ssize count = _tests.count();
     for (ssize i = 0; i < count; i++) {
         _tests[i].test->test_body();
-        printf("[%td/%td] test %s/%s\n", i + 1, count, _tests[i].suite_name,
+        printf("[%lld/%lld] test %s/%s\n", i + 1, count, _tests[i].suite_name,
                _tests[i].test_name);
     }
     return 0;

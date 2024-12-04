@@ -1,4 +1,4 @@
-#include <spargel/base/coroutine/coroutine.h>
+#include <spargel/base/coroutine.h>
 #include <spargel/base/test/test.h>
 
 struct basic_coro {

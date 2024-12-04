@@ -2,6 +2,6 @@
 
 namespace spargel::base {
 
-[[noreturn]] void panic();
+    [[noreturn]] void Panic();
 
 }

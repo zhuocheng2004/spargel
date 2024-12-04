@@ -1,11 +1,14 @@
-spargel_add_library(ui)
+spargel_add_library(
+    NAME ui
+    PRIVATE_LINUX
+        dummy.cpp
+    PRIVATE_MACOS
+        ui_mac.mm
+    PRIVATE_WINDOWS
+        dummy.cpp
+)
 
 if (APPLE)
-  target_sources(ui
-    PRIVATE
-      ui_mac.mm
-  )
-
   find_library(FRAMEWORK_APP_KIT AppKit)
   find_library(FRAMEWORK_METAL Metal)
   find_library(FRAMEWORK_QUARTZ_CORE QuartzCore)
@@ -25,14 +28,4 @@ if (APPLE)
   #add_custom_target(ui_metal_shader
   #  DEPENDS
   #    ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib)
-endif ()
-
-# TODO
-if (SPARGEL_IS_LINUX)
-  target_sources(ui PRIVATE dummy.cpp)
-endif ()
-
-# TODO
-if (SPARGEL_IS_WINDOWS)
-  target_sources(ui PRIVATE dummy.cpp)
 endif ()

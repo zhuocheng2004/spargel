@@ -3,8 +3,7 @@
 #include <spargel/base/const.h>
 #include <spargel/base/platform.h>
 
-struct sbase_string spgl_get_executable_path()
-{
+struct sbase_string spgl_get_executable_path() {
     char* buf = (char*)malloc(PATH_MAX);
     ssize len = _spgl_get_executable_path(buf, PATH_MAX);
     if (len >= PATH_MAX) {

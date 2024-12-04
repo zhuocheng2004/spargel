@@ -27,8 +27,7 @@ struct delete_queue {
  * @param stride item size
  * @param need the min capacity after growing
  */
-static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need)
-{
+static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need) {
     ssize cap2 = *capacity * 2;
     ssize new_cap = cap2 > need ? cap2 : need;
     if (new_cap < 8) new_cap = 8;
@@ -36,23 +35,19 @@ static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need)
     *capacity = new_cap;
 }
 
-static void delete_queue_push(struct delete_queue* queue, secs_entity_id id)
-{
+static void delete_queue_push(struct delete_queue* queue, secs_entity_id id) {
     if (queue->count + 1 > queue->capacity) {
-        grow_array((void**)&queue->ids, &queue->capacity,
-                   sizeof(secs_entity_id), queue->count + 1);
+        grow_array((void**)&queue->ids, &queue->capacity, sizeof(secs_entity_id), queue->count + 1);
     }
     queue->ids[queue->count] = id;
     queue->count++;
 }
 
-static void destroy_delete_queue(struct delete_queue* queue)
-{
+static void destroy_delete_queue(struct delete_queue* queue) {
     if (queue->ids) free(queue->ids);
 }
 
-int main()
-{
+int main() {
     secs_world_id world = secs_create_world();
 
     secs_component_id position_id;
@@ -81,8 +76,7 @@ int main()
             .entity_count = 10,
         };
         secs_spawn_entities(world, &desc, &view);
-        printf("info: spawned 10 x [ position ] with archetype %llu\n",
-               view.archetype_id);
+        printf("info: spawned 10 x [ position ] with archetype %llu\n", view.archetype_id);
         auto pos = (position*)components[0];
         for (ssize i = 0; i < view.entity_count; i++) {
             pos[i].x = i;
@@ -136,8 +130,7 @@ int main()
             .entity_count = 5,
         };
         secs_spawn_entities(world, &desc, &view);
-        printf("info: spawned 5 x [ velocity ] with archetype %llu\n",
-               view.archetype_id);
+        printf("info: spawned 5 x [ velocity ] with archetype %llu\n", view.archetype_id);
     }
 
     {
@@ -151,16 +144,14 @@ int main()
             desc.start_archetype_id = archetype_id;
             int result = secs_query(world, &desc, &view);
             if (result == SECS_RESULT_QUERY_END) break;
-            printf(
-                "info: query: get %td entities with [ position ] in archetype "
-                "%llu\n",
-                view.entity_count, view.archetype_id);
+            printf("info: query: get %lld entities with [ position ] in archetype %llu\n",
+                   view.entity_count, view.archetype_id);
             archetype_id = view.archetype_id + 1;
 
             auto pos = (position*)components[0];
             for (ssize i = 0; i < view.entity_count; i++) {
-                printf("info: query:  - entity %llu [ position = %.2f ]\n",
-                       view.entities[i], pos[i].x);
+                printf("info: query:  - entity %llu [ position = %.2f ]\n", view.entities[i],
+                       pos[i].x);
             }
         }
     }
@@ -176,16 +167,13 @@ int main()
             desc.start_archetype_id = archetype_id;
             int result = secs_query(world, &desc, &view);
             if (result == SECS_RESULT_QUERY_END) break;
-            printf(
-                "info: query: get %td entities with [ health ] in archetype "
-                "%llu\n",
-                view.entity_count, view.archetype_id);
+            printf("info: query: get %lld entities with [ health ] in archetype %llu\n",
+                   view.entity_count, view.archetype_id);
             archetype_id = view.archetype_id + 1;
 
             auto h = (health*)components[0];
             for (ssize i = 0; i < view.entity_count; i++) {
-                printf("info: query:  - entity %llu [ health = %.2f ]\n",
-                       view.entities[i], h[i].h);
+                printf("info: query:  - entity %llu [ health = %.2f ]\n", view.entities[i], h[i].h);
             }
         }
     }
@@ -223,10 +211,8 @@ int main()
             desc.start_archetype_id = archetype_id;
             int result = secs_query(world, &desc, &view);
             if (result == SECS_RESULT_QUERY_END) break;
-            printf(
-                "info: query: get %td entities with [ position ] in archetype "
-                "%llu\n",
-                view.entity_count, view.archetype_id);
+            printf("info: query: get %lld entities with [ position ] in archetype %llu\n",
+                   view.entity_count, view.archetype_id);
             archetype_id = view.archetype_id + 1;
 
             auto pos = (position*)components[0];
@@ -239,7 +225,7 @@ int main()
     }
 
     secs_delete_entities(world, queue.count, queue.ids);
-    printf("info: deleted %td entities\n", queue.count);
+    printf("info: deleted %lld entities\n", queue.count);
 
     {
         secs_component_id ids[] = {position_id};
@@ -252,16 +238,14 @@ int main()
             desc.start_archetype_id = archetype_id;
             int result = secs_query(world, &desc, &view);
             if (result == SECS_RESULT_QUERY_END) break;
-            printf(
-                "info: query: get %td entities with [ position ] in archetype "
-                "%llu\n",
-                view.entity_count, view.archetype_id);
+            printf("info: query: get %lld entities with [ position ] in archetype %llu\n",
+                   view.entity_count, view.archetype_id);
             archetype_id = view.archetype_id + 1;
 
             auto pos = (position*)components[0];
             for (ssize i = 0; i < view.entity_count; i++) {
-                printf("info: query:  - entity %llu [ position = %.2f ]\n",
-                       view.entities[i], pos[i].x);
+                printf("info: query:  - entity %llu [ position = %.2f ]\n", view.entities[i],
+                       pos[i].x);
             }
         }
     }

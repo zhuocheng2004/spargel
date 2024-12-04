@@ -1,4 +1,5 @@
 #include <spargel/base/memory/allocator.h>
+
 #include <stdlib.h>
 
 #define SPARGEL_TRACE_ALLOCATION 1
@@ -12,7 +13,7 @@ namespace spargel::base {
 void* default_allocator::allocate(ssize size)
 {
 #if SPARGEL_TRACE_ALLOCATION
-    printf("info: allocate size %td\n", size);
+    printf("info: allocate size %lld\n", size);
 #endif
     return malloc(size);
 }
@@ -20,7 +21,7 @@ void* default_allocator::allocate(ssize size)
 void default_allocator::deallocate(void* ptr, ssize size)
 {
 #if SPARGEL_TRACE_ALLOCATION
-    printf("info: free size %td\n", size);
+    printf("info: free size %lld\n", size);
 #endif
     free(ptr);
 }

@@ -22,7 +22,7 @@
 /**
  * @brief a code path that shouldn't be reached
  */
-void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
+// void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
 
 /**
  * @brief platform independent path to resources
@@ -52,7 +52,7 @@ struct sbase_string sbase_string_concat(struct sbase_string str1,
 
 /* backtrace */
 
-void sbase_print_backtrace();
+// void sbase_print_backtrace();
 
 /* fiber (abandoned) */
 

@@ -1,6 +1,8 @@
-spargel_add_executable(editor)
-target_sources(editor PRIVATE main.cpp)
-target_link_libraries(editor PRIVATE codec gpu renderer ui)
+spargel_add_executable(
+    NAME editor
+    PRIVATE main.cpp
+    DEPS codec gpu renderer ui
+)
 
 if(SPARGEL_IS_MACOS)
   add_custom_command(

@@ -14,10 +14,12 @@ spargel_add_option(SPARGEL_GPU_ENABLE_DIRECTX "enable directx backend" ${SPARGEL
 spargel_add_option(SPARGEL_GPU_ENABLE_METAL "enable metal backend" ${SPARGEL_GPU_ENABLE_METAL_DEFAULT})
 spargel_add_option(SPARGEL_GPU_ENABLE_VULKAN "enable vulkan backend" ON)
 
-spargel_add_library(gpu)
-target_sources(gpu
-  PRIVATE
-    gpu.cpp
+spargel_add_library(
+    NAME gpu
+    PRIVATE
+        gpu.cpp
+    DEPS
+        base
 )
 target_compile_definitions(gpu
   PRIVATE
@@ -25,7 +27,6 @@ target_compile_definitions(gpu
     SPARGEL_GPU_ENABLE_METAL=$<BOOL:${SPARGEL_GPU_ENABLE_METAL}>
     SPARGEL_GPU_ENABLE_VULKAN=$<BOOL:${SPARGEL_GPU_ENABLE_VULKAN}>
 )
-target_link_libraries(gpu PRIVATE base)
 
 # if(${SPARGEL_GPU_ENABLE_DIRECTX})
 #   target_sources(gpu
@@ -50,6 +51,8 @@ if(${SPARGEL_GPU_ENABLE_VULKAN})
   target_link_libraries(gpu PRIVATE Vulkan::Headers)
 endif()
 
-spargel_add_executable(demo_gpu)
-target_sources(demo_gpu PRIVATE demo_gpu.cpp)
-target_link_libraries(demo_gpu PRIVATE gpu ui)
+spargel_add_executable(
+    NAME demo_gpu
+    PRIVATE demo_gpu.cpp
+    DEPS gpu ui
+)

@@ -2,6 +2,6 @@
 
 namespace spargel::base {
 
-[[noreturn]] void unreachable();
+    void PrintBacktrace();
 
 }

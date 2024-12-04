@@ -1,10 +1,14 @@
-spargel_add_library(renderer)
+spargel_add_library(
+    NAME renderer
+    PRIVATE_LINUX
+        dummy.cpp
+    PRIVATE_MACOS
+        renderer_mtl.mm
+    PRIVATE_WINDOWS
+        dummy.cpp
+)
 
 if(SPARGEL_IS_MACOS)
-  target_sources(renderer
-    PRIVATE
-      renderer_mtl.mm
-  )
   target_link_libraries(renderer PRIVATE ${FRAMEWORK_METAL} ${FRAMEWORK_QUARTZ_CORE})
 
   # compiler metal shaders
@@ -22,13 +26,3 @@ if(SPARGEL_IS_MACOS)
     DEPENDS
       ${CMAKE_CURRENT_BINARY_DIR}/shader.metallib)
 endif()
-
-# TODO
-if (SPARGEL_IS_LINUX)
-  target_sources(renderer PRIVATE dummy.cpp)
-endif ()
-
-# TODO
-if (SPARGEL_IS_WINDOWS)
-  target_sources(renderer PRIVATE dummy.cpp)
-endif ()

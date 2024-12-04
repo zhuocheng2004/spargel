@@ -1,4 +1,5 @@
 #include <spargel/base/base.h>
+#include <spargel/base/panic.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/gpu/operations.h>
 
@@ -29,7 +30,7 @@ int sgpu_create_default_device(int backend, sgpu_device_id* device) {
       return sgpu_dx_operations.create_default_device(device);
 #endif
     default:
-      sbase_unreachable();
+      spargel::base::Panic();
   }
 }
 

@@ -1,15 +1,19 @@
 BasedOnStyle: Google
 
+ColumnLimit: 100
+
 IndentWidth: 4
 
 AccessModifierOffset: -4
 
-AllowShortBlocksOnASingleLine: Empty
-AllowShortFunctionsOnASingleLine: Empty
+NamespaceIndentation: All
 
-BreakBeforeBraces: Custom
-BraceWrapping:
-    AfterFunction: true
+# AllowShortBlocksOnASingleLine: Empty
+# AllowShortFunctionsOnASingleLine: Empty
+
+# BreakBeforeBraces: Custom
+# BraceWrapping:
+#     AfterFunction: true
 
 DerivePointerAlignment: false
 PointerAlignment: Left
