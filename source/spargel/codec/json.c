@@ -1,5 +1,7 @@
 #include <spargel/codec/codec.h>
 #include <spargel/codec/cursor.h>
+
+/* libc */
 #include <stdlib.h>
 #include <string.h>
 

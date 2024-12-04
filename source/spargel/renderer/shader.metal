@@ -1,4 +1,6 @@
 #include <spargel/renderer/shader_types_mtl.h>
+
+/* platform */
 #include <metal_stdlib>
 
 using namespace metal;

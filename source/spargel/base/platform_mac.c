@@ -1,14 +1,14 @@
 #include <spargel/base/platform.h>
 #include <spargel/base/types.h>
 
+/* libc */
+#include <errno.h>
 #include <string.h>
 
+/* platform */
 #include <dlfcn.h>
-#include <mach-o/dyld.h>
-#include <errno.h>
 #include <execinfo.h>
 #include <mach-o/dyld.h>
-#include <string.h>
 #include <unistd.h>
 
 /**

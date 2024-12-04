@@ -1,10 +1,10 @@
+#include <spargel/resource/directory.h>
+
+/* libc */
 #include <assert.h>
 #include <stddef.h>
 
-#include <spargel/resource/directory.h>
-
-int main()
-{
+int main() {
     struct spgl_resource_manager manager;
     struct sbase_string base_path = sbase_string_from_literal(".");
     spgl_resource_directory_manager_init(&manager, base_path);

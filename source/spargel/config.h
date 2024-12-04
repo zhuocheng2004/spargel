@@ -1,0 +1,7 @@
+#pragma once
+
+#define SPARGEL_TRACE_ALLOCATION 1
+
+#define SPARGEL_ENABLE_CHECK 1
+
+#define SPARGEL_ENABLE_DCHECK 1

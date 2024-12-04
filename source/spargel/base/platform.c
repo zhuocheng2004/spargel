@@ -1,7 +1,8 @@
-#include <stdlib.h>
-
 #include <spargel/base/const.h>
 #include <spargel/base/platform.h>
+
+/* libc */
+#include <stdlib.h>
 
 struct sbase_string spgl_get_executable_path() {
     char* buf = (char*)malloc(PATH_MAX);

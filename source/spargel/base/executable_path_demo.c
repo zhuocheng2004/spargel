@@ -1,6 +1,7 @@
-#include <stdio.h>
-
 #include <spargel/base/platform.h>
+
+/* libc */
+#include <stdio.h>
 
 int main() {
     struct sbase_string path = spgl_get_executable_path();

@@ -1,8 +1,9 @@
-#include <stdlib.h>
-
 #include <spargel/base/base.h>
 #include <spargel/base/const.h>
 #include <spargel/resource/directory.h>
+
+/* libc */
+#include <stdlib.h>
 
 extern struct spgl_resource_manager_operations directory_manager_operations;
 
@@ -12,8 +13,7 @@ struct directory_manager_data {
 
 const struct sbase_string DOT = sbase_string_from_literal(".");
 
-static void normalize_path(struct sbase_string* path)
-{
+static void normalize_path(struct sbase_string* path) {
     if (path->length == 0) {
         sbase_string_deinit(*path);
         sbase_string_copy(path, DOT);
@@ -28,11 +28,9 @@ static void normalize_path(struct sbase_string* path)
 }
 
 void spgl_resource_directory_manager_init(struct spgl_resource_manager* manager,
-                                          struct sbase_string base_path)
-{
+                                          struct sbase_string base_path) {
     struct directory_manager_data* data =
-        (struct directory_manager_data*)malloc(
-            sizeof(struct directory_manager_data));
+        (struct directory_manager_data*)malloc(sizeof(struct directory_manager_data));
     data->base.data = NULL;
     sbase_string_copy(&data->base, base_path);
     normalize_path(&data->base);
@@ -40,17 +38,14 @@ void spgl_resource_directory_manager_init(struct spgl_resource_manager* manager,
     manager->op = &directory_manager_operations;
 }
 
-static void directory_manager_close(struct spgl_resource_manager* manager)
-{
-    struct directory_manager_data* data =
-        (struct directory_manager_data*)manager->data;
+static void directory_manager_close(struct spgl_resource_manager* manager) {
+    struct directory_manager_data* data = (struct directory_manager_data*)manager->data;
     sbase_string_deinit(data->base);
     free(data);
 }
 
-static struct spgl_resource* directory_manager_open_resource(
-    struct spgl_resource_manager* manager, struct spgl_resource_id id)
-{
+static struct spgl_resource* directory_manager_open_resource(struct spgl_resource_manager* manager,
+                                                             struct spgl_resource_id id) {
     return NULL;
 }
 

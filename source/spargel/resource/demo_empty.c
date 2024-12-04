@@ -1,10 +1,10 @@
+#include <spargel/resource/empty.h>
+
+/* libc */
 #include <assert.h>
 #include <stddef.h>
 
-#include <spargel/resource/empty.h>
-
-int main()
-{
+int main() {
     struct spgl_resource_manager manager;
     spgl_resource_empty_manager_init(&manager);
 

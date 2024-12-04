@@ -1,5 +1,7 @@
 #include <spargel/gpu/gpu.h>
 #include <spargel/ui/ui.h>
+
+/* libc */
 #include <stdio.h>
 #include <stdlib.h>
 

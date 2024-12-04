@@ -5,12 +5,10 @@
 /* defines */
 #define SPGL_RESOURCE_DEFAULT_NS "core"
 
-#define SPGL_REOURCE_ID_WITH_NS(ns, path)                     \
-    ((struct spgl_resource_id){sbase_string_from_literal(ns), \
-                               sbase_string_from_literal(path)})
+#define SPGL_REOURCE_ID_WITH_NS(ns, path) \
+    ((struct spgl_resource_id){sbase_string_from_literal(ns), sbase_string_from_literal(path)})
 
-#define SPGL_RESOURCE_ID(path) \
-    SPGL_REOURCE_ID_WITH_NS(SPGL_RESOURCE_DEFAULT_NS, path)
+#define SPGL_RESOURCE_ID(path) SPGL_REOURCE_ID_WITH_NS(SPGL_RESOURCE_DEFAULT_NS, path)
 
 /* types */
 
@@ -49,33 +47,22 @@ struct spgl_resource_manager_operations {
 /* functions */
 
 /* reference +1 */
-static inline void spgl_resource_get(struct spgl_resource* resource)
-{
-    resource->ref_cnt++;
-}
+static inline void spgl_resource_get(struct spgl_resource* resource) { resource->ref_cnt++; }
 
 /* reference -1 ; close resource if there are no references */
 void spgl_resource_put(struct spgl_resource* resource);
 
-static inline ssize spgl_resource_size(struct spgl_resource* resource)
-{
-    return resource->size;
-}
+static inline ssize spgl_resource_size(struct spgl_resource* resource) { return resource->size; }
 
-static inline spgl_resource_err spgl_resource_get_data(
-    struct spgl_resource* resource, void* addr)
-{
+static inline spgl_resource_err spgl_resource_get_data(struct spgl_resource* resource, void* addr) {
     return resource->op->get_data(resource, addr);
 }
 
 static inline struct spgl_resource* spgl_resource_open_resource(
-    struct spgl_resource_manager* manager, struct spgl_resource_id id)
-{
+    struct spgl_resource_manager* manager, struct spgl_resource_id id) {
     return manager->op->open_resource(manager, id);
 }
 
-static inline void spgl_resource_close_manager(
-    struct spgl_resource_manager* manager)
-{
+static inline void spgl_resource_close_manager(struct spgl_resource_manager* manager) {
     manager->op->close(manager);
 }

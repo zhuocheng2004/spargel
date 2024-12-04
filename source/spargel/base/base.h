@@ -1,7 +1,8 @@
 #pragma once
 
-#include <spargel/base/types.h>
 #include <spargel/base/const.h>
+#include <spargel/base/types.h>
+#include <spargel/config.h>
 
 #if defined(__clang__)
 #define SPARGEL_COMPILER_IS_CLANG
@@ -19,25 +20,31 @@
 #define SPARGEL_ATTRIBUTE_NORETURN
 #endif
 
-#define SPARGEL_ENABLE_ASSERT 1
-
-#if SPARGEL_ENABLE_ASSERT
-#define ASSERT(cond) ((cond) ? (void)(0) : sbase_panic())
+#if SPARGEL_ENABLE_CHECK
+#define CHECK(cond) ((cond) ? (void)(0) : sbase_panic_here())
 #else
-#define ASSERT(cond)
+#define CHECK(cond)
 #endif
 
-/**
- * @brief a code path that shouldn't be reached
- */
-// void sbase_unreachable() SPARGEL_ATTRIBUTE_NORETURN;
+#if SPARGEL_ENABLE_DCHECK
+#define DCHECK(cond) ((cond) ? (void)(0) : sbase_panic_here())
+#else
+#define DCHECK(cond)
+#endif
 
-/**
- * @brief platform independent path to resources
- */
-struct sbase_url {
-    int _dummy;
-};
+/* panic */
+
+void sbase_panic() SPARGEL_ATTRIBUTE_NORETURN;
+
+void sbase_panic_at(char const* file, char const* func, ssize line) SPARGEL_ATTRIBUTE_NORETURN;
+
+#define sbase_panic_here() sbase_panic_at(__FILE__, __func__, __LINE__)
+
+/* backtrace */
+
+void sbase_print_backtrace();
+
+/* string */
 
 struct sbase_string {
     ssize length;
@@ -55,36 +62,3 @@ void sbase_string_deinit(struct sbase_string str);
 void sbase_string_copy(struct sbase_string* dst, struct sbase_string src);
 
 struct sbase_string sbase_string_concat(struct sbase_string str1, struct sbase_string str2);
-
-/* backtrace */
-
-void sbase_print_backtrace();
-
-void sbase_panic() SPARGEL_ATTRIBUTE_NORETURN;
-
-/* fiber (abandoned) */
-
-/*
-typedef void* sbase_fiber_context;
-
-sbase_fiber_context sbase_create_fiber_context(void* stack, ssize stack_size,
-                                               void (*func)());
-
-void sbase_switch_fiber_context(sbase_fiber_context* from,
-                                sbase_fiber_context to);
-*/
-
-/* task pool */
-
-typedef struct sbase_task_pool* sbase_task_pool_id;
-typedef u64 sbase_task_id;
-
-struct sbase_task_descriptor {
-    void (*callback)(void*);
-    void* data;
-};
-
-sbase_task_pool_id sbase_create_task_pool();
-
-sbase_task_id sbase_create_task(sbase_task_pool_id pool,
-                                struct sbase_task_descriptor const* descriptor);

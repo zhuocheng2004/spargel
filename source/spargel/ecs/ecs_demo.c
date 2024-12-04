@@ -1,4 +1,6 @@
 #include <spargel/ecs/ecs.h>
+
+/* libc */
 #include <stdio.h>
 #include <stdlib.h>
 

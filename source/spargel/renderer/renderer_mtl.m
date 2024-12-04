@@ -1,8 +1,12 @@
-#import <Metal/Metal.h>
 #include <spargel/renderer/renderer.h>
 #include <spargel/renderer/shader_types_mtl.h>
 #include <spargel/ui/ui_mac.h>
+
+/* libc */
 #include <stdlib.h>
+
+/* platform */
+#import <Metal/Metal.h>
 
 struct spargel_renderer {
     id<MTLDevice> device;
@@ -31,8 +35,7 @@ struct spargel_renderer {
  * @param capacity pointer to current capacity
  * @param size item size
  * @param need the min capacity after growing */
-static void grow_array(void** ptr, ssize* capacity, ssize size, ssize need)
-{
+static void grow_array(void** ptr, ssize* capacity, ssize size, ssize need) {
     ssize cap2 = *capacity * 2;
     ssize new_cap = cap2 > need ? cap2 : need;
     if (new_cap < 8) new_cap = 8;
@@ -40,8 +43,7 @@ static void grow_array(void** ptr, ssize* capacity, ssize size, ssize need)
     *capacity = new_cap;
 }
 
-static void push_texture(struct spargel_renderer* renderer, id<MTLTexture> texture)
-{
+static void push_texture(struct spargel_renderer* renderer, id<MTLTexture> texture) {
     if (renderer->texture_count + 1 > renderer->texture_capacity) {
         grow_array((void**)&renderer->textures, &renderer->texture_capacity, sizeof(id<MTLDevice>),
                    renderer->texture_count + 1);
@@ -52,8 +54,7 @@ static void push_texture(struct spargel_renderer* renderer, id<MTLTexture> textu
 
 static const simd_float2 unit_vertices[] = {{0, 0}, {1, 0}, {1, 1}, {1, 1}, {0, 1}, {0, 0}};
 
-spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window)
-{
+spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window) {
     struct spargel_renderer* renderer = malloc(sizeof(struct spargel_renderer));
     renderer->device = MTLCreateSystemDefaultDevice();
 
@@ -108,8 +109,7 @@ spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window)
 }
 
 spargel_renderer_texture_id spargel_renderer_add_texture(
-    spargel_renderer_id renderer, struct spargel_renderer_texture_descriptor const* descriptor)
-{
+    spargel_renderer_id renderer, struct spargel_renderer_texture_descriptor const* descriptor) {
     MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
     desc.pixelFormat = MTLPixelFormatBGRA8Unorm;
     desc.width = descriptor->width;
@@ -128,14 +128,10 @@ spargel_renderer_texture_id spargel_renderer_add_texture(
     return renderer->texture_count;
 }
 
-void spargel_renderer_start_frame(spargel_renderer_id renderer)
-{
-    renderer->quad_count = 0;
-}
+void spargel_renderer_start_frame(spargel_renderer_id renderer) { renderer->quad_count = 0; }
 
 void spargel_renderer_add_quad(spargel_renderer_id renderer, float x, float y, float width,
-                               float height, spargel_renderer_texture_id texture)
-{
+                               float height, spargel_renderer_texture_id texture) {
     if (renderer->quad_count + 1 > renderer->quad_capacity) {
         grow_array((void**)&renderer->quads, &renderer->quad_capacity, sizeof(struct quad_data),
                    renderer->quad_count + 1);
@@ -148,8 +144,7 @@ void spargel_renderer_add_quad(spargel_renderer_id renderer, float x, float y, f
     data->texture = texture;
 }
 
-void spargel_renderer_render(spargel_renderer_id renderer)
-{
+void spargel_renderer_render(spargel_renderer_id renderer) {
     id<MTLCommandBuffer> command_buffer = [renderer->command_queue commandBuffer];
     command_buffer.label = @"quad command";
 

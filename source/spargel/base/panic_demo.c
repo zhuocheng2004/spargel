@@ -1,6 +1,6 @@
 #include <spargel/base/base.h>
 
 int main() {
-    sbase_panic();
+    sbase_panic_here();
     return 0;
 }

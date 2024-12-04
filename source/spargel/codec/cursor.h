@@ -3,8 +3,8 @@
 #include <spargel/base/base.h>
 
 struct scodec_cursor {
-  char const* cur;
-  char const* end;
+    char const* cur;
+    char const* end;
 };
 
 bool scodec_cursor_is_end(struct scodec_cursor const* cursor);
