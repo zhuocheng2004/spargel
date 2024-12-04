@@ -3,6 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+void sbase_panic() {
+    // write_stderr("======== PANIC ========\n", 24);
+    sbase_print_backtrace();
+#if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
+    __builtin_trap();
+#elif defined(SPARGEL_COMPILER_IS_MSVC)
+    __assume(false);
+#else
+#error unimplemented
+#endif
+}
+
 struct sbase_string sbase_string_from_range(char const* begin, char const* end) {
     struct sbase_string str;
     str.length = end - begin;

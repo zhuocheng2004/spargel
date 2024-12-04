@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static bool load_file(char const* path, void** data, ssize* size)
-{
+static bool load_file(char const* path, void** data, ssize* size) {
     FILE* file = fopen(path, "rb");
     if (!file) return false;
     fseek(file, 0, SEEK_END);
@@ -16,8 +15,7 @@ static bool load_file(char const* path, void** data, ssize* size)
     return true;
 }
 
-int main()
-{
+int main() {
     spargel_ui_init_platform();
     spargel_ui_window_id window = spargel_ui_create_window(500, 500);
     spargel_ui_window_set_title(window, "Spargel Demo - GPU");
@@ -42,15 +40,17 @@ int main()
 
     void* metal_library_data;
     ssize metal_library_size;
-    if (!load_file("source/spargel/renderer/shader.metallib",
-                   &metal_library_data, &metal_library_size)) {
+    if (!load_file("source/spargel/renderer/shader.metallib", &metal_library_data,
+                   &metal_library_size)) {
         printf("error: cannot load metal shaders\n");
         result = 1;
         goto cleanup_queue;
     }
     sgpu_metal_shader_library_id metal_library;
-    struct sgpu_metal_shader_library_descriptor sl_desc;
-    sl_desc = {metal_library_data, metal_library_size};
+    struct sgpu_metal_shader_library_descriptor sl_desc = {
+        .code = metal_library_data,
+        .size = metal_library_size,
+    };
     result = sgpu_create_metal_shader_library(device, &sl_desc, &metal_library);
     if (result != 0) goto cleanup_queue;
     printf("info: metal shader library created\n");

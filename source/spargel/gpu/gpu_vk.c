@@ -1,7 +1,6 @@
 #include <spargel/base/base.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/gpu/operations.h>
-#include <spargel/base/panic.h>
 
 #define VK_NO_PROTOTYPES
 #include <vulkan/vk_platform.h>
@@ -18,15 +17,9 @@
 
 extern const struct sgpu_operations sgpu_vk_operations;
 
-static int create_default_device(sgpu_device_id* device)
-{
-    spargel::base::Panic();
-}
+static int create_default_device(sgpu_device_id* device) { sbase_panic(); }
 
-static void destroy_device(sgpu_device_id device)
-{
-    spargel::base::Panic();
-}
+static void destroy_device(sgpu_device_id device) { sbase_panic(); }
 
 const struct sgpu_operations sgpu_vk_operations = {
     .create_default_device = create_default_device,

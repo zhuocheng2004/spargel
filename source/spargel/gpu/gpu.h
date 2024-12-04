@@ -2,15 +2,6 @@
 
 #include <spargel/base/base.h>
 
-namespace spargel::gpu {
-
-class device {
-public:
-    virtual ~device();
-};
-
-}  // namespace spargel::gpu
-
 typedef struct sgpu_device* sgpu_device_id;
 typedef struct sgpu_command_queue* sgpu_command_queue_id;
 typedef struct sgpu_render_pipeline* sgpu_render_pipeline_id;

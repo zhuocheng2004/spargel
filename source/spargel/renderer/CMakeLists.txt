@@ -1,11 +1,11 @@
 spargel_add_library(
     NAME renderer
     PRIVATE_LINUX
-        dummy.cpp
+        dummy.c
     PRIVATE_MACOS
-        renderer_mtl.mm
+        renderer_mtl.m
     PRIVATE_WINDOWS
-        dummy.cpp
+        dummy.c
 )
 
 if(SPARGEL_IS_MACOS)

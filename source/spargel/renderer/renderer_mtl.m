@@ -54,7 +54,7 @@ static const simd_float2 unit_vertices[] = {{0, 0}, {1, 0}, {1, 1}, {1, 1}, {0, 
 
 spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window)
 {
-    struct spargel_renderer* renderer = (spargel_renderer*)malloc(sizeof(struct spargel_renderer));
+    struct spargel_renderer* renderer = malloc(sizeof(struct spargel_renderer));
     renderer->device = MTLCreateSystemDefaultDevice();
 
     NSError* error;

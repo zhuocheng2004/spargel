@@ -1,6 +1,6 @@
 spargel_add_executable(
     NAME editor
-    PRIVATE main.cpp
+    PRIVATE main.c
     DEPS codec gpu renderer ui
 )
 

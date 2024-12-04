@@ -1,13 +1,13 @@
 spargel_add_library(
     NAME ecs
     PRIVATE
-        ecs.cpp
+        ecs.c
     DEPS
         base
 )
 
 spargel_add_executable(
     NAME ecs_demo
-    PRIVATE ecs_demo.cpp
+    PRIVATE ecs_demo.c
     DEPS ecs
 )

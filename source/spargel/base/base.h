@@ -19,6 +19,14 @@
 #define SPARGEL_ATTRIBUTE_NORETURN
 #endif
 
+#define SPARGEL_ENABLE_ASSERT 1
+
+#if SPARGEL_ENABLE_ASSERT
+#define ASSERT(cond) ((cond) ? (void)(0) : sbase_panic())
+#else
+#define ASSERT(cond)
+#endif
+
 /**
  * @brief a code path that shouldn't be reached
  */
@@ -36,8 +44,7 @@ struct sbase_string {
     char* data;
 };
 
-#define sbase_string_from_literal(str) \
-    ((struct sbase_string){sizeof(str) - 1, str})
+#define sbase_string_from_literal(str) ((struct sbase_string){sizeof(str) - 1, str})
 
 struct sbase_string sbase_string_from_range(char const* begin, char const* end);
 
@@ -47,12 +54,13 @@ void sbase_string_deinit(struct sbase_string str);
 
 void sbase_string_copy(struct sbase_string* dst, struct sbase_string src);
 
-struct sbase_string sbase_string_concat(struct sbase_string str1,
-                                        struct sbase_string str2);
+struct sbase_string sbase_string_concat(struct sbase_string str1, struct sbase_string str2);
 
 /* backtrace */
 
-// void sbase_print_backtrace();
+void sbase_print_backtrace();
+
+void sbase_panic() SPARGEL_ATTRIBUTE_NORETURN;
 
 /* fiber (abandoned) */
 

@@ -37,7 +37,7 @@ struct secs_world {
 
 secs_world_id secs_create_world()
 {
-    struct secs_world* world = (secs_world*)malloc(sizeof(struct secs_world));
+    struct secs_world* world = malloc(sizeof(struct secs_world));
     memset(world, 0, sizeof(struct secs_world));
     return world;
 }

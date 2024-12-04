@@ -1,11 +1,11 @@
 spargel_add_library(
     NAME ui
     PRIVATE_LINUX
-        dummy.cpp
+        dummy.c
     PRIVATE_MACOS
-        ui_mac.mm
+        ui_mac.m
     PRIVATE_WINDOWS
-        dummy.cpp
+        dummy.c
 )
 
 if (APPLE)
