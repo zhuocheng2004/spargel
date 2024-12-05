@@ -12,9 +12,9 @@ static void render(spargel_renderer_id renderer) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) return 1;
-    spargel_ui_init_platform();
-    spargel_ui_window_id window = spargel_ui_create_window(500, 500);
-    spargel_ui_window_set_title(window, "Spargel Editor");
+    sui_init_platform();
+    sui_window_id window = sui_create_window(500, 500);
+    ui_window_set_title(window, "Spargel Editor");
 
 #if __APPLE__
     int gpu_backend = SGPU_BACKEND_METAL;
@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
     spargel_renderer_id renderer = spargel_create_renderer(window);
     spargel_renderer_add_texture(renderer, &texture_desc);
 
-    spargel_ui_window_set_render_callback(window, (void (*)(void*))render, renderer);
+    sui_window_set_render_callback(window, (void (*)(void*))render, renderer);
 
-    spargel_ui_platform_run();
+    sui_platform_run();
     return 0;
 }

@@ -14,7 +14,7 @@ struct spargel_renderer {
     id<MTLCommandQueue> command_queue;
     id<MTLRenderPipelineState> pipeline_state;
 
-    struct spargel_ui_window* window;
+    struct sui_window* window;
     CAMetalLayer* layer;
 
     id<MTLTexture>* textures;
@@ -54,7 +54,7 @@ static void push_texture(struct spargel_renderer* renderer, id<MTLTexture> textu
 
 static const simd_float2 unit_vertices[] = {{0, 0}, {1, 0}, {1, 1}, {1, 1}, {0, 1}, {0, 0}};
 
-spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window) {
+spargel_renderer_id spargel_create_renderer(sui_window_id window) {
     struct spargel_renderer* renderer = malloc(sizeof(struct spargel_renderer));
     renderer->device = MTLCreateSystemDefaultDevice();
 

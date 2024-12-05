@@ -2,6 +2,7 @@
 
 VULKAN_LIBRARY_PROC(vkGetInstanceProcAddr)
 
+#undef VULKAN_LIBRARY_PROC
 #endif
 
 #if defined(VULKAN_GENERAL_PROC)
@@ -10,6 +11,7 @@ VULKAN_GENERAL_PROC(vkEnumerateInstanceLayerProperties)
 VULKAN_GENERAL_PROC(vkEnumerateInstanceExtensionProperties)
 VULKAN_GENERAL_PROC(vkCreateInstance)
 
+#undef VULKAN_GENERAL_PROC
 #endif
 
 #if defined(VULKAN_INSTANCE_PROC)
@@ -41,6 +43,7 @@ VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
 VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfaceFormatsKHR)
 VULKAN_INSTANCE_PROC(vkGetPhysicalDeviceSurfacePresentModesKHR)
 
+#undef VULKAN_INSTANCE_PROC
 #endif
 
 #if defined(VULKAN_DEVICE_PROC)
@@ -78,8 +81,8 @@ VULKAN_DEVICE_PROC(vkGetSwapchainImagesKHR)
 VULKAN_DEVICE_PROC(vkAcquireNextImageKHR)
 
 // requires synchronization2
-// VULKAN_DEVICE_PROC(vkQueueSubmit2KHR)
-// VULKAN_DEVICE_PROC(vkCmdPipelineBarrier2KHR)
+VULKAN_DEVICE_PROC(vkQueueSubmit2KHR)
+VULKAN_DEVICE_PROC(vkCmdPipelineBarrier2KHR)
 
 VULKAN_DEVICE_PROC(vkQueueSubmit)
 VULKAN_DEVICE_PROC(vkQueuePresentKHR)
@@ -88,7 +91,7 @@ VULKAN_DEVICE_PROC(vkCmdBeginRenderPass)
 VULKAN_DEVICE_PROC(vkCmdEndRenderPass)
 VULKAN_DEVICE_PROC(vkCmdClearColorImage)
 
-
 VULKAN_DEVICE_PROC(vkDeviceWaitIdle)
 
+#undef VULKAN_DEVICE_PROC
 #endif

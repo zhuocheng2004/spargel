@@ -9,7 +9,7 @@ typedef int spargel_renderer_texture_id;
 /**
  * @brief create a renderer
  */
-spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window);
+spargel_renderer_id spargel_create_renderer(sui_window_id window);
 
 enum spargel_renderer_texture_format {
     TEXTURE_FORMAT_B8G8R8A8_UNORM,

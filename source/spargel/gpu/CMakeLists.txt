@@ -38,7 +38,7 @@ target_compile_definitions(gpu
 if(${SPARGEL_GPU_ENABLE_METAL})
   target_sources(gpu
     PRIVATE
-      gpu_mtl.m
+      gpu_metal.m
   )
   target_link_libraries(gpu PRIVATE ${FRAMEWORK_METAL})
 endif()
@@ -46,7 +46,7 @@ endif()
 if(${SPARGEL_GPU_ENABLE_VULKAN})
   target_sources(gpu
     PRIVATE
-      gpu_vk.c
+      gpu_vulkan.c
   )
   target_link_libraries(gpu PRIVATE Vulkan::Headers)
 endif()

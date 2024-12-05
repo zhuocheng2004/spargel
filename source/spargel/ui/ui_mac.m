@@ -5,8 +5,8 @@
 /* platform */
 #include <Carbon/Carbon.h>
 
-static void set_drawable_size(struct spargel_ui_window* window, float width, float height);
-static void window_render(struct spargel_ui_window* window);
+static void set_drawable_size(struct sui_window* window, float width, float height);
+static void window_render(struct sui_window* window);
 
 @implementation SpargelApplicationDelegate
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
@@ -15,7 +15,7 @@ static void window_render(struct spargel_ui_window* window);
 @end
 
 @implementation SpargelMetalView
-- (instancetype)initWithSpargelUIWindow:(struct spargel_ui_window*)window {
+- (instancetype)initWithSpargelUIWindow:(struct sui_window*)window {
     [super init];
     _swindow = window;
     return self;
@@ -80,7 +80,7 @@ static void init_global_menu() {
     NSApp.mainMenu = menu_bar;
 }
 
-void spargel_ui_init_platform() {
+void sui_init_platform() {
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
@@ -91,21 +91,23 @@ void spargel_ui_init_platform() {
     init_global_menu();
 }
 
-void spargel_ui_platform_run() {
+void sui_platform_run() {
     /* run until stop: or terminate: */
     [NSApp run];
 }
 
 @implementation SpargelWindowDelegate
-- (instancetype)initWithSpargelUIWindow:(struct spargel_ui_window*)window {
+- (instancetype)initWithSpargelUIWindow:(struct sui_window*)window {
     [super init];
     _swindow = window;
     return self;
 }
 @end
 
-spargel_ui_window_id spargel_ui_create_window(int width, int height) {
-    spargel_ui_window_id window = (spargel_ui_window_id)malloc(sizeof(struct spargel_ui_window));
+sui_window_id sui_create_window(int width, int height) {
+    CHECK(width > 0 && height > 0);
+
+    sui_window_id window = malloc(sizeof(struct sui_window));
     if (!window) return NULL;
     window->render_callback = NULL;
     window->render_data = NULL;
@@ -148,28 +150,27 @@ spargel_ui_window_id spargel_ui_create_window(int width, int height) {
     return window;
 }
 
-void spargel_ui_destroy_window(spargel_ui_window_id window) {
+void sui_destroy_window(sui_window_id window) {
     [window->window release];
     [window->delegate release];
 }
 
-void spargel_ui_window_set_title(spargel_ui_window_id window, char const* title) {
+void ui_window_set_title(sui_window_id window, char const* title) {
     window->window.title = [NSString stringWithUTF8String:title];
 }
 
-void spargel_ui_window_set_render_callback(spargel_ui_window_id window, void (*render)(void*),
-                                           void* data) {
+void sui_window_set_render_callback(sui_window_id window, void (*render)(void*), void* data) {
     window->render_callback = render;
     window->render_data = data;
 }
 
-static void set_drawable_size(struct spargel_ui_window* window, float width, float height) {
+static void set_drawable_size(struct sui_window* window, float width, float height) {
     window->drawable_width = width;
     window->drawable_height = height;
     window->layer.drawableSize = NSMakeSize(width, height);
 }
 
-static void window_render(struct spargel_ui_window* window) {
+static void window_render(struct sui_window* window) {
     if (window->render_callback) {
         window->render_callback(window->render_data);
     }

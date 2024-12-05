@@ -1,9 +1,13 @@
 #include <spargel/gpu/gpu.h>
+#include <spargel/gpu/gpu_metal.h>
+#include <spargel/gpu/gpu_vulkan.h>
 #include <spargel/ui/ui.h>
 
 /* libc */
 #include <stdio.h>
 #include <stdlib.h>
+
+#define USE_VULKAN 1
 
 static bool load_file(char const* path, void** data, ssize* size) {
     FILE* file = fopen(path, "rb");
@@ -18,16 +22,16 @@ static bool load_file(char const* path, void** data, ssize* size) {
 }
 
 int main() {
-    spargel_ui_init_platform();
-    spargel_ui_window_id window = spargel_ui_create_window(500, 500);
-    spargel_ui_window_set_title(window, "Spargel Demo - GPU");
+    sui_init_platform();
+    sui_window_id window = sui_create_window(500, 500);
+    ui_window_set_title(window, "Spargel Demo - GPU");
 
     int result = 0;
 
-#if __APPLE__
-    int gpu_backend = SGPU_BACKEND_METAL;
-#else
+#if USE_VULKAN
     int gpu_backend = SGPU_BACKEND_VULKAN;
+#elif __APPLE__
+    int gpu_backend = SGPU_BACKEND_METAL;
 #endif
 
     sgpu_device_id device;
@@ -40,6 +44,7 @@ int main() {
     if (result != 0) goto cleanup_device;
     printf("info: command queue created\n");
 
+#if __APPLE__
     void* metal_library_data;
     ssize metal_library_size;
     if (!load_file("source/spargel/renderer/shader.metallib", &metal_library_data,
@@ -48,20 +53,35 @@ int main() {
         result = 1;
         goto cleanup_queue;
     }
+
     sgpu_metal_shader_library_id metal_library;
-    struct sgpu_metal_shader_library_descriptor sl_desc = {
-        .code = metal_library_data,
-        .size = metal_library_size,
-    };
-    result = sgpu_create_metal_shader_library(device, &sl_desc, &metal_library);
+    result = sgpu_metal_create_shader_library(device,
+                                              &(struct sgpu_metal_shader_library_descriptor){
+                                                  .code = metal_library_data,
+                                                  .size = metal_library_size,
+                                              },
+                                              &metal_library);
     if (result != 0) goto cleanup_queue;
     printf("info: metal shader library created\n");
+#endif
 
     sgpu_shader_function_id vertex_func;
-    struct sgpu_shader_function_descriptor sf_desc;
-    sf_desc.metal.library = metal_library;
-    sf_desc.metal.name = "vertex_shader";
-    result = sgpu_create_shader_function(device, &sf_desc, &vertex_func);
+
+#if __APPLE__
+    result = sgpu_metal_create_shader_function(device,
+                                               &(struct sgpu_metal_shader_function_descriptor){
+                                                   .library = metal_library,
+                                                   .name = "vertex_shader",
+                                               },
+                                               &vertex_func);
+#else
+    result = sgpu_vulkan_create_shader_function(device,
+                                                &(struct sgpu_vulkan_shader_function_descriptor){
+                                                    .code = NULL,
+                                                    .size = 0,
+                                                },
+                                                &vertex_func);
+#endif
     if (result != 0) goto cleanup_shader_library;
     printf("info: vertex shader function created\n");
 
@@ -69,7 +89,9 @@ int main() {
 
     sgpu_destroy_shader_function(vertex_func);
 cleanup_shader_library:
-    sgpu_destroy_metal_shader_library(metal_library);
+#if __APPLE__
+    sgpu_metal_destroy_shader_library(metal_library);
+#endif
 cleanup_queue:
     sgpu_destroy_command_queue(queue);
 cleanup_device:
