@@ -8,7 +8,7 @@
 #include <time.h>
 
 /* platform */
-#if defined(SPARGEL_IS_LINUX) || defined(SPARGEL_IS_MACOS)
+#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
 #include <sys/time.h>
 #endif
 
@@ -42,7 +42,7 @@ struct sbase_log_timestamp {
 };
 
 static void sbase_log_get_time(struct sbase_log_timestamp* time) {
-#if defined(SPARGEL_IS_LINUX) || defined(SPARGEL_IS_MACOS)
+#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
     struct timeval tv;
     gettimeofday(&tv, NULL);
     time_t t = tv.tv_sec;

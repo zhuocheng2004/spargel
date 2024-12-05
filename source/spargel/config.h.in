@@ -1,5 +1,9 @@
 #pragma once
 
+#cmakedefine01 SPARGEL_IS_LINUX
+#cmakedefine01 SPARGEL_IS_MACOS
+#cmakedefine01 SPARGEL_IS_WINDOWS
+
 /**
  * trace every allocation in Spargel Engine
  */
