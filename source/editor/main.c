@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     if (argc < 2) return 1;
     sui_init_platform();
     sui_window_id window = sui_create_window(500, 500);
-    ui_window_set_title(window, "Spargel Editor");
+    sui_window_set_title(window, "Spargel Editor");
 
 #if __APPLE__
     int gpu_backend = SGPU_BACKEND_METAL;

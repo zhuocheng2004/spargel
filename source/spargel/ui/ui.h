@@ -27,7 +27,6 @@ void sui_destroy_window(sui_window_id window);
 /**
  * @brief set the title of a window
  */
-void ui_window_set_title(sui_window_id window, char const* title);
+void sui_window_set_title(sui_window_id window, char const* title);
 
-void sui_window_set_render_callback(sui_window_id window, void (*render)(void*),
-                                           void* data);
+void sui_window_set_render_callback(sui_window_id window, void (*render)(void*), void* data);

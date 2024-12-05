@@ -19,6 +19,7 @@
 #define alloc_object(type, name)                                                   \
     struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
     if (!name) return SGPU_RESULT_ALLOCATION_FAILED;                               \
+    memset(name, 0, sizeof(struct type));                                          \
     name->backend = SGPU_BACKEND_VULKAN;
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
@@ -40,6 +41,7 @@ struct sgpu_vulkan_device {
     int backend;
     void* library;
     VkInstance instance;
+    VkDebugUtilsMessengerEXT debug_messenger;
     VkPhysicalDevice physical_device;
     VkDevice device;
     struct sgpu_vulkan_proc_table procs;
@@ -98,18 +100,26 @@ static void* array_push(struct array* a) {
     return array_at(*a, i);
 }
 
+static VkBool32 sgpu_vulkan_debug_messenger_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
+    VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
+    sbase_log_debug("validator: %s\n", data->pMessage);
+    return VK_FALSE;
+}
+
 static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
     struct sgpu_vulkan_proc_table* procs = &device->procs;
 
     /* step 1. enumerate layers */
     struct array all_layers;
     init_array(&all_layers, sizeof(struct VkLayerProperties));
-
-    u32 count;
-    CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, NULL));
-    array_reserve(&all_layers, count);
-    CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, all_layers.data));
-    all_layers.count = count;
+    {
+        u32 count;
+        CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, NULL));
+        array_reserve(&all_layers, count);
+        CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, all_layers.data));
+        all_layers.count = count;
+    }
 
     for (ssize i = 0; i < all_layers.count; i++) {
         sbase_log_info("layer #%ld = %s", i,
@@ -117,17 +127,19 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
     }
 
     /* step 2. enumerate instance extensions */
-    struct array all_inst_exts;
-    init_array(&all_inst_exts, sizeof(struct VkExtensionProperties));
-    CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(NULL, &count, NULL));
-    array_reserve(&all_inst_exts, count);
-    CHECK_VK_RESULT(
-        procs->vkEnumerateInstanceExtensionProperties(NULL, &count, all_inst_exts.data));
-    all_inst_exts.count = count;
+    struct array all_exts;
+    init_array(&all_exts, sizeof(struct VkExtensionProperties));
+    {
+        u32 count;
+        CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(NULL, &count, NULL));
+        array_reserve(&all_exts, count);
+        CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(NULL, &count, all_exts.data));
+        all_exts.count = count;
+    }
 
-    for (ssize i = 0; i < all_inst_exts.count; i++) {
+    for (ssize i = 0; i < all_exts.count; i++) {
         sbase_log_info("instance extension #%ld = %s", i,
-                       ((struct VkExtensionProperties*)array_at(all_inst_exts, i))->extensionName);
+                       ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName);
     }
 
     /* step 3. select layers */
@@ -150,36 +162,35 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
      * VK_EXT_debug_utils (debug);
      * VK_EXT_metal_surface (platform);
      */
-    struct array use_inst_exts;
-    init_array(&use_inst_exts, sizeof(char const*));
+    struct array use_exts;
+    init_array(&use_exts, sizeof(char const*));
     bool has_surface = false;
     bool has_portability = false;
-    bool has_debug_report = false;
+    bool has_debug_utils = false;
 #if SPARGEL_IS_MACOS
     bool has_metal_surface = false;
 #endif
-    for (ssize i = 0; i < all_inst_exts.count; i++) {
-        char const* name =
-            ((struct VkExtensionProperties*)array_at(all_inst_exts, i))->extensionName;
+    for (ssize i = 0; i < all_exts.count; i++) {
+        char const* name = ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName;
         if (strcmp(name, "VK_KHR_surface") == 0) {
-            char const** ptr = array_push(&use_inst_exts);
+            char const** ptr = array_push(&use_exts);
             *ptr = "VK_KHR_surface";
             has_surface = true;
             sbase_log_info("use instance extension VK_KHR_surface");
         } else if (strcmp(name, "VK_KHR_portability_enumeration") == 0) {
-            char const** ptr = array_push(&use_inst_exts);
+            char const** ptr = array_push(&use_exts);
             *ptr = "VK_KHR_portability_enumeration";
             has_portability = true;
             sbase_log_info("use instance extension VK_KHR_portability_enumeration");
         } else if (strcmp(name, "VK_EXT_debug_utils") == 0) {
-            char const** ptr = array_push(&use_inst_exts);
+            char const** ptr = array_push(&use_exts);
             *ptr = "VK_EXT_debug_utils";
-            has_debug_report = true;
+            has_debug_utils = true;
             sbase_log_info("use instance extension VK_EXT_debug_utils");
         }
 #if SPARGEL_IS_MACOS
         else if (strcmp(name, "VK_EXT_metal_surface") == 0) {
-            char const** ptr = array_push(&use_inst_exts);
+            char const** ptr = array_push(&use_exts);
             *ptr = "VK_EXT_metal_surface";
             has_metal_surface = true;
             sbase_log_info("use instance extension VK_EXT_metal_surface");
@@ -197,42 +208,79 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
     }
 #endif
 
+    /* step 5. create instance */
+
     VkInstance instance = NULL;
+    {
+        VkApplicationInfo app_info;
+        app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        app_info.pNext = NULL;
+        app_info.pApplicationName = NULL;
+        app_info.applicationVersion = 0;
+        app_info.pEngineName = "Spargel Engine";
+        app_info.engineVersion = 0;
+        app_info.apiVersion = VK_API_VERSION_1_2;
+        VkInstanceCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        info.pNext = NULL;
+        info.flags = 0;
+        info.pApplicationInfo = &app_info;
+        info.enabledLayerCount = use_layers.count;
+        info.ppEnabledLayerNames = use_layers.data;
+        info.enabledExtensionCount = use_exts.count;
+        info.ppEnabledExtensionNames = use_exts.data;
 
-    VkApplicationInfo app_info;
-    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    app_info.pNext = NULL;
-    app_info.pApplicationName = NULL;
-    app_info.applicationVersion = 0;
-    app_info.pEngineName = "Spargel Engine";
-    app_info.engineVersion = 0;
-    app_info.apiVersion = VK_API_VERSION_1_2;
-    VkInstanceCreateInfo info;
-    info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    info.pNext = NULL;
-    info.flags = 0;
-    info.pApplicationInfo = &app_info;
-    info.enabledLayerCount = use_layers.count;
-    info.ppEnabledLayerNames = use_layers.data;
-    info.enabledExtensionCount = use_inst_exts.count;
-    info.ppEnabledExtensionNames = use_inst_exts.data;
+        if (has_portability) {
+            info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        }
 
-    if (has_portability) {
-        info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        CHECK_VK_RESULT(device->procs.vkCreateInstance(&info, NULL, &instance));
+        device->instance = instance;
     }
-
-    CHECK_VK_RESULT(device->procs.vkCreateInstance(&info, NULL, &instance));
-    device->instance = instance;
 
     PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = device->procs.vkGetInstanceProcAddr;
 #define VULKAN_INSTANCE_PROC(name) \
     device->procs.name = (PFN_##name)vkGetInstanceProcAddr(instance, #name);
 #include <spargel/gpu/vulkan_procs.inc>
 
-    deinit_array(use_inst_exts);
+    deinit_array(use_exts);
     deinit_array(use_layers);
-    deinit_array(all_inst_exts);
+    deinit_array(all_exts);
     deinit_array(all_layers);
+
+    /* step 6. create debug messenger */
+    if (has_debug_utils) {
+        VkDebugUtilsMessengerCreateInfoEXT info;
+        info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        info.pNext = 0;
+        info.flags = 0;
+        info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        info.pfnUserCallback = sgpu_vulkan_debug_messenger_callback;
+        info.pUserData = 0;
+
+        CHECK_VK_RESULT(
+            procs->vkCreateDebugUtilsMessengerEXT(instance, &info, 0, &device->debug_messenger));
+    }
+
+    /* step 7. enumerate physical devices */
+
+    struct array adapters;
+    init_array(&adapters, sizeof(VkPhysicalDevice));
+    {
+        u32 count;
+        CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, NULL));
+        array_reserve(&adapters, count);
+        CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, adapters.data));
+        adapters.count = count;
+    }
+
+    deinit_array(adapters);
 
     return SGPU_RESULT_SUCCESS;
 }
@@ -257,10 +305,14 @@ int sgpu_vulkan_create_default_device(sgpu_device_id* device) {
 
 void sgpu_vulkan_destroy_device(sgpu_device_id device) {
     cast_object(sgpu_vulkan_device, d, device);
+    struct sgpu_vulkan_proc_table* procs = &d->procs;
+
+    if (d->debug_messenger)
+        procs->vkDestroyDebugUtilsMessengerEXT(d->instance, d->debug_messenger, 0);
+    procs->vkDestroyInstance(d->instance, 0);
+
     dlclose(d->library);
     dealloc_object(sgpu_vulkan_device, d);
-
-    sbase_panic_here();
 }
 
 int sgpu_vulkan_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue) {

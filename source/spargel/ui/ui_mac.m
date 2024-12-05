@@ -155,7 +155,7 @@ void sui_destroy_window(sui_window_id window) {
     [window->delegate release];
 }
 
-void ui_window_set_title(sui_window_id window, char const* title) {
+void sui_window_set_title(sui_window_id window, char const* title) {
     window->window.title = [NSString stringWithUTF8String:title];
 }
 
