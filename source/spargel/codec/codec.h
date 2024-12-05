@@ -24,6 +24,8 @@ struct spargel_codec_image {
     struct spargel_codec_color4* pixels;
 };
 
+void scodec_destroy_image(struct spargel_codec_image image);
+
 enum spargel_codec_decode_result {
     SPARGEL_CODEC_DECODE_SUCCESS,
     /* todo: better error codes */

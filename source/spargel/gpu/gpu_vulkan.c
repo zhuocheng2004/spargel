@@ -15,12 +15,15 @@
 #include <vulkan/vulkan_metal.h>
 #endif
 
-#define alloc_object(type, name)                                   \
-    struct type* name = (struct type*)malloc(sizeof(struct type)); \
-    if (!name) return SGPU_RESULT_ALLOCATION_FAILED;               \
+#define alloc_object(type, name)                                                   \
+    struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
+    if (!name) return SGPU_RESULT_ALLOCATION_FAILED;                               \
     name->backend = SGPU_BACKEND_VULKAN;
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
+
+#define dealloc_object(type, name) \
+    sbase_deallocate(name, sizeof(struct type), SBASE_ALLOCATION_GPU);
 
 struct sgpu_vulkan_proc_table {
 #define VULKAN_PROC_DECL(name) PFN_##name name;
@@ -84,7 +87,7 @@ int sgpu_vulkan_create_default_device(sgpu_device_id* device) {
     alloc_object(sgpu_vulkan_device, d);
     d->library = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
     if (d->library == NULL) {
-        free(d);
+        dealloc_object(sgpu_vulkan_device, d);
         return SGPU_RESULT_NO_BACKEND;
     }
 
@@ -101,6 +104,8 @@ int sgpu_vulkan_create_default_device(sgpu_device_id* device) {
 void sgpu_vulkan_destroy_device(sgpu_device_id device) {
     cast_object(sgpu_vulkan_device, d, device);
     dlclose(d->library);
+    dealloc_object(sgpu_vulkan_device, d);
+
     sbase_panic_here();
 }
 

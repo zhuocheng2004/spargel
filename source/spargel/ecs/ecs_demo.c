@@ -1,3 +1,4 @@
+#include <spargel/base/base.h>
 #include <spargel/ecs/ecs.h>
 
 /* libc */
@@ -33,7 +34,7 @@ static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need) {
     ssize cap2 = *capacity * 2;
     ssize new_cap = cap2 > need ? cap2 : need;
     if (new_cap < 8) new_cap = 8;
-    *ptr = realloc(*ptr, new_cap * stride);
+    *ptr = sbase_reallocate(*ptr, *capacity * stride, new_cap * stride, SBASE_ALLOCATION_ECS);
     *capacity = new_cap;
 }
 
@@ -46,7 +47,8 @@ static void delete_queue_push(struct delete_queue* queue, secs_entity_id id) {
 }
 
 static void destroy_delete_queue(struct delete_queue* queue) {
-    if (queue->ids) free(queue->ids);
+    if (queue->ids)
+        sbase_deallocate(queue->ids, sizeof(ssize) * queue->capacity, SBASE_ALLOCATION_ECS);
 }
 
 int main() {
@@ -249,5 +251,8 @@ int main() {
 
     destroy_delete_queue(&queue);
     secs_destroy_world(world);
+
+    sbase_report_allocation();
+    sbase_check_leak();
     return 0;
 }

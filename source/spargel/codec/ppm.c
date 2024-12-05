@@ -20,13 +20,13 @@ static bool read_file(char const* path, char** data, ssize* size) {
     }
     rewind(file);
 
-    char* ptr = (char*)malloc(len);
+    char* ptr = sbase_allocate(len, SBASE_ALLOCATION_CODEC);
     if (!ptr) {
         fclose(file);
         return false;
     }
     if (fread(ptr, len, 1, file) != 1) {
-        free(ptr);
+        sbase_deallocate(ptr, len, SBASE_ALLOCATION_CODEC);
         fclose(file);
         return false;
     }
@@ -129,7 +129,8 @@ int spargel_codec_load_ppm_image(char const* path, struct spargel_codec_image* i
         goto free_data;
     }
 
-    parser.pixels = malloc(sizeof(struct spargel_codec_color4) * parser.width * parser.height);
+    parser.pixels = sbase_allocate(
+        sizeof(struct spargel_codec_color4) * parser.width * parser.height, SBASE_ALLOCATION_CODEC);
     if (!parser.pixels) {
         result = SPARGEL_CODEC_DECODE_FAILED;
         goto free_data;
@@ -147,7 +148,7 @@ int spargel_codec_load_ppm_image(char const* path, struct spargel_codec_image* i
     result = SPARGEL_CODEC_DECODE_SUCCESS;
 
 free_data:
-    free(data);
+    sbase_deallocate(data, size, SBASE_ALLOCATION_CODEC);
     return result;
 }
 

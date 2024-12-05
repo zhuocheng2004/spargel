@@ -21,7 +21,8 @@
 #endif
 
 #if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
-#define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg) __attribute__((format(printf, format_arg, params_arg)))
+#define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg) \
+    __attribute__((format(printf, format_arg, params_arg)))
 #else
 #define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg)
 #endif
@@ -61,18 +62,42 @@ enum sbase_log_level {
     SBASE_LOG_FATAL,
 };
 
-void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...) SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6);
+void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...)
+    SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6);
 
 #define SBASE_LOG_IMPL(level, ...) sbase_log(level, __FILE__, __func__, __LINE__, __VA_ARGS__)
 #define sbase_log_debug(...) SBASE_LOG_IMPL(SBASE_LOG_DEBUG, __VA_ARGS__)
 #define sbase_log_info(...) SBASE_LOG_IMPL(SBASE_LOG_INFO, __VA_ARGS__)
 #define sbase_log_warn(...) SBASE_LOG_IMPL(SBASE_LOG_WARN, __VA_ARGS__)
 #define sbase_log_error(...) SBASE_LOG_IMPL(SBASE_LOG_ERROR, __VA_ARGS__)
-#define sbase_log_fatal(...) do { SBASE_LOG_IMPL(SBASE_LOG_FATAL, __VA_ARGS__); sbase_panic_here(); } while (0)
+#define sbase_log_fatal(...)                          \
+    do {                                              \
+        SBASE_LOG_IMPL(SBASE_LOG_FATAL, __VA_ARGS__); \
+        sbase_panic_here();                           \
+    } while (0)
 
 /* backtrace */
 
 void sbase_print_backtrace();
+
+/* allocator */
+
+enum sbase_allocation_tag {
+    SBASE_ALLOCATION_BASE = 0,
+    SBASE_ALLOCATION_CODEC,
+    SBASE_ALLOCATION_ECS,
+    SBASE_ALLOCATION_GPU,
+    SBASE_ALLOCATION_UI,
+
+    _SBASE_ALLOCATION_COUNT,
+};
+
+void* sbase_allocate(ssize size, int tag);
+void* sbase_reallocate(void* ptr, ssize old_size, ssize new_size, int tag);
+void sbase_deallocate(void* ptr, ssize size, int tag);
+
+void sbase_report_allocation();
+void sbase_check_leak();
 
 /* string */
 

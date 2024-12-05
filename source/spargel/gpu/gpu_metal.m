@@ -7,12 +7,15 @@
 /* platform */
 #import <Metal/Metal.h>
 
-#define alloc_object(type, name)                     \
-    struct type* name = malloc(sizeof(struct type)); \
-    if (!name) return SGPU_RESULT_ALLOCATION_FAILED; \
+#define alloc_object(type, name)                                                   \
+    struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
+    if (!name) return SGPU_RESULT_ALLOCATION_FAILED;                               \
     name->backend = SGPU_BACKEND_METAL;
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
+
+#define dealloc_object(type, name) \
+    sbase_deallocate(name, sizeof(struct type), SBASE_ALLOCATION_GPU);
 
 /**
  * We only target Apple Silicon.
@@ -49,7 +52,7 @@ int sgpu_metal_create_default_device(sgpu_device_id* device) {
 void sgpu_metal_destroy_device(sgpu_device_id device) {
     cast_object(sgpu_metal_device, d, device);
     [d->device release];
-    free(device);
+    dealloc_object(sgpu_metal_device, d);
 }
 
 int sgpu_metal_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue) {
@@ -63,7 +66,7 @@ int sgpu_metal_create_command_queue(sgpu_device_id device, sgpu_command_queue_id
 void sgpu_metal_destroy_command_queue(sgpu_command_queue_id command_queue) {
     cast_object(sgpu_metal_command_queue, q, command_queue);
     [q->queue release];
-    free(q);
+    dealloc_object(sgpu_metal_command_queue, q);
 }
 
 int sgpu_metal_create_shader_library(sgpu_device_id device,
@@ -90,7 +93,7 @@ int sgpu_metal_create_shader_library(sgpu_device_id device,
 void sgpu_metal_destroy_shader_library(sgpu_metal_shader_library_id shader_library) {
     cast_object(sgpu_metal_shader_library, lib, shader_library);
     [lib->library release];
-    free(lib);
+    dealloc_object(sgpu_metal_shader_library, lib);
 }
 
 int sgpu_metal_create_shader_function(
@@ -112,7 +115,7 @@ int sgpu_metal_create_shader_function(
 void sgpu_metal_destroy_shader_function(sgpu_shader_function_id func) {
     cast_object(sgpu_metal_shader_function, f, func);
     [f->function release];
-    free(f);
+    dealloc_object(sgpu_metal_shader_function, f);
 }
 
 int sgpu_metal_create_render_pipeline(sgpu_device_id device,

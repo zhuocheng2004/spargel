@@ -13,5 +13,7 @@ int main() {
 
     spgl_resource_close_manager(&manager);
 
+    sbase_report_allocation();
+    sbase_check_leak();
     return 0;
 }

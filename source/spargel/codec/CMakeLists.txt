@@ -1,6 +1,7 @@
 spargel_add_library(
     NAME codec
     PRIVATE
+        codec.c
         cursor.c
         json.c
         ppm.c

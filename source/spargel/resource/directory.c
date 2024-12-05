@@ -20,7 +20,7 @@ static void normalize_path(struct sbase_string* path) {
     } else {
         ssize len = path->length;
         // FIXME
-        path->data = (char*)realloc(path->data, len + 2);
+        path->data = sbase_reallocate(path->data, len + 1, len + 2, SBASE_ALLOCATION_BASE);
         path->data[len] = PATH_SPLIT;
         path->data[len + 1] = '\0';
         path->length = len + 1;

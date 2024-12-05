@@ -1,14 +1,11 @@
 #include <spargel/base/const.h>
 #include <spargel/base/platform.h>
 
-/* libc */
-#include <stdlib.h>
-
 struct sbase_string spgl_get_executable_path() {
-    char* buf = (char*)malloc(PATH_MAX);
+    char* buf = sbase_allocate(PATH_MAX, SBASE_ALLOCATION_BASE);
     ssize len = _spgl_get_executable_path(buf, PATH_MAX);
     if (len >= PATH_MAX) {
-        buf = (char*)realloc(buf, len + 1);
+        buf = sbase_reallocate(buf, PATH_MAX, len + 1, SBASE_ALLOCATION_BASE);
         _spgl_get_executable_path(buf, len + 1);
     }
     buf[len] = '\0';

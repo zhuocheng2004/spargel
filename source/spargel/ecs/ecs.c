@@ -23,39 +23,54 @@ struct secs_world {
     struct entity_info* entities;
     ssize entity_count;
     ssize entity_capacity;
-    /* component name -> component info */
     struct {
-        // struct sbase_string* names;
         ssize* sizes;
         ssize count;
         ssize capacity;
     } components;
-    /* 56 bytes */
     struct archetype* archetypes;
     ssize archetype_count;
     ssize archetype_capacity;
 };
 
 secs_world_id secs_create_world() {
-    struct secs_world* world = malloc(sizeof(struct secs_world));
+    struct secs_world* world = sbase_allocate(sizeof(struct secs_world), SBASE_ALLOCATION_ECS);
     memset(world, 0, sizeof(struct secs_world));
     return world;
 }
 
 void secs_destroy_world(secs_world_id world) {
     if (!world) return;
-    if (world->entities) free(world->entities);
-    if (world->components.sizes) free(world->components.sizes);
+    if (world->entities)
+        sbase_deallocate(world->entities, sizeof(struct entity_info) * world->entity_capacity,
+                         SBASE_ALLOCATION_ECS);
     for (ssize i = 0; i < world->archetype_count; i++) {
         struct archetype* archetype = &world->archetypes[i];
-        if (archetype->entities) free(archetype->entities);
-        if (archetype->component_ids) free(archetype->component_ids);
         for (ssize j = 0; j < archetype->row_count; j++) {
-            if (archetype->components[j]) free(archetype->components[j]);
+            if (archetype->components[j])
+                sbase_deallocate(
+                    archetype->components[j],
+                    world->components.sizes[archetype->component_ids[j]] * archetype->col_capacity,
+                    SBASE_ALLOCATION_ECS);
         }
+        if (archetype->entities)
+            sbase_deallocate(archetype->entities, sizeof(secs_entity_id) * archetype->col_capacity,
+                             SBASE_ALLOCATION_ECS);
+        if (archetype->component_ids)
+            sbase_deallocate(archetype->component_ids,
+                             sizeof(secs_component_id) * archetype->row_count,
+                             SBASE_ALLOCATION_ECS);
+        if (archetype->components)
+            sbase_deallocate(archetype->components, sizeof(void*) * archetype->row_count,
+                             SBASE_ALLOCATION_ECS);
     }
-    if (world->archetypes) free(world->archetypes);
-    free(world);
+    if (world->components.sizes)
+        sbase_deallocate(world->components.sizes, sizeof(ssize) * world->components.capacity,
+                         SBASE_ALLOCATION_ECS);
+    if (world->archetypes)
+        sbase_deallocate(world->archetypes, sizeof(struct archetype) * world->archetype_capacity,
+                         SBASE_ALLOCATION_ECS);
+    sbase_deallocate(world, sizeof(struct secs_world), SBASE_ALLOCATION_ECS);
 }
 
 /**
@@ -69,7 +84,7 @@ static void grow_array(void** ptr, ssize* capacity, ssize stride, ssize need) {
     ssize cap2 = *capacity * 2;
     ssize new_cap = cap2 > need ? cap2 : need;
     if (new_cap < 8) new_cap = 8;
-    *ptr = realloc(*ptr, new_cap * stride);
+    *ptr = sbase_reallocate(*ptr, *capacity * stride, new_cap * stride, SBASE_ALLOCATION_ECS);
     *capacity = new_cap;
 }
 
@@ -132,9 +147,10 @@ static ssize create_archetype(secs_world_id world, ssize component_count,
     archetype->col_capacity = 0;
     archetype->entities = NULL;
     archetype->row_count = component_count;
-    archetype->component_ids = malloc(sizeof(secs_component_id) * component_count);
+    archetype->component_ids =
+        sbase_allocate(sizeof(secs_component_id) * component_count, SBASE_ALLOCATION_ECS);
     memcpy(archetype->component_ids, component_ids, sizeof(secs_component_id) * component_count);
-    archetype->components = malloc(sizeof(void*) * component_count);
+    archetype->components = sbase_allocate(sizeof(void*) * component_count, SBASE_ALLOCATION_ECS);
     memset(archetype->components, 0, sizeof(void*) * component_count);
     return id;
 }
@@ -147,12 +163,15 @@ int secs_spawn_entities(secs_world_id world, struct secs_spawn_descriptor* desc,
     }
     struct archetype* archetype = &world->archetypes[archetype_id];
     if (archetype->col_count + desc->entity_count > archetype->col_capacity) {
+        ssize old_capacity = archetype->col_capacity;
         grow_array((void**)&archetype->entities, &archetype->col_capacity, sizeof(secs_entity_id),
                    archetype->col_count + desc->entity_count);
         for (ssize i = 0; i < archetype->row_count; i++) {
-            archetype->components[i] = realloc(
+            archetype->components[i] = sbase_reallocate(
                 archetype->components[i],
-                world->components.sizes[archetype->component_ids[i]] * archetype->col_capacity);
+                world->components.sizes[archetype->component_ids[i]] * old_capacity,
+                world->components.sizes[archetype->component_ids[i]] * archetype->col_capacity,
+                SBASE_ALLOCATION_ECS);
         }
     }
     ssize offset = archetype->col_count;

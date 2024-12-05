@@ -5,7 +5,6 @@
 
 /* libc */
 #include <stdio.h>
-#include <stdlib.h>
 
 #define USE_VULKAN 1
 
@@ -14,7 +13,7 @@ static bool load_file(char const* path, void** data, ssize* size) {
     if (!file) return false;
     fseek(file, 0, SEEK_END);
     ssize len = ftell(file);
-    *data = malloc(len);
+    *data = sbase_allocate(len, SBASE_ALLOCATION_GPU);
     fseek(file, 0, SEEK_SET);
     fread(*data, len, 1, file);
     *size = len;
@@ -91,11 +90,15 @@ int main() {
 cleanup_shader_library:
 #if __APPLE__
     sgpu_metal_destroy_shader_library(metal_library);
+    sbase_deallocate(metal_library_data, metal_library_size, SBASE_ALLOCATION_GPU);
 #endif
 cleanup_queue:
     sgpu_destroy_command_queue(queue);
 cleanup_device:
     sgpu_destroy_device(device);
 cleanup_nothing:
+
+    sbase_report_allocation();
+    sbase_check_leak();
     return result;
 }
