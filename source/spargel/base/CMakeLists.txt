@@ -1,3 +1,6 @@
+
+spargel_add_option(SPARGEL_ENABLE_LOG_ANSI_COLOR "enable ANSI color for loggin" OFF)
+
 spargel_add_library(
     NAME base
     PRIVATE

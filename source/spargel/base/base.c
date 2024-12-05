@@ -65,6 +65,28 @@ void sbase_log(int level, char const* file, char const* func, ssize line, char c
     char const* name = sbase_log_names[level];
     struct sbase_log_timestamp time;
     sbase_log_get_time(&time);
+
+#if SPARGEL_ENABLE_LOG_ANSI_COLOR
+    switch (level) {
+    case 0:
+        fputs("\033[34m", stderr);
+        break;
+    case 1:
+        fputs("\033[36m", stderr);
+        break;
+    case 2:
+        fputs("\033[93m", stderr);
+        break;
+    case 3:
+    case 4:
+        fputs("\033[91m", stderr);
+        break;
+    default:
+        fputs("\033[0m", stderr);
+        break;
+    }
+#endif
+
     fprintf(stderr, "[%02d%02d/%02d%02d%02d.%06d:%s:%s:%s:%ld] ", time.mon, time.day, time.hour,
             time.min, time.sec, time.usec, name, file, func, line);
 
@@ -72,6 +94,11 @@ void sbase_log(int level, char const* file, char const* func, ssize line, char c
     va_start(ap, format);
     vfprintf(stderr, format, ap);
     va_end(ap);
+
+#if SPARGEL_ENABLE_LOG_ANSI_COLOR
+    fputs("\033[0m", stderr);
+#endif
+
     fprintf(stderr, "\n");
 }
 
