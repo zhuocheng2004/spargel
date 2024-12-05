@@ -22,18 +22,28 @@ enum sgpu_backend {
     SGPU_BACKEND_VULKAN,
 };
 
+struct sgpu_device_descriptor {
+    int backend;
+    int platform;
+};
+
 struct sgpu_render_pipeline_descriptor {};
 
 /**
  * @brief create default device
  */
-int sgpu_create_default_device(int backend, sgpu_device_id* device);
+int sgpu_create_default_device(struct sgpu_device_descriptor const* descriptor,
+                               sgpu_device_id* device);
 
 /**
  * @brief destroy device
  */
 void sgpu_destroy_device(sgpu_device_id device);
 
+/**
+ * Questions:
+ *  1. Metal has `MTLIOCommandQueue`.
+ */
 int sgpu_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue);
 
 void sgpu_destroy_command_queue(sgpu_command_queue_id queue);

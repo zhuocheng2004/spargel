@@ -2,7 +2,8 @@
 
 #include <spargel/gpu/gpu.h>
 
-int sgpu_metal_create_default_device(sgpu_device_id* device);
+int sgpu_metal_create_default_device(struct sgpu_device_descriptor const* descriptor,
+                                     sgpu_device_id* device);
 void sgpu_metal_destroy_device(sgpu_device_id device);
 int sgpu_metal_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue);
 void sgpu_metal_destroy_command_queue(sgpu_command_queue_id queue);

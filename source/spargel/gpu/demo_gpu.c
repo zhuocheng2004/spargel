@@ -8,22 +8,22 @@
 
 #define USE_VULKAN 1
 
-static bool load_file(char const* path, void** data, ssize* size) {
-    FILE* file = fopen(path, "rb");
-    if (!file) return false;
-    fseek(file, 0, SEEK_END);
-    ssize len = ftell(file);
-    *data = sbase_allocate(len, SBASE_ALLOCATION_GPU);
-    fseek(file, 0, SEEK_SET);
-    fread(*data, len, 1, file);
-    *size = len;
-    return true;
-}
+// static bool load_file(char const* path, void** data, ssize* size) {
+//     FILE* file = fopen(path, "rb");
+//     if (!file) return false;
+//     fseek(file, 0, SEEK_END);
+//     ssize len = ftell(file);
+//     *data = sbase_allocate(len, SBASE_ALLOCATION_GPU);
+//     fseek(file, 0, SEEK_SET);
+//     fread(*data, len, 1, file);
+//     *size = len;
+//     return true;
+// }
 
 int main() {
     // sui_init_platform();
     // sui_window_id window = sui_create_window(500, 500);
-    // ui_window_set_title(window, "Spargel Demo - GPU");
+    // sui_window_set_title(window, "Spargel Demo - GPU");
 
     int result = 0;
 
@@ -34,7 +34,12 @@ int main() {
 #endif
 
     sgpu_device_id device;
-    result = sgpu_create_default_device(gpu_backend, &device);
+    result = sgpu_create_default_device(
+        &(struct sgpu_device_descriptor){
+            .backend = gpu_backend,
+            .platform = sui_platform_id(),
+        },
+        &device);
     if (result != 0) goto cleanup_nothing;
     sbase_log_info("device created");
 
@@ -43,7 +48,7 @@ int main() {
     if (result != 0) goto cleanup_device;
     sbase_log_info("command queue created");
 
-#if SPARGEL_IS_MACOS
+#if SPARGEL_IS_MACOS && !USE_VULKAN
     void* metal_library_data;
     ssize metal_library_size;
     if (!load_file("source/spargel/renderer/shader.metallib", &metal_library_data,
@@ -66,7 +71,6 @@ int main() {
     sgpu_shader_function_id vertex_func;
 
 #if USE_VULKAN
-
     result = sgpu_vulkan_create_shader_function(device,
                                                 &(struct sgpu_vulkan_shader_function_descriptor){
                                                     .code = NULL,
@@ -86,15 +90,15 @@ int main() {
     if (result != 0) goto cleanup_shader_library;
     sbase_log_info("vertex shader function created");
 
-    // spargel_ui_platform_run();
+    // sui_platform_run();
 
     sgpu_destroy_shader_function(vertex_func);
 cleanup_shader_library:
-#if SPARGEL_IS_MACOS
+#if SPARGEL_IS_MACOS && !USE_VULKAN
     sgpu_metal_destroy_shader_library(metal_library);
     sbase_deallocate(metal_library_data, metal_library_size, SBASE_ALLOCATION_GPU);
-#endif
 cleanup_queue:
+#endif
     sgpu_destroy_command_queue(queue);
 cleanup_device:
     sgpu_destroy_device(device);

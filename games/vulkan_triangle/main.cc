@@ -1,5 +1,5 @@
-#include "spargel/ui/platform.h"
-#include "spargel/ui/window.h"
+#include <spargel/ui/ui.h>
+
 #include "vulkan_triangle/app.h"
 #include "vulkan_triangle/logging.h"
 
@@ -13,27 +13,25 @@
 using enum base::logging::LogLevel;
 
 int main() {
-  auto platform = spargel::ui::Platform::create();
-  platform->init();
+    sui_init_platform();
 
-  auto window = platform->createWindow();
-  window->init(500, 500);
-  window->setTitle("Vulkan Triangle");
+    auto window = sui_create_window(500, 500);
+    sui_window_set_title(window, "Vulkan Triangle");
 
 #if __APPLE__
-  AppDelegateMac delegate(window);
+    AppDelegateMac delegate(window);
 #elif _WIN32
 //  AppDelegateWin delegate;
 #else
 #error "unsupported platform"
 #endif
 
-  App app(&delegate);
-  LOG(Info, "before init");
-  if (!app.Init()) return 1;
+    App app(&delegate);
+    LOG(Info, "before init");
+    if (!app.Init()) return 1;
 
-  window->setDelegate(&app);
+    sui_window_set_render_callback(window, &App::render, &app);
 
-  platform->run();
-  return 0;
+    sui_platform_run();
+    return 0;
 }

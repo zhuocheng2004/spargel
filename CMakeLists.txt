@@ -36,7 +36,7 @@ if(SPARGEL_IS_MACOS)
   find_library(FRAMEWORK_QUARTZ_CORE QuartzCore)
 endif()
 
-#add_subdirectory(games)
+add_subdirectory(games)
 add_subdirectory(source)
 
 #add_subdirectory(third_party/glad/repo)

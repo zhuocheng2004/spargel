@@ -1,5 +1,4 @@
 #include <spargel/gpu/gpu_metal.h>
-// #include <spargel/gpu/operations.h>
 
 /* libc */
 #include <stdlib.h>
@@ -42,7 +41,8 @@ struct sgpu_metal_shader_function {
     id<MTLFunction> function;
 };
 
-int sgpu_metal_create_default_device(sgpu_device_id* device) {
+int sgpu_metal_create_default_device(struct sgpu_device_descriptor const* descriptor,
+                                     sgpu_device_id* device) {
     alloc_object(sgpu_metal_device, d);
     d->device = MTLCreateSystemDefaultDevice();
     *device = (sgpu_device_id)d;

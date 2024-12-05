@@ -2,15 +2,8 @@
 
 #include <spargel/gpu/gpu.h>
 
-#if SPARGEL_IS_LINUX
-#define VULKAN_LIB_FILENAME "libvulkan.so.1"
-#elif SPARGEL_IS_MACOS
-#define VULKAN_LIB_FILENAME "libvulkan.dylib"
-#elif SPARGEL_IS_WINDOWS
-#define VULKAN_LIB_FILENAME "vulkan-1.dll"
-#endif
-
-int sgpu_vulkan_create_default_device(sgpu_device_id* device);
+int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descriptor,
+                                      sgpu_device_id* device);
 void sgpu_vulkan_destroy_device(sgpu_device_id device);
 int sgpu_vulkan_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue);
 void sgpu_vulkan_destroy_command_queue(sgpu_command_queue_id queue);

@@ -1,5 +1,4 @@
 #include <spargel/codec/codec.h>
-#include <spargel/gpu/gpu.h>
 #include <spargel/renderer/renderer.h>
 #include <spargel/ui/ui.h>
 
@@ -15,14 +14,6 @@ int main(int argc, char* argv[]) {
     sui_init_platform();
     sui_window_id window = sui_create_window(500, 500);
     sui_window_set_title(window, "Spargel Editor");
-
-#if __APPLE__
-    int gpu_backend = SGPU_BACKEND_METAL;
-#else
-    int gpu_backend = SGPU_BACKEND_VULKAN;
-#endif
-    sgpu_device_id device;
-    sgpu_create_default_device(gpu_backend, &device);
 
     struct spargel_codec_image image;
     spargel_codec_load_ppm_image(argv[1], &image);

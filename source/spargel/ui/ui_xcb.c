@@ -41,6 +41,8 @@ void sui_init_platform() {
     printf("\n");
 }
 
+int sui_platform_id() { return SUI_PLATFORM_XCB; }
+
 void sui_platform_run() {
     int should_stop = 0;
     xcb_generic_event_t* event;

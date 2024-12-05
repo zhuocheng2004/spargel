@@ -13,15 +13,16 @@
 #if SPARGEL_GPU_ENABLE_DIRECTX
 #endif
 
-int sgpu_create_default_device(int backend, sgpu_device_id* device) {
-    switch (backend) {
+int sgpu_create_default_device(struct sgpu_device_descriptor const* descriptor,
+                               sgpu_device_id* device) {
+    switch (descriptor->backend) {
 #if SPARGEL_GPU_ENABLE_METAL
     case SGPU_BACKEND_METAL:
-        return sgpu_metal_create_default_device(device);
+        return sgpu_metal_create_default_device(descriptor, device);
 #endif
 #if SPARGEL_GPU_ENABLE_VULKAN
     case SGPU_BACKEND_VULKAN:
-        return sgpu_vulkan_create_default_device(device);
+        return sgpu_vulkan_create_default_device(descriptor, device);
 #endif
 #if SPARGEL_GPU_ENABLE_DIRECTX
     case SGPU_BACKEND_DIRECTX:

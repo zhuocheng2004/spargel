@@ -91,6 +91,8 @@ void sui_init_platform() {
     init_global_menu();
 }
 
+int sui_platform_id() { return SUI_PLATFORM_APPKIT; }
+
 void sui_platform_run() {
     /* run until stop: or terminate: */
     [NSApp run];

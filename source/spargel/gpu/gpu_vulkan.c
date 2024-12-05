@@ -1,6 +1,7 @@
 #include <spargel/base/base.h>
 #include <spargel/config.h>
 #include <spargel/gpu/gpu_vulkan.h>
+#include <spargel/ui/ui.h>
 
 /* libc */
 #include <stdlib.h>
@@ -22,6 +23,14 @@
 /* after xcb */
 #include <vulkan/vulkan_wayland.h>
 #include <vulkan/vulkan_xcb.h>
+#endif
+
+#if SPARGEL_IS_LINUX
+#define VULKAN_LIB_FILENAME "libvulkan.so.1"
+#elif SPARGEL_IS_MACOS
+#define VULKAN_LIB_FILENAME "libvulkan.dylib"
+#elif SPARGEL_IS_WINDOWS
+#define VULKAN_LIB_FILENAME "vulkan-1.dll"
 #endif
 
 #define alloc_object(type, name)                                                   \
@@ -51,8 +60,17 @@ struct sgpu_vulkan_device {
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;
     VkPhysicalDevice physical_device;
+    u32 queue_family;
     VkDevice device;
     struct sgpu_vulkan_proc_table procs;
+};
+
+struct sgpu_vulkan_command_queue {
+    int backend;
+};
+
+struct sgpu_vulkan_shader_function {
+    int backend;
 };
 
 #define CHECK_VK_RESULT(expr)                                          \
@@ -115,8 +133,28 @@ static VkBool32 sgpu_vulkan_debug_messenger_callback(
     return VK_FALSE;
 }
 
-static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
-    struct sgpu_vulkan_proc_table* procs = &device->procs;
+static float const sgpu_vulkan_queue_priorities[64] = {
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+};
+
+int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descriptor,
+                                      sgpu_device_id* device) {
+    alloc_object(sgpu_vulkan_device, d);
+    d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
+    if (d->library == NULL) {
+        dealloc_object(sgpu_vulkan_device, d);
+        return SGPU_RESULT_NO_BACKEND;
+    }
+
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dlsym(d->library, "vkGetInstanceProcAddr");
+    d->procs.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+#define VULKAN_GENERAL_PROC(name) d->procs.name = (PFN_##name)vkGetInstanceProcAddr(NULL, #name);
+#include <spargel/gpu/vulkan_procs.inc>
+
+    struct sgpu_vulkan_proc_table* procs = &d->procs;
 
     /* step 1. enumerate layers */
     struct array all_layers;
@@ -245,8 +283,12 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
     }
 #endif
 #if SPARGEL_IS_LINUX
-    if (!has_xcb_surface && !has_wayland_surface) {
-        sbase_log_fatal("VK_KHR_xcb_surface or VK_KHR_wayland_surface is required");
+    if (descriptor->platform == SUI_PLATFORM_XCB && !has_xcb_surface) {
+        sbase_log_fatal("VK_KHR_xcb_surface is required");
+        sbase_panic_here();
+    }
+    if (descriptor->platform == SUI_PLATFORM_WAYLAND && !has_wayland_surface) {
+        sbase_log_fatal("VK_KHR_wayland_surface is required");
         sbase_panic_here();
     }
 #endif
@@ -282,13 +324,11 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
             info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         }
 
-        CHECK_VK_RESULT(device->procs.vkCreateInstance(&info, NULL, &instance));
-        device->instance = instance;
+        CHECK_VK_RESULT(procs->vkCreateInstance(&info, NULL, &instance));
+        d->instance = instance;
     }
 
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = device->procs.vkGetInstanceProcAddr;
-#define VULKAN_INSTANCE_PROC(name) \
-    device->procs.name = (PFN_##name)vkGetInstanceProcAddr(instance, #name);
+#define VULKAN_INSTANCE_PROC(name) procs->name = (PFN_##name)vkGetInstanceProcAddr(instance, #name);
 #include <spargel/gpu/vulkan_procs.inc>
 
     deinit_array(use_exts);
@@ -313,7 +353,7 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
         info.pUserData = 0;
 
         CHECK_VK_RESULT(
-            procs->vkCreateDebugUtilsMessengerEXT(instance, &info, 0, &device->debug_messenger));
+            procs->vkCreateDebugUtilsMessengerEXT(instance, &info, 0, &d->debug_messenger));
     }
 
     /* step 7. enumerate physical devices */
@@ -330,41 +370,156 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
 
     /* step 8. choose a physical device */
     /**
+     * Spec:
+     *
      * The general expectation is that a physical device groups all queues of matching capabilities
      * into a single family. However, while implementations should do this, it is possible that a
      * physical device may return two separate queue families with the same capabilities.
-     */
-    /**
+     *
+     *
      * If an implementation exposes any queue family that supports graphics operations, at least one
      * queue family of at least one physical device exposed by the implementation must support both
      * graphics and compute operations.
-     */
-    /**
+     *
+     *
      * All commands that are allowed on a queue that supports transfer operations are also allowed
      * on a queue that supports either graphics or compute operations. Thus, if the capabilities of
      * a queue family include VK_QUEUE_GRAPHICS_BIT or VK_QUEUE_COMPUTE_BIT, then reporting the
      * VK_QUEUE_TRANSFER_BIT capability separately for that queue family is optional.
      */
+    /**
+     * We need one graphics queue. So there exists one queue family that supports both graphics and
+     * compute.
+     */
 
-    deinit_array(adapters);
+    struct array queue_families;
+    init_array(&queue_families, sizeof(VkQueueFamilyProperties));
 
-    return SGPU_RESULT_SUCCESS;
-}
+    VkPhysicalDevice adapter;
+    ssize queue_family_index;
 
-int sgpu_vulkan_create_default_device(sgpu_device_id* device) {
-    alloc_object(sgpu_vulkan_device, d);
-    d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
-    if (d->library == NULL) {
-        dealloc_object(sgpu_vulkan_device, d);
-        return SGPU_RESULT_NO_BACKEND;
+    for (ssize i = 0; i < adapters.count; i++) {
+        queue_families.count = 0;
+
+        adapter = *(VkPhysicalDevice*)array_at(adapters, i);
+
+        VkPhysicalDeviceProperties prop;
+        procs->vkGetPhysicalDeviceProperties(adapter, &prop);
+        sbase_log_info("adapter # %ld %s", i, prop.deviceName);
+
+        /* step 8.1. check queue families */
+        /* We use only one queue family for now. */
+        {
+            u32 count;
+            procs->vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count, 0);
+            array_reserve(&queue_families, count);
+            procs->vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count, queue_families.data);
+            queue_families.count = count;
+        }
+        queue_family_index = -1;
+        for (ssize j = 0; j < queue_families.count; j++) {
+            VkQueueFamilyProperties* prop = array_at(queue_families, j);
+            /**
+             * Spec:
+             * Each queue family must support at least one queue.
+             */
+            /* advertising VK_QUEUEU_TRANSFER_BIT is optional */
+            VkQueueFlags flags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT;
+            if (prop->queueFlags & flags) {
+                /* now check for presentation */
+                /* todo: how ??? */
+                queue_family_index = j;
+                break;
+            }
+        }
+        if (queue_family_index < 0) continue;
+
+        /* no more requirements */
+        break;
     }
 
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dlsym(d->library, "vkGetInstanceProcAddr");
-    d->procs.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
-#define VULKAN_GENERAL_PROC(name) d->procs.name = (PFN_##name)vkGetInstanceProcAddr(NULL, #name);
+    d->physical_device = adapter;
+    d->queue_family = queue_family_index;
+
+    deinit_array(queue_families);
+    deinit_array(adapters);
+
+    /* step 9. enumerate device extensions */
+    init_array(&all_exts, sizeof(struct VkExtensionProperties));
+    {
+        u32 count;
+        CHECK_VK_RESULT(procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, 0));
+        array_reserve(&all_exts, count);
+        CHECK_VK_RESULT(
+            procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, all_exts.data));
+        all_exts.count = count;
+    }
+    for (ssize i = 0; i < all_exts.count; i++) {
+        sbase_log_info("device extension #%ld = %s", i,
+                       ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName);
+    }
+
+    /* step 10. choose device extensions */
+
+    init_array(&use_exts, sizeof(char const*));
+
+    bool has_swapchain = false;
+
+    for (ssize i = 0; i < all_exts.count; i++) {
+        struct VkExtensionProperties* prop = array_at(all_exts, i);
+        if (strcmp(prop->extensionName, "VK_KHR_swapchain") == 0) {
+            char const** ptr = array_push(&use_exts);
+            *ptr = "VK_KHR_swapchain";
+            has_swapchain = true;
+            sbase_log_info("use instance extension VK_KHR_surface");
+        } else if (strcmp(prop->extensionName, "VK_KHR_portability_subset") == 0) {
+            char const** ptr = array_push(&use_exts);
+            *ptr = "VK_KHR_portability_subset";
+            sbase_log_info("use instance extension VK_KHR_portability_subset");
+        }
+    }
+
+    if (!has_swapchain) {
+        sbase_log_fatal("VK_KHR_swapchain is required");
+        sbase_panic();
+    }
+
+    /* step 10. create device */
+
+    VkDevice dev;
+
+    {
+        VkDeviceQueueCreateInfo queue_info;
+        queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_info.pNext = 0;
+        queue_info.flags = 0;
+        queue_info.queueFamilyIndex = queue_family_index;
+        queue_info.queueCount = 1;
+        queue_info.pQueuePriorities = sgpu_vulkan_queue_priorities;
+
+        VkDeviceCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        info.queueCreateInfoCount = 1;
+        info.pQueueCreateInfos = &queue_info;
+        info.enabledLayerCount = 0;
+        info.ppEnabledLayerNames = 0;
+        info.enabledExtensionCount = use_exts.count;
+        info.ppEnabledExtensionNames = use_exts.data;
+        info.pEnabledFeatures = 0;
+
+        CHECK_VK_RESULT(procs->vkCreateDevice(adapter, &info, 0, &dev));
+        d->device = dev;
+    }
+
+    PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = procs->vkGetDeviceProcAddr;
+#define VULKAN_DEVICE_PROC(name) procs->name = (PFN_##name)vkGetDeviceProcAddr(dev, #name);
 #include <spargel/gpu/vulkan_procs.inc>
 
-    sgpu_vulkan_create_instance(d);
+    deinit_array(use_exts);
+    deinit_array(all_exts);
+
     *device = (sgpu_device_id)d;
     return SGPU_RESULT_SUCCESS;
 }
@@ -373,6 +528,7 @@ void sgpu_vulkan_destroy_device(sgpu_device_id device) {
     cast_object(sgpu_vulkan_device, d, device);
     struct sgpu_vulkan_proc_table* procs = &d->procs;
 
+    procs->vkDestroyDevice(d->device, 0);
     if (d->debug_messenger)
         procs->vkDestroyDebugUtilsMessengerEXT(d->instance, d->debug_messenger, 0);
     procs->vkDestroyInstance(d->instance, 0);
@@ -382,15 +538,25 @@ void sgpu_vulkan_destroy_device(sgpu_device_id device) {
 }
 
 int sgpu_vulkan_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue) {
-    sbase_panic_here();
+    alloc_object(sgpu_vulkan_command_queue, q);
+    *queue = (sgpu_command_queue_id)q;
+    return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_vulkan_destroy_command_queue(sgpu_command_queue_id queue) { sbase_panic_here(); }
-
-void sgpu_vulkan_destroy_shader_function(sgpu_shader_function_id func) { sbase_panic_here(); }
+void sgpu_vulkan_destroy_command_queue(sgpu_command_queue_id queue) {
+    cast_object(sgpu_vulkan_command_queue, q, queue);
+    dealloc_object(sgpu_vulkan_command_queue, q);
+}
 
 int sgpu_vulkan_create_shader_function(
     sgpu_device_id device, struct sgpu_vulkan_shader_function_descriptor const* descriptor,
     sgpu_shader_function_id* func) {
-    sbase_panic_here();
+    alloc_object(sgpu_vulkan_shader_function, f);
+    *func = (sgpu_shader_function_id)f;
+    return SGPU_RESULT_SUCCESS;
+}
+
+void sgpu_vulkan_destroy_shader_function(sgpu_shader_function_id func) {
+    cast_object(sgpu_vulkan_shader_function, f, func);
+    dealloc_object(sgpu_vulkan_shader_function, f);
 }
