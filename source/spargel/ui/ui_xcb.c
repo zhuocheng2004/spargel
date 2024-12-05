@@ -119,7 +119,7 @@ sui_window_id sui_create_window(int width, int height) {
 
 void sui_destroy_window(sui_window_id window) { puts("TODO: sui_destroy_window\n"); }
 
-void ui_window_set_title(sui_window_id window, char const* title) {
+void sui_window_set_title(sui_window_id window, char const* title) {
     puts("TODO: sui_window_set_title\n");
 }
 
