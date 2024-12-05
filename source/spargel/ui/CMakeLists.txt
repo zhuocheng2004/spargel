@@ -1,12 +1,22 @@
 spargel_add_library(
     NAME ui
     PRIVATE_LINUX
-        dummy.c
+        ui_xcb.c
     PRIVATE_MACOS
         ui_mac.m
     PRIVATE_WINDOWS
         dummy.c
 )
+
+if (SPARGEL_IS_LINUX)
+    find_package(X11)
+    if (X11_FOUND AND X11_xcb_FOUND)
+        target_include_directories(ui PRIVATE ${X11_INCLUDE_DIR} ${X11_xcb_INCLUDE_PATH})
+        target_link_libraries(ui PRIVATE ${X11_LIBRARIES} ${X11_xcb_LIB})
+    else ()
+        message(FATAL_ERROR "X11/Xcb not found")
+    endif ()
+endif ()
 
 if (APPLE)
   find_library(FRAMEWORK_APP_KIT AppKit)

@@ -1,7 +1,7 @@
 #include <spargel/base/base.h>
 #include <spargel/renderer/renderer.h>
 
-spargel_renderer_id spargel_create_renderer(spargel_ui_window_id window) { sbase_panic_here(); }
+spargel_renderer_id spargel_create_renderer(sui_window_id window) { sbase_panic_here(); }
 
 spargel_renderer_texture_id spargel_renderer_add_texture(
     spargel_renderer_id renderer, struct spargel_renderer_texture_descriptor const* descriptor) {
