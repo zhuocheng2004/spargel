@@ -4,6 +4,7 @@ spargel_add_library(
         gpu.c
     DEPS
         base
+        spargel_config
 )
 
 # if(${SPARGEL_GPU_ENABLE_DIRECTX})

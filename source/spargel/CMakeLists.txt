@@ -11,6 +11,7 @@ spargel_add_option(SPARGEL_ENABLE_COVERAGE "enable coverge" OFF)
 spargel_add_option(SPARGEL_TRACE_ALLOCATION "trace allocation" ON)
 spargel_add_option(SPARGEL_ENABLE_CHECK "enable CHECK()" ON)
 spargel_add_option(SPARGEL_ENABLE_DCHECK "enable DCHECK()" ON)
+
 if(SPARGEL_IS_WINDOWS)
   set(SPARGEL_GPU_ENABLE_DIRECTX_DEFAULT ON)
 else()

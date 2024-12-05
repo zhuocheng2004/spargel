@@ -30,10 +30,14 @@ VULKAN_INSTANCE_PROC(vkGetDeviceProcAddr)
 VULKAN_INSTANCE_PROC(vkCreateDebugUtilsMessengerEXT)
 VULKAN_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT)
 
-#if defined(__APPLE__)
+#if SPARGEL_IS_LINUX
+VULKAN_INSTANCE_PROC(vkCreateXcbSurfaceKHR)
+VULKAN_INSTANCE_PROC(vkCreateWaylandSurfaceKHR)
+#endif
+#if SPARGEL_IS_MACOS
 VULKAN_INSTANCE_PROC(vkCreateMetalSurfaceEXT)
 #endif
-#if defined(_WIN32)
+#if SPARGEL_IS_WINDOWS
 VULKAN_INSTANCE_PROC(vkCreateWin32SurfaceKHR)
 #endif
 
@@ -81,8 +85,8 @@ VULKAN_DEVICE_PROC(vkGetSwapchainImagesKHR)
 VULKAN_DEVICE_PROC(vkAcquireNextImageKHR)
 
 // requires synchronization2
-VULKAN_DEVICE_PROC(vkQueueSubmit2KHR)
-VULKAN_DEVICE_PROC(vkCmdPipelineBarrier2KHR)
+// VULKAN_DEVICE_PROC(vkQueueSubmit2KHR)
+// VULKAN_DEVICE_PROC(vkCmdPipelineBarrier2KHR)
 
 VULKAN_DEVICE_PROC(vkQueueSubmit)
 VULKAN_DEVICE_PROC(vkQueuePresentKHR)

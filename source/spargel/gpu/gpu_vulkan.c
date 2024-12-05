@@ -1,4 +1,5 @@
 #include <spargel/base/base.h>
+#include <spargel/config.h>
 #include <spargel/gpu/gpu_vulkan.h>
 
 /* libc */
@@ -12,8 +13,15 @@
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan_core.h>
 
-#if defined(__APPLE__)
+#if SPARGEL_IS_MACOS
 #include <vulkan/vulkan_metal.h>
+#endif
+
+#if SPARGEL_IS_LINUX
+#include <xcb/xcb.h>
+/* after xcb */
+#include <vulkan/vulkan_wayland.h>
+#include <vulkan/vulkan_xcb.h>
 #endif
 
 #define alloc_object(type, name)                                                   \
@@ -162,6 +170,18 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
      * VK_EXT_debug_utils (debug);
      * VK_EXT_metal_surface (platform);
      */
+    /**
+     * VK_KHR_portability_enumeration
+     *
+     * This extension allows applications to control whether devices that expose the
+     * VK_KHR_portability_subset extension are included in the results of physical device
+     * enumeration. Since devices which support the VK_KHR_portability_subset extension are not
+     * fully conformant Vulkan implementations, the Vulkan loader does not report those devices
+     * unless the application explicitly asks for them. This prevents applications which may not be
+     * aware of non-conformant devices from accidentally using them, as any device which supports
+     * the VK_KHR_portability_subset extension mandates that the extension must be enabled if that
+     * device is used.
+     */
     struct array use_exts;
     init_array(&use_exts, sizeof(char const*));
     bool has_surface = false;
@@ -169,6 +189,10 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
     bool has_debug_utils = false;
 #if SPARGEL_IS_MACOS
     bool has_metal_surface = false;
+#endif
+#if SPARGEL_IS_LINUX
+    bool has_xcb_surface = false;
+    bool has_wayland_surface = false;
 #endif
     for (ssize i = 0; i < all_exts.count; i++) {
         char const* name = ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName;
@@ -196,6 +220,19 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
             sbase_log_info("use instance extension VK_EXT_metal_surface");
         }
 #endif
+#if SPARGEL_IS_LINUX
+        else if (strcmp(name, "VK_KHR_xcb_surface") == 0) {
+            char const** ptr = array_push(&use_exts);
+            *ptr = "VK_KHR_xcb_surface";
+            has_xcb_surface = true;
+            sbase_log_info("use instance extension VK_KHR_xcb_surface");
+        } else if (strcmp(name, "VK_KHR_wayland_surface") == 0) {
+            char const** ptr = array_push(&use_exts);
+            *ptr = "VK_KHR_wayland_surface";
+            has_wayland_surface = true;
+            sbase_log_info("use instance extension VK_KHR_wayland_surface");
+        }
+#endif
     }
     if (!has_surface) {
         sbase_log_fatal("VK_KHR_surface is required");
@@ -204,6 +241,12 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
 #if SPARGEL_IS_MACOS
     if (!has_metal_surface) {
         sbase_log_fatal("VK_EXT_metal_surface is required");
+        sbase_panic_here();
+    }
+#endif
+#if SPARGEL_IS_LINUX
+    if (!has_xcb_surface && !has_wayland_surface) {
+        sbase_log_fatal("VK_KHR_xcb_surface or VK_KHR_wayland_surface is required");
         sbase_panic_here();
     }
 #endif
@@ -230,6 +273,11 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
         info.enabledExtensionCount = use_exts.count;
         info.ppEnabledExtensionNames = use_exts.data;
 
+        /**
+         * VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR specifies that the instance will
+         * enumerate available Vulkan Portability-compliant physical devices and groups in addition
+         * to the Vulkan physical devices and groups that are enumerated by default.
+         */
         if (has_portability) {
             info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
         }
@@ -279,6 +327,24 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
         CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, adapters.data));
         adapters.count = count;
     }
+
+    /* step 8. choose a physical device */
+    /**
+     * The general expectation is that a physical device groups all queues of matching capabilities
+     * into a single family. However, while implementations should do this, it is possible that a
+     * physical device may return two separate queue families with the same capabilities.
+     */
+    /**
+     * If an implementation exposes any queue family that supports graphics operations, at least one
+     * queue family of at least one physical device exposed by the implementation must support both
+     * graphics and compute operations.
+     */
+    /**
+     * All commands that are allowed on a queue that supports transfer operations are also allowed
+     * on a queue that supports either graphics or compute operations. Thus, if the capabilities of
+     * a queue family include VK_QUEUE_GRAPHICS_BIT or VK_QUEUE_COMPUTE_BIT, then reporting the
+     * VK_QUEUE_TRANSFER_BIT capability separately for that queue family is optional.
+     */
 
     deinit_array(adapters);
 
