@@ -20,6 +20,12 @@
 #define SPARGEL_ATTRIBUTE_NORETURN
 #endif
 
+#if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
+#define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg) __attribute__((format(printf, format_arg, params_arg)))
+#else
+#define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg)
+#endif
+
 #if SPARGEL_ENABLE_CHECK
 #define CHECK(cond) ((cond) ? (void)(0) : sbase_panic_here())
 #else
@@ -39,6 +45,30 @@ void sbase_panic() SPARGEL_ATTRIBUTE_NORETURN;
 void sbase_panic_at(char const* file, char const* func, ssize line) SPARGEL_ATTRIBUTE_NORETURN;
 
 #define sbase_panic_here() sbase_panic_at(__FILE__, __func__, __LINE__)
+
+/* logging */
+
+enum sbase_log_level {
+    /* message for debugging */
+    SBASE_LOG_DEBUG = 0,
+    /* general log events */
+    SBASE_LOG_INFO,
+    /* warning, not necessarily shown to users */
+    SBASE_LOG_WARN,
+    /* error that can recover from */
+    SBASE_LOG_ERROR,
+    /* nothing more can be done other than aborting */
+    SBASE_LOG_FATAL,
+};
+
+void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...) SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6);
+
+#define SBASE_LOG_IMPL(level, ...) sbase_log(level, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define sbase_log_debug(...) SBASE_LOG_IMPL(SBASE_LOG_DEBUG, __VA_ARGS__)
+#define sbase_log_info(...) SBASE_LOG_IMPL(SBASE_LOG_INFO, __VA_ARGS__)
+#define sbase_log_warn(...) SBASE_LOG_IMPL(SBASE_LOG_WARN, __VA_ARGS__)
+#define sbase_log_error(...) SBASE_LOG_IMPL(SBASE_LOG_ERROR, __VA_ARGS__)
+#define sbase_log_fatal(...) do { SBASE_LOG_IMPL(SBASE_LOG_FATAL, __VA_ARGS__); sbase_panic_here(); } while (0)
 
 /* backtrace */
 

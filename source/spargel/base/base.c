@@ -1,9 +1,15 @@
 #include <spargel/base/base.h>
 
 /* libc */
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* platform */
+#if defined(SPARGEL_IS_LINUX) || defined(SPARGEL_IS_MACOS)
+#include <sys/time.h>
+#endif
 
 void sbase_panic_at(char const* file, char const* func, ssize line) {
     /* todo: rewrite fprintf */
@@ -19,6 +25,56 @@ void sbase_panic_at(char const* file, char const* func, ssize line) {
 }
 
 void sbase_panic() { sbase_panic_at("<unknown>", "<unknown>", 0); }
+
+static char const* sbase_log_names[] = {
+    "DEBUG",
+    "INFO",
+    "WARN",
+    "ERROR",
+    "FATAL",
+};
+
+struct sbase_log_timestamp {
+    int mon;
+    int day;
+    int hour;
+    int min;
+    int sec;
+    int usec;
+};
+
+static void sbase_log_get_time(struct sbase_log_timestamp* time) {
+#if defined(SPARGEL_IS_LINUX) || defined(SPARGEL_IS_MACOS)
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    time_t t = tv.tv_sec;
+    struct tm local_time;
+    localtime_r(&t, &local_time);
+    struct tm* tm_time = &local_time;
+    time->mon = tm_time->tm_mon + 1;
+    time->day = tm_time->tm_mday;
+    time->hour = tm_time->tm_hour;
+    time->min = tm_time->tm_min;
+    time->sec = tm_time->tm_sec;
+    time->usec = tv.tv_usec;
+#else
+#error unimplemented
+#endif
+}
+
+void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...) {
+    DCHECK(level >= 0 && level <= 4);
+    char const* name = sbase_log_names[level];
+    struct sbase_log_timestamp time;
+    sbase_log_get_time(&time);
+    fprintf(stderr, "[%02d%02d/%02d%02d%02d.%06d:%s:%s:%s:%ld] ", time.mon, time.day, time.hour, time.min, time.sec, time.usec, name, file, func, line);
+
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+    fprintf(stderr, "\n");
+}
 
 struct sbase_string sbase_string_from_range(char const* begin, char const* end) {
     CHECK(begin <= end);

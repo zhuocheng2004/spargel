@@ -28,3 +28,9 @@ spargel_add_executable(
     PRIVATE panic_demo.c
     DEPS base
 )
+
+spargel_add_executable(
+    NAME log_demo
+    PRIVATE log_demo.c
+    DEPS base
+)
