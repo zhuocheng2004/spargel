@@ -5,3 +5,28 @@ add_subdirectory(gpu)
 add_subdirectory(renderer)
 add_subdirectory(resource)
 add_subdirectory(ui)
+
+spargel_add_option(SPARGEL_ENABLE_SANITIZER_ADDRESS "enable asan" ON)
+spargel_add_option(SPARGEL_ENABLE_COVERAGE "enable coverge" OFF)
+spargel_add_option(SPARGEL_TRACE_ALLOCATION "trace allocation" ON)
+spargel_add_option(SPARGEL_ENABLE_CHECK "enable CHECK()" ON)
+spargel_add_option(SPARGEL_ENABLE_DCHECK "enable DCHECK()" ON)
+if(SPARGEL_IS_WINDOWS)
+  set(SPARGEL_GPU_ENABLE_DIRECTX_DEFAULT ON)
+else()
+  set(SPARGEL_GPU_ENABLE_DIRECTX_DEFAULT OFF)
+endif()
+
+if(SPARGEL_IS_MACOS)
+  set(SPARGEL_GPU_ENABLE_METAL_DEFAULT ON)
+else()
+  set(SPARGEL_GPU_ENABLE_METAL_DEFAULT OFF)
+endif()
+
+spargel_add_option(SPARGEL_GPU_ENABLE_DIRECTX "enable directx backend" ${SPARGEL_GPU_ENABLE_DIRECTX_DEFAULT})
+spargel_add_option(SPARGEL_GPU_ENABLE_METAL "enable metal backend" ${SPARGEL_GPU_ENABLE_METAL_DEFAULT})
+spargel_add_option(SPARGEL_GPU_ENABLE_VULKAN "enable vulkan backend" ON)
+
+configure_file(config.h.in config.h @ONLY)
+
+add_library(spargel_config INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/config.h)

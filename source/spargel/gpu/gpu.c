@@ -1,4 +1,5 @@
 #include <spargel/base/base.h>
+#include <spargel/config.h>
 #include <spargel/gpu/gpu.h>
 
 #if SPARGEL_GPU_ENABLE_METAL

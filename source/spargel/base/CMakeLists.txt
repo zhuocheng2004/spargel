@@ -9,6 +9,7 @@ spargel_add_library(
         platform_mac.c
     PRIVATE_WINDOWS
         platform_win.c
+    DEPS spargel_config
 )
 
 spargel_add_executable(

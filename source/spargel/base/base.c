@@ -27,7 +27,7 @@ void sbase_panic_at(char const* file, char const* func, ssize line) {
 
 void sbase_panic() { sbase_panic_at("<unknown>", "<unknown>", 0); }
 
-static char const* sbase_log_names[] = {
+static char const* sbase_log_names[_SBASE_LOG_COUNT] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
 };
 
@@ -60,7 +60,7 @@ static void sbase_log_get_time(struct sbase_log_timestamp* time) {
 }
 
 void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...) {
-    DCHECK(level >= 0 && level <= 4);
+    DCHECK(level >= 0 && level < _SBASE_LOG_COUNT);
     char const* name = sbase_log_names[level];
     struct sbase_log_timestamp time;
     sbase_log_get_time(&time);

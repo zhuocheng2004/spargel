@@ -1,0 +1,22 @@
+#pragma once
+
+/**
+ * trace every allocation in Spargel Engine
+ */
+#cmakedefine01 SPARGEL_TRACE_ALLOCATION
+
+/**
+ * panic if CHECH() fails; in general this should always be enabled
+ */
+#cmakedefine01 SPARGEL_ENABLE_CHECK
+
+/**
+ * panic if DCHECK() fails; this should be disabled in release build
+ */
+#cmakedefine01 SPARGEL_ENABLE_DCHECK
+
+#cmakedefine01 SPARGEL_GPU_ENABLE_DIRECTX
+
+#cmakedefine01 SPARGEL_GPU_ENABLE_METAL
+
+#cmakedefine01 SPARGEL_GPU_ENABLE_VULKAN

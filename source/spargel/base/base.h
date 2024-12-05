@@ -60,6 +60,8 @@ enum sbase_log_level {
     SBASE_LOG_ERROR,
     /* nothing more can be done other than aborting */
     SBASE_LOG_FATAL,
+
+    _SBASE_LOG_COUNT,
 };
 
 void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...)
@@ -70,11 +72,7 @@ void sbase_log(int level, char const* file, char const* func, ssize line, char c
 #define sbase_log_info(...) SBASE_LOG_IMPL(SBASE_LOG_INFO, __VA_ARGS__)
 #define sbase_log_warn(...) SBASE_LOG_IMPL(SBASE_LOG_WARN, __VA_ARGS__)
 #define sbase_log_error(...) SBASE_LOG_IMPL(SBASE_LOG_ERROR, __VA_ARGS__)
-#define sbase_log_fatal(...)                          \
-    do {                                              \
-        SBASE_LOG_IMPL(SBASE_LOG_FATAL, __VA_ARGS__); \
-        sbase_panic_here();                           \
-    } while (0)
+#define sbase_log_fatal(...) SBASE_LOG_IMPL(SBASE_LOG_FATAL, __VA_ARGS__);
 
 /* backtrace */
 

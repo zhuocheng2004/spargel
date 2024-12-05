@@ -21,36 +21,35 @@ static bool load_file(char const* path, void** data, ssize* size) {
 }
 
 int main() {
-    sui_init_platform();
-    sui_window_id window = sui_create_window(500, 500);
-    ui_window_set_title(window, "Spargel Demo - GPU");
+    // sui_init_platform();
+    // sui_window_id window = sui_create_window(500, 500);
+    // ui_window_set_title(window, "Spargel Demo - GPU");
 
     int result = 0;
 
 #if USE_VULKAN
     int gpu_backend = SGPU_BACKEND_VULKAN;
-#elif __APPLE__
+#elif SPARGEL_IS_MACOS
     int gpu_backend = SGPU_BACKEND_METAL;
 #endif
 
     sgpu_device_id device;
     result = sgpu_create_default_device(gpu_backend, &device);
     if (result != 0) goto cleanup_nothing;
-    printf("info: device created\n");
+    sbase_log_info("device created");
 
     sgpu_command_queue_id queue;
     result = sgpu_create_command_queue(device, &queue);
     if (result != 0) goto cleanup_device;
-    printf("info: command queue created\n");
+    sbase_log_info("command queue created");
 
-#if __APPLE__
+#if SPARGEL_IS_MACOS
     void* metal_library_data;
     ssize metal_library_size;
     if (!load_file("source/spargel/renderer/shader.metallib", &metal_library_data,
                    &metal_library_size)) {
-        printf("error: cannot load metal shaders\n");
-        result = 1;
-        goto cleanup_queue;
+        sbase_log_fatal("cannot load metal shaders");
+        sbase_panic_here();
     }
 
     sgpu_metal_shader_library_id metal_library;
@@ -61,12 +60,20 @@ int main() {
                                               },
                                               &metal_library);
     if (result != 0) goto cleanup_queue;
-    printf("info: metal shader library created\n");
+    sbase_log_info("metal shader library created");
 #endif
 
     sgpu_shader_function_id vertex_func;
 
-#if __APPLE__
+#if USE_VULKAN
+
+    result = sgpu_vulkan_create_shader_function(device,
+                                                &(struct sgpu_vulkan_shader_function_descriptor){
+                                                    .code = NULL,
+                                                    .size = 0,
+                                                },
+                                                &vertex_func);
+#elif SPARGEL_IS_MACOS
     result = sgpu_metal_create_shader_function(device,
                                                &(struct sgpu_metal_shader_function_descriptor){
                                                    .library = metal_library,
@@ -74,21 +81,16 @@ int main() {
                                                },
                                                &vertex_func);
 #else
-    result = sgpu_vulkan_create_shader_function(device,
-                                                &(struct sgpu_vulkan_shader_function_descriptor){
-                                                    .code = NULL,
-                                                    .size = 0,
-                                                },
-                                                &vertex_func);
+#error unimplemented
 #endif
     if (result != 0) goto cleanup_shader_library;
-    printf("info: vertex shader function created\n");
+    sbase_log_info("vertex shader function created");
 
     // spargel_ui_platform_run();
 
     sgpu_destroy_shader_function(vertex_func);
 cleanup_shader_library:
-#if __APPLE__
+#if SPARGEL_IS_MACOS
     sgpu_metal_destroy_shader_library(metal_library);
     sbase_deallocate(metal_library_data, metal_library_size, SBASE_ALLOCATION_GPU);
 #endif

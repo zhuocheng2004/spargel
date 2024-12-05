@@ -3,8 +3,8 @@ function(spargel_target_common name)
     target_compile_features(${name} PUBLIC cxx_std_23)
     target_include_directories(${name}
         PUBLIC
-            "${PROJECT_SOURCE_DIR}/public"
             "${PROJECT_SOURCE_DIR}/source"
+            "${CMAKE_BINARY_DIR}/source"
     )
 
     if (SPARGEL_IS_LINUX)
