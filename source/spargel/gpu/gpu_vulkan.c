@@ -111,7 +111,7 @@ static void* array_push(struct array* a) {
 static VkBool32 sgpu_vulkan_debug_messenger_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
     VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
-    sbase_log_debug("validator: %s\n", data->pMessage);
+    sbase_log_debug("validator: %s", data->pMessage);
     return VK_FALSE;
 }
 
@@ -353,7 +353,7 @@ static int sgpu_vulkan_create_instance(struct sgpu_vulkan_device* device) {
 
 int sgpu_vulkan_create_default_device(sgpu_device_id* device) {
     alloc_object(sgpu_vulkan_device, d);
-    d->library = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
+    d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
     if (d->library == NULL) {
         dealloc_object(sgpu_vulkan_device, d);
         return SGPU_RESULT_NO_BACKEND;
