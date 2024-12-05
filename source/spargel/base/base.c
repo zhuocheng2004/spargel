@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /* platform */
 #if defined(SPARGEL_IS_LINUX) || defined(SPARGEL_IS_MACOS)
