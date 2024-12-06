@@ -41,6 +41,11 @@ struct sgpu_metal_shader_function {
     id<MTLFunction> function;
 };
 
+struct sgpu_metal_render_pipeline {
+    int backend;
+    id<MTLRenderPipelineState> pipeline;
+};
+
 int sgpu_metal_create_default_device(struct sgpu_device_descriptor const* descriptor,
                                      sgpu_device_id* device) {
     alloc_object(sgpu_metal_device, d);
@@ -118,13 +123,56 @@ void sgpu_metal_destroy_shader_function(sgpu_shader_function_id func) {
     dealloc_object(sgpu_metal_shader_function, f);
 }
 
+static MTLPixelFormat sgpu_metal_translate_format(int format) {
+    switch (format) {
+    case SGPU_FORMAT_BRGA8_UNORM:
+        return MTLPixelFormatBGRA8Unorm;
+    case SGPU_FORMAT_BGRA8_SRGB:
+        return MTLPixelFormatBGRA8Unorm_sRGB;
+    default:
+        sbase_panic_here();
+    }
+}
+
 int sgpu_metal_create_render_pipeline(sgpu_device_id device,
                                       struct sgpu_render_pipeline_descriptor const* descriptor,
                                       sgpu_render_pipeline_id* pipeline) {
-    sbase_panic_here();
+    cast_object(sgpu_metal_device, d, device);
+    cast_object(sgpu_metal_shader_function, vs, descriptor->vertex_function);
+    cast_object(sgpu_metal_shader_function, fs, descriptor->fragment_function);
+    alloc_object(sgpu_metal_render_pipeline, p);
+
+    CHECK(d != 0);
+    CHECK(vs != 0);
+    CHECK(fs != 0);
+
+    MTLRenderPipelineDescriptor* desc = [[MTLRenderPipelineDescriptor alloc] init];
+    desc.vertexFunction = vs->function;
+    desc.fragmentFunction = fs->function;
+    desc.colorAttachments[0].pixelFormat = sgpu_metal_translate_format(descriptor->target_format);
+
+    NSError* err;
+    id<MTLRenderPipelineState> pstate = [d->device newRenderPipelineStateWithDescriptor:desc
+                                                                                  error:&err];
+    [desc release];
+
+    if (pstate == nil) {
+        dealloc_object(sgpu_metal_render_pipeline, p);
+        return SGPU_RESULT_CANNOT_CREATE_RENDER_PIPELINE;
+    }
+
+    p->pipeline = pstate;
+
+    *pipeline = (sgpu_render_pipeline_id)p;
+
+    return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_metal_destroy_render_pipeline(sgpu_render_pipeline_id pipeline) { sbase_panic_here(); }
+void sgpu_metal_destroy_render_pipeline(sgpu_render_pipeline_id pipeline) {
+    cast_object(sgpu_metal_render_pipeline, p, pipeline);
+    [p->pipeline release];
+    dealloc_object(sgpu_metal_render_pipeline, p);
+}
 
 int sgpu_metal_create_command_buffer(sgpu_command_queue_id queue,
                                      sgpu_command_buffer_id* command_buffer) {

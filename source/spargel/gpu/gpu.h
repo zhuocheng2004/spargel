@@ -14,6 +14,7 @@ enum sgpu_result {
     SGPU_RESULT_ALLOCATION_FAILED,
     SGPU_RESULT_CANNOT_CREATE_METAL_LIBRARY,
     SGPU_RESULT_CANNOT_CREATE_SHADER_FUNCTION,
+    SGPU_RESULT_CANNOT_CREATE_RENDER_PIPELINE,
 };
 
 enum sgpu_backend {
@@ -22,12 +23,26 @@ enum sgpu_backend {
     SGPU_BACKEND_VULKAN,
 };
 
+enum sgpu_primitive {
+    SGPU_PRIMITIVE_TRIANGLE,
+};
+
+enum sgpu_format {
+    SGPU_FORMAT_BRGA8_UNORM,
+    SGPU_FORMAT_BGRA8_SRGB,
+};
+
 struct sgpu_device_descriptor {
     int backend;
     int platform;
 };
 
-struct sgpu_render_pipeline_descriptor {};
+struct sgpu_render_pipeline_descriptor {
+    // int primitive;
+    int target_format;
+    sgpu_shader_function_id vertex_function;
+    sgpu_shader_function_id fragment_function;
+};
 
 /**
  * @brief create default device

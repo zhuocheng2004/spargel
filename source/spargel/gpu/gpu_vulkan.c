@@ -4,11 +4,14 @@
 #include <spargel/ui/ui.h>
 
 /* libc */
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 /* platform */
+#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
 #include <dlfcn.h>
+#endif
 
 #define VK_NO_PROTOTYPES
 #include <vulkan/vk_platform.h>
@@ -54,6 +57,11 @@ struct sgpu_vulkan_proc_table {
 #undef VULKAN_PROC_DECL
 };
 
+struct sgpu_vulkan_command_queue {
+    int backend;
+    VkQueue queue;
+};
+
 struct sgpu_vulkan_device {
     int backend;
     void* library;
@@ -62,15 +70,14 @@ struct sgpu_vulkan_device {
     VkPhysicalDevice physical_device;
     u32 queue_family;
     VkDevice device;
+    struct sgpu_vulkan_command_queue queue;
     struct sgpu_vulkan_proc_table procs;
-};
-
-struct sgpu_vulkan_command_queue {
-    int backend;
 };
 
 struct sgpu_vulkan_shader_function {
     int backend;
+    VkShaderModule shader;
+    struct sgpu_vulkan_device* device;
 };
 
 #define CHECK_VK_RESULT(expr)                                          \
@@ -129,7 +136,7 @@ static void* array_push(struct array* a) {
 static VkBool32 sgpu_vulkan_debug_messenger_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
     VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
-    sbase_log_debug("validator: %s", data->pMessage);
+    fprintf(stderr, "validator: %s\n", data->pMessage);
     return VK_FALSE;
 }
 
@@ -143,7 +150,11 @@ static float const sgpu_vulkan_queue_priorities[64] = {
 int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descriptor,
                                       sgpu_device_id* device) {
     alloc_object(sgpu_vulkan_device, d);
+#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
     d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
+#else
+#error unimplemented
+#endif
     if (d->library == NULL) {
         dealloc_object(sgpu_vulkan_device, d);
         return SGPU_RESULT_NO_BACKEND;
@@ -520,6 +531,13 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
     deinit_array(use_exts);
     deinit_array(all_exts);
 
+    d->queue.backend = SGPU_BACKEND_VULKAN;
+
+    VkQueue queue;
+    procs->vkGetDeviceQueue(dev, queue_family_index, 0, &queue);
+
+    d->queue.queue = queue;
+
     *device = (sgpu_device_id)d;
     return SGPU_RESULT_SUCCESS;
 }
@@ -538,25 +556,55 @@ void sgpu_vulkan_destroy_device(sgpu_device_id device) {
 }
 
 int sgpu_vulkan_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue) {
-    alloc_object(sgpu_vulkan_command_queue, q);
-    *queue = (sgpu_command_queue_id)q;
+    cast_object(sgpu_vulkan_device, d, device);
+    *queue = (sgpu_command_queue_id)&d->queue;
     return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_vulkan_destroy_command_queue(sgpu_command_queue_id queue) {
-    cast_object(sgpu_vulkan_command_queue, q, queue);
-    dealloc_object(sgpu_vulkan_command_queue, q);
-}
+void sgpu_vulkan_destroy_command_queue(sgpu_command_queue_id queue) {}
 
 int sgpu_vulkan_create_shader_function(
     sgpu_device_id device, struct sgpu_vulkan_shader_function_descriptor const* descriptor,
     sgpu_shader_function_id* func) {
+    cast_object(sgpu_vulkan_device, d, device);
     alloc_object(sgpu_vulkan_shader_function, f);
+
+    VkShaderModuleCreateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    info.pNext = 0;
+    info.flags = 0;
+    info.codeSize = descriptor->size;
+    info.pCode = (u32*)descriptor->code;
+
+    VkShaderModule mod;
+    CHECK_VK_RESULT(d->procs.vkCreateShaderModule(d->device, &info, 0, &mod));
+    f->shader = mod;
+    f->device = d;
+
     *func = (sgpu_shader_function_id)f;
     return SGPU_RESULT_SUCCESS;
 }
 
 void sgpu_vulkan_destroy_shader_function(sgpu_shader_function_id func) {
     cast_object(sgpu_vulkan_shader_function, f, func);
+    struct sgpu_vulkan_device* d = f->device;
+    d->procs.vkDestroyShaderModule(d->device, f->shader, 0);
     dealloc_object(sgpu_vulkan_shader_function, f);
+}
+
+int sgpu_vulkan_create_render_pipeline(sgpu_device_id device,
+                                       struct sgpu_render_pipeline_descriptor const* descriptor,
+                                       sgpu_render_pipeline_id* pipeline) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_destroy_render_pipeline(sgpu_render_pipeline_id pipeline) { sbase_panic_here(); }
+
+int sgpu_vulkan_create_command_buffer(sgpu_command_queue_id queue,
+                                      sgpu_command_buffer_id* command_buffer) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_destroy_command_buffer(sgpu_command_buffer_id command_buffer) {
+    sbase_panic_here();
 }

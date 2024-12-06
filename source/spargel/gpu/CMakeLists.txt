@@ -30,8 +30,4 @@ if(${SPARGEL_GPU_ENABLE_VULKAN})
   target_link_libraries(gpu PRIVATE Vulkan::Headers)
 endif()
 
-spargel_add_executable(
-    NAME demo_gpu
-    PRIVATE demo_gpu.c
-    DEPS gpu ui
-)
+add_subdirectory(demo)

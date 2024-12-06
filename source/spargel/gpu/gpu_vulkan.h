@@ -20,7 +20,7 @@ void sgpu_vulkan_destroy_command_buffer(sgpu_command_buffer_id command_buffer);
 
 struct sgpu_vulkan_shader_function_descriptor {
     u8* code;
-    ssize size;
+    ssize size; /* in bytes */
 };
 
 int sgpu_vulkan_create_shader_function(

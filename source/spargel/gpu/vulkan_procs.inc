@@ -65,6 +65,9 @@ VULKAN_DEVICE_PROC(vkResetCommandBuffer)
 VULKAN_DEVICE_PROC(vkBeginCommandBuffer)
 VULKAN_DEVICE_PROC(vkEndCommandBuffer)
 
+VULKAN_DEVICE_PROC(vkCreateShaderModule)
+VULKAN_DEVICE_PROC(vkDestroyShaderModule)
+
 VULKAN_DEVICE_PROC(vkCreateRenderPass)
 VULKAN_DEVICE_PROC(vkDestroyRenderPass)
 
