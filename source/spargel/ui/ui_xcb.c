@@ -1,10 +1,14 @@
 #include <spargel/base/base.h>
 #include <spargel/ui/ui.h>
 
+/* for clock_gettime */
+#define _GNU_SOURCE
+
 /* libc */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 /* xcb */
 #include <xcb/xcb.h>
@@ -43,20 +47,62 @@ void sui_init_platform() {
 
 int sui_platform_id() { return SUI_PLATFORM_XCB; }
 
+static void run_render_callbacks() {
+    if (window_count > 0) {
+        for (int i = 0; i < window_count; i++) {
+            struct sui_window* window = windows[i];
+            if (window->render_callback) {
+                window->render_callback(window->render_data);
+            }
+        }
+    }
+}
+
+const float FPS = 60;
+const unsigned int SECOND_NS = 1000000000U;
+const unsigned int FRAME_DELTA_NS = (unsigned int)(SECOND_NS / FPS);
+
+static bool in_delta(struct timespec* t1, struct timespec* t2, unsigned int delta) {
+    if (t1->tv_sec == t2->tv_sec) {
+        return t2->tv_nsec < t1->tv_nsec + delta;
+    } else if (t1->tv_sec == t2->tv_sec - 1) {
+        return t2->tv_nsec + SECOND_NS < t1->tv_nsec + delta;
+    } else {
+        return false;
+    }
+}
+
 void sui_platform_run() {
     int should_stop = 0;
     xcb_generic_event_t* event;
-    while (!should_stop && (event = xcb_wait_for_event(connection))) {
-        switch (event->response_type & ~0x80) {
-        case XCB_EXPOSE: {
-            if (window_count > 0) {
-                for (int i = 0; i < window_count; i++) {
-                    struct sui_window* window = windows[i];
-                    if (window->render_callback) {
-                        window->render_callback(window->render_data);
-                    }
+    struct timespec t1, t2, duration = {.tv_sec = 0, .tv_nsec = 0};
+    while (!should_stop) {
+        event = xcb_poll_for_event(connection);
+        if (!event) {
+            clock_gettime(CLOCK_MONOTONIC, &t1);
+
+            run_render_callbacks();
+
+            /*
+             * wait for the next frame
+             * Normally the sleeping only occurs once each frame.
+             */
+            while (true) {
+                clock_gettime(CLOCK_MONOTONIC, &t2);
+                if (in_delta(&t1, &t2, FRAME_DELTA_NS)) {
+                    duration.tv_nsec = FRAME_DELTA_NS;
+                    clock_nanosleep(CLOCK_MONOTONIC, 0, &duration, NULL);
+                } else {
+                    break;
                 }
             }
+
+            continue;
+        }
+
+        switch (event->response_type & ~0x80) {
+        case XCB_EXPOSE: {
+            run_render_callbacks();
             xcb_flush(connection);
         } break;
         case XCB_KEY_PRESS: {

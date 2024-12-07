@@ -3,6 +3,9 @@ spargel_add_executable(
     PRIVATE demo_gpu.c
     DEPS gpu ui
 )
+if (SPARGEL_IS_LINUX)
+    target_link_libraries(demo_gpu PRIVATE m)
+endif ()
 
 if (SPARGEL_GPU_ENABLE_VULKAN)
     add_custom_command(
