@@ -3,7 +3,7 @@
 #include <spargel/gpu/gpu_vulkan.h>
 #include <spargel/ui/ui.h>
 
-#define USE_VULKAN 1
+#define USE_VULKAN 0
 #if SPARGEL_IS_MACOS && !USE_VULKAN
 #define USE_METAL 1
 #else
@@ -19,10 +19,56 @@
 #include <spargel/gpu/demo/vertex_shader.spirv.inc>
 #endif
 
+struct renderer {
+    sgpu_device_id device;
+    sgpu_swapchain_id swapchain;
+    sgpu_command_queue_id queue;
+};
+
+static void render(struct renderer* r) {
+    sgpu_device_id device = r->device;
+    sgpu_swapchain_id swapchain = r->swapchain;
+    sgpu_command_queue_id queue = r->queue;
+
+    sgpu_command_buffer_id cmdbuf;
+    {
+        struct sgpu_command_buffer_descriptor desc = {
+            .queue = queue,
+        };
+        int result = sgpu_create_command_buffer(device, &desc, &cmdbuf);
+        if (result != 0) {
+            sbase_log_info("command buffer created");
+            return;
+        }
+    }
+
+    sgpu_presentable_id presentable;
+    sgpu_texture_id texture;
+    sgpu_acquire_image(device, &(struct sgpu_acquire_descriptor){.swapchain = swapchain},
+                       &presentable);
+    sgpu_presentable_texture(device, presentable, &texture);
+    sgpu_render_pass_encoder_id encoder;
+    sgpu_begin_render_pass(device,
+                           &(struct sgpu_render_pass_descriptor){
+                               .command_buffer = cmdbuf,
+                               .color_attachment = texture,
+                               .clear_color = {0.0, 1.0, 1.0, 1.0},
+                           },
+                           &encoder);
+    sgpu_end_render_pass(device, encoder);
+    {
+        struct sgpu_present_descriptor desc = {
+            .command_buffer = cmdbuf,
+            .presentable = presentable,
+        };
+        sgpu_present(device, &desc);
+    }
+}
+
 int main() {
-    // sui_init_platform();
-    // sui_window_id window = sui_create_window(500, 500);
-    // sui_window_set_title(window, "Spargel Demo - GPU");
+    sui_init_platform();
+    sui_window_id window = sui_create_window(500, 500);
+    sui_window_set_title(window, "Spargel Demo - GPU");
 
     int result = 0;
 
@@ -106,31 +152,63 @@ int main() {
 #error unimplemented
 #endif
 
-    struct sgpu_render_pipeline_descriptor pipeline_desc = {
-        // .primitive = SGPU_PRIMITIVE_TRIANGLE,
-        .target_format = SGPU_FORMAT_BRGA8_UNORM,
-        .vertex_function = vertex_func,
-        .fragment_function = fragment_func,
-    };
-
     sgpu_render_pipeline_id pipeline;
-    result = sgpu_create_render_pipeline(device, &pipeline_desc, &pipeline);
+    {
+        struct sgpu_render_pipeline_descriptor desc = {
+            // .primitive = SGPU_PRIMITIVE_TRIANGLE,
+            .target_format = SGPU_FORMAT_BRGA8_UNORM,
+            .vertex_function = vertex_func,
+            .fragment_function = fragment_func,
+        };
+        result = sgpu_create_render_pipeline(device, &desc, &pipeline);
+    }
     if (result != 0) goto fail_pipeline;
     sbase_log_info("pipeline created");
 
-    // sui_platform_run();
+    sgpu_surface_id surface;
+    {
+        struct sgpu_surface_descriptor desc = {
+            .window = window,
+        };
+        result = sgpu_create_surface(device, &desc, &surface);
+    }
+    if (result != 0) goto fail_surface;
+    sbase_log_info("surface created");
 
-    sgpu_destroy_render_pipeline(pipeline);
+    sgpu_swapchain_id swapchain;
+    {
+        struct sgpu_swapchain_descriptor desc = {
+            .surface = surface,
+        };
+        result = sgpu_create_swapchain(device, &desc, &swapchain);
+    }
+    if (result != 0) goto fail_swapchain;
+    sbase_log_info("swapchain created");
+
+    struct renderer data = {
+        .device = device,
+        .swapchain = swapchain,
+        .queue = queue,
+    };
+    sui_window_set_render_callback(window, (void (*)(void*))render, &data);
+
+    sui_platform_run();
+
+    sgpu_destroy_swapchain(device, swapchain);
+fail_swapchain:
+    sgpu_destroy_surface(device, surface);
+fail_surface:
+    sgpu_destroy_render_pipeline(device, pipeline);
 fail_pipeline:
-    sgpu_destroy_shader_function(fragment_func);
+    sgpu_destroy_shader_function(device, fragment_func);
 fail_fragment_shader:
-    sgpu_destroy_shader_function(vertex_func);
+    sgpu_destroy_shader_function(device, vertex_func);
 fail_vertex_shader:
 #if USE_METAL
-    sgpu_metal_destroy_shader_library(metal_library);
+    sgpu_metal_destroy_shader_library(device, metal_library);
 fail_shader_library:
 #endif
-    sgpu_destroy_command_queue(queue);
+    sgpu_destroy_command_queue(device, queue);
 fail_queue:
     sgpu_destroy_device(device);
 fail_device:

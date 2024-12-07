@@ -39,8 +39,7 @@
 #define alloc_object(type, name)                                                   \
     struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
     if (!name) return SGPU_RESULT_ALLOCATION_FAILED;                               \
-    memset(name, 0, sizeof(struct type));                                          \
-    name->backend = SGPU_BACKEND_VULKAN;
+    memset(name, 0, sizeof(struct type));
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
 
@@ -77,6 +76,12 @@ struct sgpu_vulkan_device {
 struct sgpu_vulkan_shader_function {
     int backend;
     VkShaderModule shader;
+    struct sgpu_vulkan_device* device;
+};
+
+struct sgpu_vulkan_render_pipeline {
+    int backend;
+    VkPipeline pipeline;
     struct sgpu_vulkan_device* device;
 };
 
@@ -150,6 +155,7 @@ static float const sgpu_vulkan_queue_priorities[64] = {
 int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descriptor,
                                       sgpu_device_id* device) {
     alloc_object(sgpu_vulkan_device, d);
+    d->backend = SGPU_BACKEND_VULKAN;
 #if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
     d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
 #else
@@ -561,7 +567,7 @@ int sgpu_vulkan_create_command_queue(sgpu_device_id device, sgpu_command_queue_i
     return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_vulkan_destroy_command_queue(sgpu_command_queue_id queue) {}
+void sgpu_vulkan_destroy_command_queue(sgpu_device_id device, sgpu_command_queue_id queue) {}
 
 int sgpu_vulkan_create_shader_function(
     sgpu_device_id device, struct sgpu_vulkan_shader_function_descriptor const* descriptor,
@@ -585,7 +591,7 @@ int sgpu_vulkan_create_shader_function(
     return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_vulkan_destroy_shader_function(sgpu_shader_function_id func) {
+void sgpu_vulkan_destroy_shader_function(sgpu_device_id device, sgpu_shader_function_id func) {
     cast_object(sgpu_vulkan_shader_function, f, func);
     struct sgpu_vulkan_device* d = f->device;
     d->procs.vkDestroyShaderModule(d->device, f->shader, 0);
@@ -595,16 +601,75 @@ void sgpu_vulkan_destroy_shader_function(sgpu_shader_function_id func) {
 int sgpu_vulkan_create_render_pipeline(sgpu_device_id device,
                                        struct sgpu_render_pipeline_descriptor const* descriptor,
                                        sgpu_render_pipeline_id* pipeline) {
-    sbase_panic_here();
+    alloc_object(sgpu_vulkan_render_pipeline, p);
+
+    VkGraphicsPipelineCreateInfo pipeline_info;
+    pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipeline_info.pNext = 0;
+    pipeline_info.flags = 0;
+    pipeline_info.stageCount = 2;
+
+    *pipeline = (sgpu_render_pipeline_id)p;
+    return SGPU_RESULT_SUCCESS;
 }
 
-void sgpu_vulkan_destroy_render_pipeline(sgpu_render_pipeline_id pipeline) { sbase_panic_here(); }
+void sgpu_vulkan_destroy_render_pipeline(sgpu_device_id device, sgpu_render_pipeline_id pipeline) {
+    cast_object(sgpu_vulkan_render_pipeline, p, pipeline);
+    dealloc_object(sgpu_vulkan_render_pipeline, p);
+}
 
-int sgpu_vulkan_create_command_buffer(sgpu_command_queue_id queue,
+int sgpu_vulkan_create_command_buffer(sgpu_device_id device,
+                                      struct sgpu_command_buffer_descriptor const* descriptor,
                                       sgpu_command_buffer_id* command_buffer) {
     sbase_panic_here();
 }
 
-void sgpu_vulkan_destroy_command_buffer(sgpu_command_buffer_id command_buffer) {
+void sgpu_vulkan_destroy_command_buffer(sgpu_device_id device,
+                                        sgpu_command_buffer_id command_buffer) {
+    sbase_panic_here();
+}
+
+int sgpu_vulkan_create_surface(sgpu_device_id device,
+                               struct sgpu_surface_descriptor const* descriptor,
+                               sgpu_surface_id* surface) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_destroy_surface(sgpu_device_id device, sgpu_surface_id surface) {
+    sbase_panic_here();
+}
+
+int sgpu_vulkan_create_swapchain(sgpu_device_id device,
+                                 struct sgpu_swapchain_descriptor const* descriptor,
+                                 sgpu_swapchain_id* swapchain) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_destroy_swapchain(sgpu_device_id device, sgpu_swapchain_id swapchain) {
+    sbase_panic_here();
+}
+
+int sgpu_vulkan_acquire_image(sgpu_device_id device,
+                              struct sgpu_acquire_descriptor const* descriptor,
+                              sgpu_presentable_id* presentable) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_begin_render_pass(sgpu_device_id device,
+                                   struct sgpu_render_pass_descriptor const* descriptor,
+                                   sgpu_render_pass_encoder_id* encoder) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_end_render_pass(sgpu_device_id device, sgpu_render_pass_encoder_id encoder) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_present(sgpu_device_id device, struct sgpu_present_descriptor const* descriptor) {
+    sbase_panic_here();
+}
+
+void sgpu_vulkan_presentable_texture(sgpu_device_id device, sgpu_presentable_id presentable,
+                                     sgpu_texture_id* texture) {
     sbase_panic_here();
 }
