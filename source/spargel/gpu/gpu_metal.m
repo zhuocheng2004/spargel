@@ -26,6 +26,7 @@ struct sgpu_metal_command_queue {
 };
 
 struct sgpu_metal_command_buffer {
+    id<MTLCommandQueue> queue;
     id<MTLCommandBuffer> buffer;
 };
 
@@ -204,6 +205,7 @@ int sgpu_metal_create_command_buffer(sgpu_device_id device,
     cast_object(sgpu_metal_command_queue, q, descriptor->queue);
     alloc_object(sgpu_metal_command_buffer, cmdbuf);
 
+    cmdbuf->queue = q->queue;
     cmdbuf->buffer = [q->queue commandBuffer];
 
     *command_buffer = (sgpu_command_buffer_id)cmdbuf;
@@ -214,6 +216,12 @@ void sgpu_metal_destroy_command_buffer(sgpu_device_id device,
                                        sgpu_command_buffer_id command_buffer) {
     cast_object(sgpu_metal_command_buffer, c, command_buffer);
     dealloc_object(sgpu_metal_command_buffer, c);
+}
+
+void sgpu_metal_reset_command_buffer(sgpu_device_id device,
+                                      sgpu_command_buffer_id command_buffer) {
+    cast_object(sgpu_metal_command_buffer, c, command_buffer);
+    c->buffer = [c->queue commandBuffer];
 }
 
 int sgpu_metal_create_surface(sgpu_device_id device,

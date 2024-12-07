@@ -38,7 +38,7 @@
 
 #define alloc_object(type, name)                                                   \
     struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
-    if (!name) return SGPU_RESULT_ALLOCATION_FAILED;                               \
+    if (!name) sbase_panic_here();                                                 \
     memset(name, 0, sizeof(struct type));
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
@@ -61,6 +61,42 @@ struct sgpu_vulkan_command_queue {
     VkQueue queue;
 };
 
+struct sgpu_vulkan_surface {
+    VkSurfaceKHR surface;
+};
+
+struct sgpu_vulkan_presentable {
+    u32 index;
+    struct sgpu_vulkan_swapchain* swapchain;
+};
+
+struct sgpu_vulkan_swapchain {
+    VkSwapchainKHR swapchain;
+    int width;
+    int height;
+    ssize image_count;
+    ssize image_capacity;
+    /* todo: fix this */
+    VkRenderPass render_pass;
+    VkImage* images;
+    VkImageView* image_views;
+    VkFramebuffer* framebuffers;
+    /* todo: fix this */
+    struct sgpu_vulkan_presentable presentable;
+    VkFence image_available;
+    VkSemaphore render_complete;
+    VkFence submit_done;
+};
+
+struct sgpu_vulkan_command_buffer {
+    VkCommandBuffer command_buffer;
+    VkQueue queue;
+};
+
+struct sgpu_vulkan_render_pass_encoder {
+    VkCommandBuffer command_buffer;
+};
+
 struct sgpu_vulkan_device {
     int backend;
     void* library;
@@ -70,6 +106,7 @@ struct sgpu_vulkan_device {
     u32 queue_family;
     VkDevice device;
     struct sgpu_vulkan_command_queue queue;
+    VkCommandPool cmd_pool;
     struct sgpu_vulkan_proc_table procs;
 };
 
@@ -544,6 +581,17 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
 
     d->queue.queue = queue;
 
+    VkCommandPool cmd_pool;
+    {
+        VkCommandPoolCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        info.queueFamilyIndex = queue_family_index;
+        CHECK_VK_RESULT(procs->vkCreateCommandPool(dev, &info, 0, &cmd_pool));
+    }
+    d->cmd_pool = cmd_pool;
+
     *device = (sgpu_device_id)d;
     return SGPU_RESULT_SUCCESS;
 }
@@ -621,55 +669,415 @@ void sgpu_vulkan_destroy_render_pipeline(sgpu_device_id device, sgpu_render_pipe
 int sgpu_vulkan_create_command_buffer(sgpu_device_id device,
                                       struct sgpu_command_buffer_descriptor const* descriptor,
                                       sgpu_command_buffer_id* command_buffer) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_command_queue, q, descriptor->queue);
+    alloc_object(sgpu_vulkan_command_buffer, cmdbuf);
+
+    VkCommandBufferAllocateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    info.pNext = 0;
+    info.commandPool = d->cmd_pool;
+    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    info.commandBufferCount = 1;
+    CHECK_VK_RESULT(d->procs.vkAllocateCommandBuffers(d->device, &info, &cmdbuf->command_buffer));
+
+    cmdbuf->queue = q->queue;
+
+    *command_buffer = (sgpu_command_buffer_id)cmdbuf;
+    return SGPU_RESULT_SUCCESS;
 }
 
 void sgpu_vulkan_destroy_command_buffer(sgpu_device_id device,
                                         sgpu_command_buffer_id command_buffer) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_command_buffer, c, command_buffer);
+    dealloc_object(sgpu_vulkan_command_buffer, c);
+}
+
+void sgpu_vulkan_reset_command_buffer(sgpu_device_id device,
+                                      sgpu_command_buffer_id command_buffer) {
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_command_buffer, c, command_buffer);
+    CHECK_VK_RESULT(d->procs.vkResetCommandBuffer(c->command_buffer, 0));
 }
 
 int sgpu_vulkan_create_surface(sgpu_device_id device,
                                struct sgpu_surface_descriptor const* descriptor,
                                sgpu_surface_id* surface) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    alloc_object(sgpu_vulkan_surface, s);
+
+    struct sui_window_handle wh = sui_window_get_handle(descriptor->window);
+    VkSurfaceKHR surf;
+#if SPARGEL_IS_MACOS
+    VkMetalSurfaceCreateInfoEXT info;
+    info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+    info.pNext = 0;
+    info.flags = 0;
+    info.pLayer = wh.apple.layer;
+    CHECK_VK_RESULT(d->procs.vkCreateMetalSurfaceEXT(d->instance, &info, 0, &surf));
+#elif SPARGEL_IS_LINUX /* todo: wayland */
+    VkXcbSurfaceCreateInfoKHR info;
+    info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+    info.pNext = 0;
+    info.flags = 0;
+    info.connection = wh.xcb.connection;
+    info.window = wh.xcb.window;
+    CHECK_VK_RESULT(d->procs.vkCreateXcbSurfaceKHR(d->instance, &info, 0, &surf));
+#endif
+
+    s->surface = surf;
+
+    *surface = (sgpu_surface_id)s;
+
+    return SGPU_RESULT_SUCCESS;
 }
 
 void sgpu_vulkan_destroy_surface(sgpu_device_id device, sgpu_surface_id surface) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_surface, s, surface);
+    d->procs.vkDestroySurfaceKHR(d->instance, s->surface, 0);
+    dealloc_object(sgpu_vulkan_surface, s);
 }
 
 int sgpu_vulkan_create_swapchain(sgpu_device_id device,
                                  struct sgpu_swapchain_descriptor const* descriptor,
                                  sgpu_swapchain_id* swapchain) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_surface, sf, descriptor->surface);
+    alloc_object(sgpu_vulkan_swapchain, sw);
+
+    struct sgpu_vulkan_proc_table* procs = &d->procs;
+
+    VkSurfaceCapabilitiesKHR surf_caps;
+    CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(d->physical_device,
+                                                                     sf->surface, &surf_caps));
+
+    u32 min_images = surf_caps.minImageCount + 1;
+    if (surf_caps.maxImageCount > 0 && min_images > surf_caps.maxImageCount) {
+        min_images = surf_caps.maxImageCount;
+    }
+
+    struct array formats;
+    init_array(&formats, sizeof(VkSurfaceFormatKHR));
+    {
+        u32 count;
+        CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(d->physical_device, sf->surface,
+                                                                    &count, 0));
+        array_reserve(&formats, count);
+        CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(d->physical_device, sf->surface,
+                                                                    &count, formats.data));
+        formats.count = count;
+    }
+
+    VkSurfaceFormatKHR* chosen_format = array_at(formats, 0);
+    for (ssize i = 0; i < formats.count; i++) {
+        VkSurfaceFormatKHR* fmt = array_at(formats, i);
+        if (fmt->format == VK_FORMAT_B8G8R8A8_SRGB &&
+            fmt->colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            chosen_format = fmt;
+            break;
+        }
+    }
+
+    VkSwapchainCreateInfoKHR info;
+    info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    info.pNext = 0;
+    info.flags = 0;
+    info.surface = sf->surface;
+    info.minImageCount = min_images;
+    info.imageFormat = chosen_format->format;
+    info.imageColorSpace = chosen_format->colorSpace;
+    info.imageExtent.width = descriptor->width;
+    info.imageExtent.height = descriptor->height;
+    info.imageArrayLayers = 1;
+    info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    info.queueFamilyIndexCount = 0;
+    info.pQueueFamilyIndices = 0;
+    info.preTransform = surf_caps.currentTransform;
+    info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    info.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    info.clipped = VK_TRUE;
+    info.oldSwapchain = 0;
+
+    CHECK_VK_RESULT(procs->vkCreateSwapchainKHR(d->device, &info, 0, &sw->swapchain));
+
+    {
+        u32 count;
+        CHECK_VK_RESULT(procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count, 0));
+        sw->image_capacity = count;
+        sw->images = sbase_allocate(sizeof(VkImage) * count, SBASE_ALLOCATION_GPU);
+        sw->image_views = sbase_allocate(sizeof(VkImageView) * count, SBASE_ALLOCATION_GPU);
+        sw->framebuffers = sbase_allocate(sizeof(VkFramebuffer) * count, SBASE_ALLOCATION_GPU);
+        CHECK_VK_RESULT(
+            procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count, sw->images));
+        sw->image_count = count;
+    }
+
+    {
+        VkImageViewCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        info.format = chosen_format->format;
+        info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        info.subresourceRange.baseMipLevel = 0;
+        info.subresourceRange.levelCount = 1;
+        info.subresourceRange.baseArrayLayer = 0;
+        info.subresourceRange.layerCount = 1;
+        for (ssize i = 0; i < sw->image_count; i++) {
+            info.image = sw->images[i];
+            CHECK_VK_RESULT(procs->vkCreateImageView(d->device, &info, 0, &sw->image_views[i]));
+        }
+    }
+
+    /* create a dummy render pass */
+
+    VkRenderPass rp;
+    {
+        VkAttachmentDescription attachment;
+        attachment.flags = 0;
+        attachment.format = chosen_format->format;
+        attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference attachment_ref;
+        attachment_ref.attachment = 0;
+        attachment_ref.layout = VK_IMAGE_LAYOUT_GENERAL;
+
+        VkSubpassDescription subpass;
+        subpass.flags = 0;
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.inputAttachmentCount = 0;
+        subpass.pInputAttachments = 0;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &attachment_ref;
+        subpass.pResolveAttachments = 0;
+        subpass.pDepthStencilAttachment = 0;
+        subpass.preserveAttachmentCount = 0;
+        subpass.pPreserveAttachments = 0;
+
+        VkSubpassDependency dependency;
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dependencyFlags = 0;
+
+        VkRenderPassCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        info.attachmentCount = 1;
+        info.pAttachments = &attachment;
+        info.subpassCount = 1;
+        info.pSubpasses = &subpass;
+        info.dependencyCount = 1;
+        info.pDependencies = &dependency;
+        CHECK_VK_RESULT(procs->vkCreateRenderPass(d->device, &info, 0, &rp));
+    }
+    sw->render_pass = rp;
+
+    {
+        VkFramebufferCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        info.renderPass = rp;
+        info.attachmentCount = 1;
+        info.width = descriptor->width;
+        info.height = descriptor->height;
+        info.layers = 1;
+        for (ssize i = 0; i < sw->image_count; i++) {
+            info.pAttachments = &sw->image_views[i];
+            CHECK_VK_RESULT(procs->vkCreateFramebuffer(d->device, &info, 0, &sw->framebuffers[i]));
+        }
+    }
+
+    deinit_array(formats);
+
+    sw->width = descriptor->width;
+    sw->height = descriptor->height;
+
+    {
+        VkFenceCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        CHECK_VK_RESULT(procs->vkCreateFence(d->device, &info, 0, &sw->submit_done));
+    }
+    {
+        VkFenceCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        CHECK_VK_RESULT(procs->vkCreateFence(d->device, &info, 0, &sw->image_available));
+    }
+    {
+        VkSemaphoreCreateInfo info;
+        info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        info.pNext = 0;
+        info.flags = 0;
+        CHECK_VK_RESULT(procs->vkCreateSemaphore(d->device, &info, 0, &sw->render_complete));
+    }
+
+    *swapchain = (sgpu_swapchain_id)sw;
+    return SGPU_RESULT_SUCCESS;
 }
 
 void sgpu_vulkan_destroy_swapchain(sgpu_device_id device, sgpu_swapchain_id swapchain) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_swapchain, s, swapchain);
+
+    struct sgpu_vulkan_proc_table* procs = &d->procs;
+
+    for (ssize i = 0; i < s->image_count; i++) {
+        procs->vkDestroyFramebuffer(d->device, s->framebuffers[i], 0);
+    }
+    for (ssize i = 0; i < s->image_count; i++) {
+        procs->vkDestroyImageView(d->device, s->image_views[i], 0);
+    }
+    procs->vkDestroyRenderPass(d->device, s->render_pass, 0);
+    procs->vkDestroySwapchainKHR(d->device, s->swapchain, 0);
+
+    sbase_deallocate(s->framebuffers, sizeof(VkFramebuffer) * s->image_capacity,
+                     SBASE_ALLOCATION_GPU);
+    sbase_deallocate(s->image_views, sizeof(VkImageView) * s->image_capacity, SBASE_ALLOCATION_GPU);
+    sbase_deallocate(s->images, sizeof(VkImage) * s->image_capacity, SBASE_ALLOCATION_GPU);
+
+    dealloc_object(sgpu_vulkan_swapchain, s);
 }
 
 int sgpu_vulkan_acquire_image(sgpu_device_id device,
                               struct sgpu_acquire_descriptor const* descriptor,
                               sgpu_presentable_id* presentable) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_swapchain, s, descriptor->swapchain);
+
+    int result = d->procs.vkAcquireNextImageKHR(d->device, s->swapchain, UINT64_MAX, 0,
+                                                s->image_available, &s->presentable.index);
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        sbase_log_fatal("cannot acquire next swapchain image");
+        sbase_panic_here();
+    }
+
+    CHECK_VK_RESULT(
+        d->procs.vkWaitForFences(d->device, 1, &s->image_available, VK_TRUE, UINT64_MAX));
+    CHECK_VK_RESULT(d->procs.vkResetFences(d->device, 1, &s->image_available));
+
+    s->presentable.swapchain = s;
+
+    *presentable = (sgpu_presentable_id)&s->presentable;
+    return SGPU_RESULT_SUCCESS;
 }
 
 void sgpu_vulkan_begin_render_pass(sgpu_device_id device,
                                    struct sgpu_render_pass_descriptor const* descriptor,
                                    sgpu_render_pass_encoder_id* encoder) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_command_buffer, cmdbuf, descriptor->command_buffer);
+    cast_object(sgpu_vulkan_swapchain, sw, descriptor->swapchain);
+    alloc_object(sgpu_vulkan_render_pass_encoder, e);
+
+    {
+        VkCommandBufferBeginInfo info;
+        info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        info.pNext = 0;
+        info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        info.pInheritanceInfo = 0;
+        CHECK_VK_RESULT(d->procs.vkBeginCommandBuffer(cmdbuf->command_buffer, &info));
+    }
+    {
+        VkClearValue clear;
+        /* bug: double to float */
+        clear.color.float32[0] = descriptor->clear_color.r;
+        clear.color.float32[1] = descriptor->clear_color.g;
+        clear.color.float32[2] = descriptor->clear_color.b;
+        clear.color.float32[3] = descriptor->clear_color.a;
+
+        VkRenderPassBeginInfo info;
+        info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        info.pNext = 0;
+        /* !!! */
+        info.renderPass = sw->render_pass;
+        /* !!! */
+        info.framebuffer = sw->framebuffers[sw->presentable.index];
+        info.renderArea.offset.x = 0;
+        info.renderArea.offset.y = 0;
+        info.renderArea.extent.width = sw->width;
+        info.renderArea.extent.height = sw->height;
+        info.clearValueCount = 1;
+        info.pClearValues = &clear;
+
+        d->procs.vkCmdBeginRenderPass(cmdbuf->command_buffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    e->command_buffer = cmdbuf->command_buffer;
+
+    *encoder = (sgpu_render_pass_encoder_id)e;
 }
 
 void sgpu_vulkan_end_render_pass(sgpu_device_id device, sgpu_render_pass_encoder_id encoder) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_render_pass_encoder, e, encoder);
+    d->procs.vkCmdEndRenderPass(e->command_buffer);
+    CHECK_VK_RESULT(d->procs.vkEndCommandBuffer(e->command_buffer));
+    dealloc_object(sgpu_vulkan_render_pass_encoder, e);
 }
 
 void sgpu_vulkan_present(sgpu_device_id device, struct sgpu_present_descriptor const* descriptor) {
-    sbase_panic_here();
+    cast_object(sgpu_vulkan_device, d, device);
+    cast_object(sgpu_vulkan_command_buffer, c, descriptor->command_buffer);
+    cast_object(sgpu_vulkan_presentable, p, descriptor->presentable);
+    {
+        VkSubmitInfo info;
+        info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        info.pNext = 0;
+        info.waitSemaphoreCount = 0;
+        info.pWaitSemaphores = 0;
+        VkPipelineStageFlags stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        info.pWaitDstStageMask = &stage;
+        info.commandBufferCount = 1;
+        info.pCommandBuffers = &c->command_buffer;
+        info.signalSemaphoreCount = 1;
+        info.pSignalSemaphores = &p->swapchain->render_complete;
+        CHECK_VK_RESULT(d->procs.vkQueueSubmit(c->queue, 1, &info, p->swapchain->submit_done));
+    }
+    {
+        VkPresentInfoKHR info = {};
+        info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        info.pNext = 0;
+        info.waitSemaphoreCount = 1;
+        info.pWaitSemaphores = &p->swapchain->render_complete;
+        info.swapchainCount = 1;
+        info.pSwapchains = &p->swapchain->swapchain;
+        info.pImageIndices = &p->index;
+        info.pResults = 0;
+        int result = d->procs.vkQueuePresentKHR(c->queue, &info);
+        if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            sbase_log_fatal("cannot acquire next swapchain image");
+            sbase_panic_here();
+        }
+    }
+    /* todo */
+    CHECK_VK_RESULT(
+        d->procs.vkWaitForFences(d->device, 1, &p->swapchain->submit_done, VK_TRUE, UINT64_MAX));
+    CHECK_VK_RESULT(d->procs.vkResetFences(d->device, 1, &p->swapchain->submit_done));
 }
 
 void sgpu_vulkan_presentable_texture(sgpu_device_id device, sgpu_presentable_id presentable,
                                      sgpu_texture_id* texture) {
-    sbase_panic_here();
+    *texture = 0;
 }

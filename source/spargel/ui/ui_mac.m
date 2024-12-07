@@ -179,3 +179,9 @@ static void window_render(struct sui_window* window) {
         window->render_callback(window->render_data);
     }
 }
+
+struct sui_window_handle sui_window_get_handle(sui_window_id window) {
+    struct sui_window_handle handle;
+    handle.apple.layer = window->layer;
+    return handle;
+}

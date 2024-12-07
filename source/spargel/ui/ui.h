@@ -46,3 +46,24 @@ EXTERN_C void sui_window_set_title(sui_window_id window, char const* title);
 
 EXTERN_C void sui_window_set_render_callback(sui_window_id window, void (*render)(void*),
                                              void* data);
+
+struct sui_window_handle {
+    union {
+        struct {
+            void* layer;
+        } apple;
+        struct {
+            void* display;
+            void* surface;
+        } wayland;
+        struct {
+            void* connection;
+            int window;
+        } xcb;
+        struct {
+            void* hwnd;
+        } win32;
+    };
+};
+
+struct sui_window_handle sui_window_get_handle(sui_window_id window);

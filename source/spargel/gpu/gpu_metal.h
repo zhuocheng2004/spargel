@@ -17,6 +17,7 @@ int sgpu_metal_create_command_buffer(sgpu_device_id device,
                                      sgpu_command_buffer_id* command_buffer);
 void sgpu_metal_destroy_command_buffer(sgpu_device_id device,
                                        sgpu_command_buffer_id command_buffer);
+void sgpu_metal_reset_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer);
 int sgpu_metal_create_surface(sgpu_device_id device,
                               struct sgpu_surface_descriptor const* descriptor,
                               sgpu_surface_id* surface);

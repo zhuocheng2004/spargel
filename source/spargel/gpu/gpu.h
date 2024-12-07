@@ -62,6 +62,8 @@ struct sgpu_surface_descriptor {
 
 struct sgpu_swapchain_descriptor {
     sgpu_surface_id surface;
+    int width;
+    int height;
 };
 
 struct sgpu_acquire_descriptor {
@@ -79,6 +81,8 @@ struct sgpu_render_pass_descriptor {
     sgpu_command_buffer_id command_buffer;
     sgpu_texture_id color_attachment;
     struct sgpu_color4 clear_color;
+    /* todo: remove this immediately! */
+    sgpu_swapchain_id swapchain;
 };
 
 struct sgpu_present_descriptor {
@@ -110,6 +114,8 @@ int sgpu_create_command_buffer(sgpu_device_id device,
                                sgpu_command_buffer_id* command_buffer);
 
 void sgpu_destroy_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer);
+
+void sgpu_reset_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer);
 
 void sgpu_destroy_shader_function(sgpu_device_id device, sgpu_shader_function_id func);
 

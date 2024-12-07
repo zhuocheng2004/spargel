@@ -109,6 +109,10 @@ void sgpu_destroy_command_buffer(sgpu_device_id device, sgpu_command_buffer_id c
     DISPATCH(destroy_command_buffer, device, command_buffer);
 }
 
+void sgpu_reset_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer) {
+    DISPATCH(reset_command_buffer, device, command_buffer);
+}
+
 int sgpu_create_surface(sgpu_device_id device, struct sgpu_surface_descriptor const* descriptor,
                         sgpu_surface_id* surface) {
     DISPATCH_R(create_surface, device, descriptor, surface);

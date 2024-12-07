@@ -129,3 +129,10 @@ void sui_window_set_render_callback(sui_window_id window, void (*render)(void*),
     window->render_callback = render;
     window->render_data = data;
 }
+
+struct sui_window_handle sui_window_get_handle(sui_window_id window) {
+    struct sui_window_handle handle;
+    handle.xcb.connection = connection;
+    handle.xcb.window = window->id;
+    return handle;
+}
