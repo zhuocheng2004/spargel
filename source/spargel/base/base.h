@@ -97,6 +97,13 @@ void sbase_deallocate(void* ptr, ssize size, int tag);
 void sbase_report_allocation();
 void sbase_check_leak();
 
+struct sbase_allocator {
+    void* (*alloc)(ssize size, void* data);
+    void* (*realloc)(void* old_ptr, ssize old_size, ssize new_size, void* data);
+    void (*dealloc)(void* ptr, ssize size, void* data);
+    void* data;
+};
+
 /* string */
 
 struct sbase_string {

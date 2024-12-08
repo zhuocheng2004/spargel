@@ -966,6 +966,17 @@ int sgpu_vulkan_acquire_image(sgpu_device_id device,
     cast_object(sgpu_vulkan_device, d, device);
     cast_object(sgpu_vulkan_swapchain, s, descriptor->swapchain);
 
+    /**
+     * Spec:
+     *
+     * After acquiring a presentable image and before modifying it, the application must use a
+     * synchronization primitive to ensure that the presentation engine has finished reading from
+     * the image.
+     *
+     * The presentation engine may not have finished reading from the image at the time it is
+     * acquired, so the application must use semaphore and/or fence to ensure that the image layout
+     * and contents are not modified until the presentation engine reads have completed.
+     */
     int result = d->procs.vkAcquireNextImageKHR(d->device, s->swapchain, UINT64_MAX, 0,
                                                 s->image_available, &s->presentable.index);
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -1055,6 +1066,17 @@ void sgpu_vulkan_present(sgpu_device_id device, struct sgpu_present_descriptor c
         info.pSignalSemaphores = &p->swapchain->render_complete;
         CHECK_VK_RESULT(d->procs.vkQueueSubmit(c->queue, 1, &info, p->swapchain->submit_done));
     }
+    /**
+     * Spec:
+     *
+     * Calls to vkQueuePresentKHR may block, but must return in finite time. The processing of the
+     * presentation happens in issue order with other queue operations, but semaphores must be used
+     * to ensure that prior rendering and other commands in the specified queue complete before the
+     * presentation begins. The presentation command itself does not delay processing of subsequent
+     * commands on the queue. However, presentation requests sent to a particular queue are always
+     * performed in order. Exact presentation timing is controlled by the semantics of the
+     * presentation engine and native platform in use.
+     */
     {
         VkPresentInfoKHR info = {};
         info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

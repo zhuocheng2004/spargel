@@ -13,6 +13,10 @@ typedef u64 sgpu_swapchain_id;
 typedef u64 sgpu_texture_id;
 typedef u64 sgpu_presentable_id;
 
+typedef u64 sgpu_bind_group_layout;
+typedef u64 sgpu_bind_group;
+typedef u64 sgpu_pipeline_layout;
+
 /* external */
 struct sui_window;
 
