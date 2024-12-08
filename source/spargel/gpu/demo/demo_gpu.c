@@ -1,9 +1,10 @@
-#include <math.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/gpu/gpu_metal.h>
 #include <spargel/gpu/gpu_vulkan.h>
 #include <spargel/ui/ui.h>
-#include <stdlib.h>
+
+/* libc */
+#include <math.h>
 
 #define USE_VULKAN 1
 #if SPARGEL_IS_MACOS
