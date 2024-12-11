@@ -165,11 +165,11 @@ namespace spargel::base {
         }
     }
 
-    struct string string_from_range(char const* begin, char const* end) {
+    string string_from_range(char const* begin, char const* end) {
         spargel_assert(begin <= end);
         spargel_assert(begin != NULL);
 
-        struct string str;
+        string str;
         str.length = end - begin;
         str.data = (char*)allocate(str.length + 1, ALLOCATION_BASE);
         memcpy(str.data, begin, str.length);
@@ -177,17 +177,17 @@ namespace spargel::base {
         return str;
     }
 
-    bool string_is_equal(struct string lhs, struct string rhs) {
+    bool operator==(string const& lhs, string const& rhs) {
         if (lhs.length != rhs.length) return false;
         return memcmp(lhs.data, rhs.data, lhs.length) == 0;
     }
 
-    void string_deinit(struct string str) {
+    void destroy(string const& str) {
         spargel_log_debug("str length = %ld", str.length);
         if (str.data) deallocate(str.data, str.length + 1, ALLOCATION_BASE);
     }
 
-    void string_copy(struct string* dst, struct string src) {
+    void string_copy(string* dst, string src) {
         spargel_assert(src.data != NULL);
 
         if (dst->data) deallocate(dst->data, dst->length + 1, ALLOCATION_BASE);
@@ -197,11 +197,11 @@ namespace spargel::base {
         dst->data[dst->length] = '\0';
     }
 
-    struct string string_concat(struct string str1, struct string str2) {
+    string string_concat(string str1, string str2) {
         spargel_assert(str1.data != NULL);
         spargel_assert(str2.data != NULL);
 
-        struct string str;
+        string str;
         str.length = str1.length + str2.length;
         str.data = (char*)allocate(str.length + 1, ALLOCATION_BASE);
         memcpy(str.data, str1.data, str1.length);

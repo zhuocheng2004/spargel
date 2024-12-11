@@ -3,7 +3,7 @@
 
 namespace spargel::base {
 
-    struct string get_executable_path() {
+    string get_executable_path() {
         char* buf = (char*)allocate(PATH_MAX, ALLOCATION_BASE);
         ssize len = _get_executable_path(buf, PATH_MAX);
         if (len >= PATH_MAX) {
@@ -11,7 +11,7 @@ namespace spargel::base {
             _get_executable_path(buf, len + 1);
         }
         buf[len] = '\0';
-        return (struct string){
+        return (string){
             .length = len,
             .data = buf,
         };

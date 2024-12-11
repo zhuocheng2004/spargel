@@ -17,7 +17,7 @@ namespace spargel::resource {
 
     static void normalize_path(spargel::base::string* path) {
         if (path->length == 0) {
-            spargel::base::string_deinit(*path);
+            spargel::base::destroy(*path);
             spargel::base::string_copy(path, DOT);
         } else {
             ssize len = path->length;
@@ -43,7 +43,7 @@ namespace spargel::resource {
 
     static void directory_manager_close(struct resource_manager* manager) {
         struct directory_manager_data* data = (struct directory_manager_data*)manager->data;
-        spargel::base::string_deinit(data->base);
+        spargel::base::destroy(data->base);
         free(data);
     }
 

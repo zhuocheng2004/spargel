@@ -22,6 +22,6 @@ namespace spargel::base {
      */
     ssize _get_executable_path(char* buf, ssize buf_size);
 
-    struct string get_executable_path();
+    string get_executable_path();
 
 }  // namespace spargel::base

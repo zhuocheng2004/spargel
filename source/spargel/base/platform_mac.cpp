@@ -22,26 +22,39 @@ namespace spargel::base {
         return strlen(buf);
     }
 
-    static void write_stderr(char const* buf, ssize len) {
-        ssize_t result;
-        do {
-            result = write(STDERR_FILENO, buf, len);
-        } while (result == -1 && errno == EINTR);
-    }
+    namespace {
 
-    static const char digits[] = "0123456789abcdef";
-
-    static void write_pointer(void* x) {
-        char buf[30] = {};
-        u64 n = (u64)x;
-        for (int i = 0; i < 16; i++) {
-            buf[15 - i] = digits[n % 16];
-            n /= 16;
+        void write_stderr(char const* buf, ssize len) {
+            ssize_t result;
+            do {
+                result = write(STDERR_FILENO, buf, len);
+            } while (result == -1 && errno == EINTR);
         }
-        write_stderr(buf, 16);
-    }
 
-    static bool symbolize(void* pc, char* buf, ssize size);
+        const char digits[] = "0123456789abcdef";
+
+        void write_pointer(void* x) {
+            char buf[30] = {};
+            u64 n = (u64)x;
+            for (int i = 0; i < 16; i++) {
+                buf[15 - i] = digits[n % 16];
+                n /= 16;
+            }
+            write_stderr(buf, 16);
+        }
+
+        bool symbolize(void* pc, char* buf, ssize size) {
+            Dl_info info;
+            if (dladdr(pc, &info)) {
+                if (strlen(info.dli_sname) < size) {
+                    strcpy(buf, info.dli_sname);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    }  // namespace
 
 #define MAX_STACK_TRACES 128
 #define MAX_SYMBOL_SIZE 255
@@ -61,17 +74,6 @@ namespace spargel::base {
             }
             write_stderr("\n", 1);
         }
-    }
-
-    static bool symbolize(void* pc, char* buf, ssize size) {
-        Dl_info info;
-        if (dladdr(pc, &info)) {
-            if (strlen(info.dli_sname) < size) {
-                strcpy(buf, info.dli_sname);
-                return true;
-            }
-        }
-        return false;
     }
 
 }  // namespace spargel::base

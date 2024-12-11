@@ -240,7 +240,7 @@ namespace spargel::codec {
         ssize index = hash % capacity;
         for (;;) {
             struct json_object_entry* entry = &entries[index];
-            if (!entry->used || spargel::base::string_is_equal(key, entry->key)) {
+            if (!entry->used || key == entry->key) {
                 return entry;
             }
             index = (index + 1) % capacity;
@@ -297,7 +297,7 @@ namespace spargel::codec {
         for (ssize i = 0; i < object->capacity; i++) {
             struct json_object_entry* entry = &object->entries[i];
             if (entry->used) {
-                spargel::base::string_deinit(entry->key);
+                spargel::base::destroy(entry->key);
                 json_value_deinit(&entry->value);
             }
         }
@@ -336,7 +336,7 @@ namespace spargel::codec {
             json_object_deinit(&value->object);
             break;
         case JSON_VALUE_KIND_STRING:
-            spargel::base::string_deinit(value->string);
+            spargel::base::destroy(value->string);
             break;
         default:
             break;

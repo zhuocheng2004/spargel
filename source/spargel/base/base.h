@@ -37,9 +37,9 @@ namespace spargel::base {
 
     /* panic */
 
-    void panic() SPARGEL_ATTRIBUTE_NORETURN;
+    [[noreturn]] void panic();
 
-    void panic_at(char const* file, char const* func, ssize line) SPARGEL_ATTRIBUTE_NORETURN;
+    [[noreturn]] void panic_at(char const* file, char const* func, ssize line);
 
 #define spargel_panic_here() ::spargel::base::panic_at(__FILE__, __func__, __LINE__)
 
@@ -109,14 +109,20 @@ namespace spargel::base {
 
 #define string_from_literal(str) ((struct ::spargel::base::string){sizeof(str) - 1, str})
 
-    struct string string_from_range(char const* begin, char const* end);
+    string string_from_range(char const* begin, char const* end);
 
-    bool string_is_equal(struct string lhs, struct string rhs);
+    bool operator==(string const& lhs, string const& rhs);
 
-    void string_deinit(struct string str);
+    void destroy(string const& str);
 
-    void string_copy(struct string* dst, struct string src);
+    void string_copy(string* dst, string src);
 
-    struct string string_concat(struct string str1, struct string str2);
+    string string_concat(string str1, string str2);
+
+    template <typename F>
+    struct defer {
+        ~defer() { f(); }
+        F f;
+    };
 
 }  // namespace spargel::base
