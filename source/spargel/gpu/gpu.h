@@ -7,150 +7,150 @@ namespace spargel::ui {
     struct window;
 }
 
-typedef struct sgpu_device* sgpu_device_id;
-typedef u64 sgpu_command_queue_id;
-typedef u64 sgpu_command_buffer_id;
-typedef u64 sgpu_render_pass_encoder_id;
-typedef u64 sgpu_render_pipeline_id;
-typedef u64 sgpu_shader_function_id;
-typedef u64 sgpu_surface_id;
-typedef u64 sgpu_swapchain_id;
-typedef u64 sgpu_texture_id;
-typedef u64 sgpu_presentable_id;
+namespace spargel::gpu {
 
-typedef u64 sgpu_bind_group_layout;
-typedef u64 sgpu_bind_group;
-typedef u64 sgpu_pipeline_layout;
+    typedef struct device* device_id;
+    typedef u64 command_queue_id;
+    typedef u64 command_buffer_id;
+    typedef u64 render_pass_encoder_id;
+    typedef u64 render_pipeline_id;
+    typedef u64 shader_function_id;
+    typedef u64 surface_id;
+    typedef u64 swapchain_id;
+    typedef u64 texture_id;
+    typedef u64 presentable_id;
 
-enum sgpu_result {
-    SGPU_RESULT_SUCCESS,
-    SGPU_RESULT_NO_BACKEND,
-    SGPU_RESULT_ALLOCATION_FAILED,
-    SGPU_RESULT_CANNOT_CREATE_METAL_LIBRARY,
-    SGPU_RESULT_CANNOT_CREATE_SHADER_FUNCTION,
-    SGPU_RESULT_CANNOT_CREATE_RENDER_PIPELINE,
-};
+    typedef u64 bind_group_layout;
+    typedef u64 bind_group;
+    typedef u64 pipeline_layout;
 
-enum sgpu_backend {
-    SGPU_BACKEND_DIRECTX,
-    SGPU_BACKEND_METAL,
-    SGPU_BACKEND_VULKAN,
-};
+    enum result {
+        RESULT_SUCCESS,
+        RESULT_NO_BACKEND,
+        RESULT_ALLOCATION_FAILED,
+        RESULT_CANNOT_CREATE_METAL_LIBRARY,
+        RESULT_CANNOT_CREATE_SHADER_FUNCTION,
+        RESULT_CANNOT_CREATE_RENDER_PIPELINE,
+    };
 
-enum sgpu_primitive {
-    SGPU_PRIMITIVE_TRIANGLE,
-};
+    enum backend {
+        BACKEND_DIRECTX,
+        BACKEND_METAL,
+        BACKEND_VULKAN,
+    };
 
-enum sgpu_format {
-    SGPU_FORMAT_BRGA8_UNORM,
-    SGPU_FORMAT_BGRA8_SRGB,
-};
+    enum primitive {
+        PRIMITIVE_TRIANGLE,
+    };
 
-struct sgpu_device_descriptor {
-    int backend;
-    int platform;
-};
+    enum format {
+        FORMAT_BRGA8_UNORM,
+        FORMAT_BGRA8_SRGB,
+    };
 
-struct sgpu_render_pipeline_descriptor {
-    // int primitive;
-    int target_format;
-    sgpu_shader_function_id vertex_function;
-    sgpu_shader_function_id fragment_function;
-};
+    struct device_descriptor {
+        int backend;
+        int platform;
+    };
 
-struct sgpu_command_buffer_descriptor {
-    sgpu_command_queue_id queue;
-};
+    struct render_pipeline_descriptor {
+        // int primitive;
+        int target_format;
+        shader_function_id vertex_function;
+        shader_function_id fragment_function;
+    };
 
-struct sgpu_surface_descriptor {
-    spargel::ui::window* window;
-};
+    struct command_buffer_descriptor {
+        command_queue_id queue;
+    };
 
-struct sgpu_swapchain_descriptor {
-    sgpu_surface_id surface;
-    int width;
-    int height;
-};
+    struct surface_descriptor {
+        spargel::ui::window* window;
+    };
 
-struct sgpu_acquire_descriptor {
-    sgpu_swapchain_id swapchain;
-};
+    struct swapchain_descriptor {
+        surface_id surface;
+        int width;
+        int height;
+    };
 
-struct sgpu_color4 {
-    double r;
-    double g;
-    double b;
-    double a;
-};
+    struct acquire_descriptor {
+        swapchain_id swapchain;
+    };
 
-struct sgpu_render_pass_descriptor {
-    sgpu_command_buffer_id command_buffer;
-    sgpu_texture_id color_attachment;
-    struct sgpu_color4 clear_color;
-    /* todo: remove this immediately! */
-    sgpu_swapchain_id swapchain;
-};
+    struct color4 {
+        double r;
+        double g;
+        double b;
+        double a;
+    };
 
-struct sgpu_present_descriptor {
-    sgpu_command_buffer_id command_buffer;
-    sgpu_presentable_id presentable;
-};
+    struct render_pass_descriptor {
+        command_buffer_id command_buffer;
+        texture_id color_attachment;
+        struct color4 clear_color;
+        /* todo: remove this immediately! */
+        swapchain_id swapchain;
+    };
 
-/**
- * @brief create default device
- */
-int sgpu_create_default_device(struct sgpu_device_descriptor const* descriptor,
-                               sgpu_device_id* device);
+    struct present_descriptor {
+        command_buffer_id command_buffer;
+        presentable_id presentable;
+    };
 
-/**
- * @brief destroy device
- */
-void sgpu_destroy_device(sgpu_device_id device);
+    /**
+     * @brief create default device
+     */
+    int create_default_device(struct device_descriptor const* descriptor, device_id* device);
 
-/**
- * Questions:
- *  1. Metal has `MTLIOCommandQueue`.
- */
-int sgpu_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue);
+    /**
+     * @brief destroy device
+     */
+    void destroy_device(device_id device);
 
-void sgpu_destroy_command_queue(sgpu_device_id device, sgpu_command_queue_id queue);
+    /**
+     * Questions:
+     *  1. Metal has `MTLIOCommandQueue`.
+     */
+    int create_command_queue(device_id device, command_queue_id* queue);
 
-int sgpu_create_command_buffer(sgpu_device_id device,
-                               struct sgpu_command_buffer_descriptor const* descriptor,
-                               sgpu_command_buffer_id* command_buffer);
+    void destroy_command_queue(device_id device, command_queue_id queue);
 
-void sgpu_destroy_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer);
+    int create_command_buffer(device_id device, struct command_buffer_descriptor const* descriptor,
+                              command_buffer_id* command_buffer);
 
-void sgpu_reset_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer);
+    void destroy_command_buffer(device_id device, command_buffer_id command_buffer);
 
-void sgpu_destroy_shader_function(sgpu_device_id device, sgpu_shader_function_id func);
+    void reset_command_buffer(device_id device, command_buffer_id command_buffer);
 
-int sgpu_create_render_pipeline(sgpu_device_id device,
-                                struct sgpu_render_pipeline_descriptor const* descriptor,
-                                sgpu_render_pipeline_id* pipeline);
+    void destroy_shader_function(device_id device, shader_function_id func);
 
-void sgpu_destroy_render_pipeline(sgpu_device_id device, sgpu_render_pipeline_id pipeline);
+    int create_render_pipeline(device_id device,
+                               struct render_pipeline_descriptor const* descriptor,
+                               render_pipeline_id* pipeline);
 
-int sgpu_create_surface(sgpu_device_id device, struct sgpu_surface_descriptor const* descriptor,
-                        sgpu_surface_id* surface);
+    void destroy_render_pipeline(device_id device, render_pipeline_id pipeline);
 
-void sgpu_destroy_surface(sgpu_device_id device, sgpu_surface_id surface);
+    int create_surface(device_id device, struct surface_descriptor const* descriptor,
+                       surface_id* surface);
 
-int sgpu_create_swapchain(sgpu_device_id device, struct sgpu_swapchain_descriptor const* descriptor,
-                          sgpu_swapchain_id* swapchain);
+    void destroy_surface(device_id device, surface_id surface);
 
-void sgpu_destroy_swapchain(sgpu_device_id device, sgpu_swapchain_id swapchain);
+    int create_swapchain(device_id device, struct swapchain_descriptor const* descriptor,
+                         swapchain_id* swapchain);
 
-int sgpu_acquire_image(sgpu_device_id device, struct sgpu_acquire_descriptor const* descriptor,
-                       sgpu_presentable_id* presentable);
+    void destroy_swapchain(device_id device, swapchain_id swapchain);
 
-void sgpu_begin_render_pass(sgpu_device_id device,
-                            struct sgpu_render_pass_descriptor const* descriptor,
-                            sgpu_render_pass_encoder_id* encoder);
+    int acquire_image(device_id device, struct acquire_descriptor const* descriptor,
+                      presentable_id* presentable);
 
-void sgpu_end_render_pass(sgpu_device_id device, sgpu_render_pass_encoder_id encoder);
+    void begin_render_pass(device_id device, struct render_pass_descriptor const* descriptor,
+                           render_pass_encoder_id* encoder);
 
-void sgpu_present(sgpu_device_id device, struct sgpu_present_descriptor const* descriptor);
+    void end_render_pass(device_id device, render_pass_encoder_id encoder);
 
-void sgpu_presentable_texture(sgpu_device_id device, sgpu_presentable_id presentable,
-                              sgpu_texture_id* texture);
+    void present(device_id device, struct present_descriptor const* descriptor);
+
+    void presentable_texture(device_id device, presentable_id presentable, texture_id* texture);
+
+}  // namespace spargel::gpu

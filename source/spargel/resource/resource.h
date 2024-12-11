@@ -6,7 +6,7 @@
 #define RESOURCE_DEFAULT_NS "core"
 
 #define REOURCE_ID_WITH_NS(ns, path) \
-    ((struct resource_id){sbase_string_from_literal(ns), sbase_string_from_literal(path)})
+    ((struct resource_id){string_from_literal(ns), string_from_literal(path)})
 
 #define RESOURCE_ID(path) REOURCE_ID_WITH_NS(RESOURCE_DEFAULT_NS, path)
 
@@ -17,8 +17,8 @@ namespace spargel::resource {
     typedef int resource_err;
 
     struct resource_id {
-        struct sbase_string ns;
-        struct sbase_string path;
+        spargel::base::string ns;
+        spargel::base::string path;
     };
 
     struct resource {

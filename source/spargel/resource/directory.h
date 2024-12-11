@@ -5,5 +5,5 @@
 
 namespace spargel::resource {
     void resource_directory_manager_init(struct resource_manager* manager,
-                                              struct sbase_string base_path);
+                                              spargel::base::string base_path);
 }

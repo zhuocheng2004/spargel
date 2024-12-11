@@ -23,43 +23,43 @@
 #endif
 
 struct renderer {
-    sgpu_device_id device;
-    sgpu_surface_id surface;
-    sgpu_swapchain_id swapchain;
-    sgpu_command_queue_id queue;
-    sgpu_command_buffer_id cmdbuf;
+    spargel::gpu::device_id device;
+    spargel::gpu::surface_id surface;
+    spargel::gpu::swapchain_id swapchain;
+    spargel::gpu::command_queue_id queue;
+    spargel::gpu::command_buffer_id cmdbuf;
     int frame;
 };
 
 static void render(struct renderer* r) {
-    sgpu_device_id device = r->device;
-    sgpu_swapchain_id swapchain = r->swapchain;
-    // sgpu_command_queue_id queue = r->queue;
-    sgpu_command_buffer_id cmdbuf = r->cmdbuf;
+    spargel::gpu::device_id device = r->device;
+    spargel::gpu::swapchain_id swapchain = r->swapchain;
+    // spargel::gpu::command_queue_id queue = r->queue;
+    spargel::gpu::command_buffer_id cmdbuf = r->cmdbuf;
 
-    sgpu_reset_command_buffer(device, cmdbuf);
+    spargel::gpu::reset_command_buffer(device, cmdbuf);
 
-    sgpu_presentable_id presentable;
-    sgpu_texture_id texture;
-    struct sgpu_acquire_descriptor adesc = {.swapchain = swapchain};
-    sgpu_acquire_image(device, &adesc, &presentable);
-    sgpu_presentable_texture(device, presentable, &texture);
-    sgpu_render_pass_encoder_id encoder;
-    struct sgpu_render_pass_descriptor rpdesc = {
+    spargel::gpu::presentable_id presentable;
+    spargel::gpu::texture_id texture;
+    struct spargel::gpu::acquire_descriptor adesc = {.swapchain = swapchain};
+    spargel::gpu::acquire_image(device, &adesc, &presentable);
+    spargel::gpu::presentable_texture(device, presentable, &texture);
+    spargel::gpu::render_pass_encoder_id encoder;
+    struct spargel::gpu::render_pass_descriptor rpdesc = {
         .command_buffer = cmdbuf,
         .color_attachment = texture,
         .clear_color = {fabs(sin(r->frame / 120.f + 72)), fabs(sin(r->frame / 120.f + 36)),
                         fabs(sin(r->frame / 120.f)), 1.0},
         .swapchain = swapchain,
     };
-    sgpu_begin_render_pass(device, &rpdesc, &encoder);
-    sgpu_end_render_pass(device, encoder);
+    spargel::gpu::begin_render_pass(device, &rpdesc, &encoder);
+    spargel::gpu::end_render_pass(device, encoder);
     {
-        struct sgpu_present_descriptor desc = {
+        struct spargel::gpu::present_descriptor desc = {
             .command_buffer = cmdbuf,
             .presentable = presentable,
         };
-        sgpu_present(device, &desc);
+        spargel::gpu::present(device, &desc);
     }
     r->frame++;
 }
@@ -70,53 +70,53 @@ static int create(int backend, char const* title, struct renderer* r) {
 
     int result;
 
-    sgpu_device_id device;
+    spargel::gpu::device_id device;
     {
-        struct sgpu_device_descriptor desc = {
-            .backend = SGPU_BACKEND_VULKAN,
+        struct spargel::gpu::device_descriptor desc = {
+            .backend = spargel::gpu::BACKEND_VULKAN,
             .platform = spargel::ui::platform_id(),
         };
-        result = sgpu_create_default_device(&desc, &device);
+        result = spargel::gpu::create_default_device(&desc, &device);
     }
     if (result != 0) return 1;
-    sbase_log_info("device created");
+    spargel_log_info("device created");
 
-    sgpu_command_queue_id queue;
-    result = sgpu_create_command_queue(device, &queue);
+    spargel::gpu::command_queue_id queue;
+    result = spargel::gpu::create_command_queue(device, &queue);
     if (result != 0) return 1;
-    sbase_log_info("command queue created");
+    spargel_log_info("command queue created");
 
-    sgpu_surface_id surface;
+    spargel::gpu::surface_id surface;
     {
-        struct sgpu_surface_descriptor desc = {
+        struct spargel::gpu::surface_descriptor desc = {
             .window = window,
         };
-        result = sgpu_create_surface(device, &desc, &surface);
+        result = spargel::gpu::create_surface(device, &desc, &surface);
     }
     if (result != 0) return 1;
-    sbase_log_info("surface created");
+    spargel_log_info("surface created");
 
-    sgpu_swapchain_id swapchain;
+    spargel::gpu::swapchain_id swapchain;
     {
-        struct sgpu_swapchain_descriptor desc = {
+        struct spargel::gpu::swapchain_descriptor desc = {
             .surface = surface,
             .width = 500,
             .height = 500,
         };
-        result = sgpu_create_swapchain(device, &desc, &swapchain);
+        result = spargel::gpu::create_swapchain(device, &desc, &swapchain);
     }
     if (result != 0) return 1;
-    sbase_log_info("swapchain created");
+    spargel_log_info("swapchain created");
 
-    sgpu_command_buffer_id cmdbuf;
+    spargel::gpu::command_buffer_id cmdbuf;
     {
-        struct sgpu_command_buffer_descriptor desc = {
+        struct spargel::gpu::command_buffer_descriptor desc = {
             .queue = queue,
         };
-        result = sgpu_create_command_buffer(device, &desc, &cmdbuf);
+        result = spargel::gpu::create_command_buffer(device, &desc, &cmdbuf);
     }
     if (result != 0) return 1;
-    sbase_log_info("command buffer created");
+    spargel_log_info("command buffer created");
 
     r->device = device;
     r->queue = queue;
@@ -135,11 +135,11 @@ int main() {
 
 #if USE_VULKAN
     struct renderer r_vk;
-    if (create(SGPU_BACKEND_VULKAN, "Spargel Demo - Vulkan", &r_vk) != 0) return 1;
+    if (create(spargel::gpu::BACKEND_VULKAN, "Spargel Demo - Vulkan", &r_vk) != 0) return 1;
 #endif
 #if USE_METAL
     struct renderer r_mtl;
-    if (create(SGPU_BACKEND_VULKAN, "Spargel Demo - Metal", &r_mtl) != 0) return 1;
+    if (create(spargel::gpu::BACKEND_VULKAN, "Spargel Demo - Metal", &r_mtl) != 0) return 1;
 #endif
 
     spargel::ui::platform_run();

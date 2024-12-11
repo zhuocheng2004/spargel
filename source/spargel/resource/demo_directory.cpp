@@ -4,8 +4,8 @@ using namespace spargel::resource;
 
 int main() {
     struct resource_manager manager;
-    struct sbase_string base_path = sbase_string_from_literal(".");
-    sbase_log_debug("base_path.length = %ld", base_path.length);
+    spargel::base::string base_path = string_from_literal(".");
+    spargel_log_debug("base_path.length = %ld", base_path.length);
     resource_directory_manager_init(&manager, base_path);
 
     struct resource_id id = RESOURCE_ID("path/to/resource");
@@ -13,7 +13,7 @@ int main() {
 
     resource_close_manager(&manager);
 
-    sbase_report_allocation();
-    sbase_check_leak();
+    spargel::base::report_allocation();
+    spargel::base::check_leak();
     return 0;
 }

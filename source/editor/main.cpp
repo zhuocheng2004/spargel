@@ -15,8 +15,8 @@ int main(int argc, char* argv[]) {
     spargel::ui::window_id window = spargel::ui::create_window(500, 500);
     spargel::ui::window_set_title(window, "Spargel Editor");
 
-    struct spargel_codec_image image;
-    spargel_codec_load_ppm_image(argv[1], &image);
+    struct spargel::codec::image image;
+    spargel::codec::load_ppm_image(argv[1], &image);
     // struct spargel_renderer_texture_descriptor texture_desc = {image.width, image.height,
     //                                                            (u8*)image.pixels};
 

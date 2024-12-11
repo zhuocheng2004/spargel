@@ -56,7 +56,7 @@ namespace spargel::ui {
   NSLog(@"keyDown!");
   unsigned short keyCode = [event keyCode];
   if (keyCode == kVK_Escape) {
-    sbase_print_backtrace();
+    spargel::base::print_backtrace();
   }
   [self interpretKeyEvents:@[ event ]];
 }

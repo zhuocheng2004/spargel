@@ -28,91 +28,95 @@
 #endif
 
 #if SPARGEL_ENABLE_ASSERT
-#define spargel_assert(cond) ((cond) ? (void)(0) : sbase_panic_here())
+#define spargel_assert(cond) ((cond) ? (void)(0) : spargel_panic_here())
 #else
 #define spargel_assert(cond)
 #endif
 
-/* panic */
+namespace spargel::base {
 
-void sbase_panic() SPARGEL_ATTRIBUTE_NORETURN;
+    /* panic */
 
-void sbase_panic_at(char const* file, char const* func, ssize line) SPARGEL_ATTRIBUTE_NORETURN;
+    void panic() SPARGEL_ATTRIBUTE_NORETURN;
 
-#define sbase_panic_here() sbase_panic_at(__FILE__, __func__, __LINE__)
+    void panic_at(char const* file, char const* func, ssize line) SPARGEL_ATTRIBUTE_NORETURN;
 
-/* logging */
+#define spargel_panic_here() ::spargel::base::panic_at(__FILE__, __func__, __LINE__)
 
-enum sbase_log_level {
-    /* message for debugging */
-    SBASE_LOG_DEBUG = 0,
-    /* general log events */
-    SBASE_LOG_INFO,
-    /* warning, not necessarily shown to users */
-    SBASE_LOG_WARN,
-    /* error that can recover from */
-    SBASE_LOG_ERROR,
-    /* nothing more can be done other than aborting */
-    SBASE_LOG_FATAL,
+    /* logging */
 
-    _SBASE_LOG_COUNT,
-};
+    enum log_level {
+        /* message for debugging */
+        LOG_DEBUG = 0,
+        /* general log events */
+        LOG_INFO,
+        /* warning, not necessarily shown to users */
+        LOG_WARN,
+        /* error that can recover from */
+        LOG_ERROR,
+        /* nothing more can be done other than aborting */
+        LOG_FATAL,
 
-void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...)
-    SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6);
+        _LOG_COUNT,
+    };
 
-#define SBASE_LOG_IMPL(level, ...) sbase_log(level, __FILE__, __func__, __LINE__, __VA_ARGS__)
-#define sbase_log_debug(...) SBASE_LOG_IMPL(SBASE_LOG_DEBUG, __VA_ARGS__)
-#define sbase_log_info(...) SBASE_LOG_IMPL(SBASE_LOG_INFO, __VA_ARGS__)
-#define sbase_log_warn(...) SBASE_LOG_IMPL(SBASE_LOG_WARN, __VA_ARGS__)
-#define sbase_log_error(...) SBASE_LOG_IMPL(SBASE_LOG_ERROR, __VA_ARGS__)
-#define sbase_log_fatal(...) SBASE_LOG_IMPL(SBASE_LOG_FATAL, __VA_ARGS__);
+    void log(int level, char const* file, char const* func, ssize line, char const* format, ...)
+        SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6);
 
-/* backtrace */
+#define LOG_IMPL(level, ...) ::spargel::base::log(level, __FILE__, __func__, __LINE__, __VA_ARGS__)
+#define spargel_log_debug(...) LOG_IMPL(::spargel::base::LOG_DEBUG, __VA_ARGS__)
+#define spargel_log_info(...) LOG_IMPL(::spargel::base::LOG_INFO, __VA_ARGS__)
+#define spargel_log_warn(...) LOG_IMPL(::spargel::base::LOG_WARN, __VA_ARGS__)
+#define spargel_log_error(...) LOG_IMPL(::spargel::base::LOG_ERROR, __VA_ARGS__)
+#define spargel_log_fatal(...) LOG_IMPL(::spargel::base::LOG_FATAL, __VA_ARGS__);
 
-void sbase_print_backtrace();
+    /* backtrace */
 
-/* allocator */
+    void print_backtrace();
 
-enum sbase_allocation_tag {
-    SBASE_ALLOCATION_BASE = 0,
-    SBASE_ALLOCATION_CODEC,
-    SBASE_ALLOCATION_ECS,
-    SBASE_ALLOCATION_GPU,
-    SBASE_ALLOCATION_UI,
+    /* allocator */
 
-    _SBASE_ALLOCATION_COUNT,
-};
+    enum allocation_tag {
+        ALLOCATION_BASE = 0,
+        ALLOCATION_CODEC,
+        ALLOCATION_ECS,
+        ALLOCATION_GPU,
+        ALLOCATION_UI,
 
-void* sbase_allocate(ssize size, int tag);
-void* sbase_reallocate(void* ptr, ssize old_size, ssize new_size, int tag);
-void sbase_deallocate(void* ptr, ssize size, int tag);
+        _ALLOCATION_COUNT,
+    };
 
-void sbase_report_allocation();
-void sbase_check_leak();
+    void* allocate(ssize size, int tag);
+    void* reallocate(void* ptr, ssize old_size, ssize new_size, int tag);
+    void deallocate(void* ptr, ssize size, int tag);
 
-struct sbase_allocator {
-    void* (*alloc)(ssize size, void* data);
-    void* (*realloc)(void* old_ptr, ssize old_size, ssize new_size, void* data);
-    void (*dealloc)(void* ptr, ssize size, void* data);
-    void* data;
-};
+    void report_allocation();
+    void check_leak();
 
-/* string */
+    struct allocator {
+        void* (*alloc)(ssize size, void* data);
+        void* (*realloc)(void* old_ptr, ssize old_size, ssize new_size, void* data);
+        void (*dealloc)(void* ptr, ssize size, void* data);
+        void* data;
+    };
 
-struct sbase_string {
-    ssize length;
-    char* data;
-};
+    /* string */
 
-#define sbase_string_from_literal(str) ((struct sbase_string){sizeof(str) - 1, str})
+    struct string {
+        ssize length;
+        char* data;
+    };
 
-struct sbase_string sbase_string_from_range(char const* begin, char const* end);
+#define string_from_literal(str) ((struct ::spargel::base::string){sizeof(str) - 1, str})
 
-bool sbase_string_is_equal(struct sbase_string lhs, struct sbase_string rhs);
+    struct string string_from_range(char const* begin, char const* end);
 
-void sbase_string_deinit(struct sbase_string str);
+    bool string_is_equal(struct string lhs, struct string rhs);
 
-void sbase_string_copy(struct sbase_string* dst, struct sbase_string src);
+    void string_deinit(struct string str);
 
-struct sbase_string sbase_string_concat(struct sbase_string str1, struct sbase_string str2);
+    void string_copy(struct string* dst, struct string src);
+
+    struct string string_concat(struct string str1, struct string str2);
+
+}  // namespace spargel::base

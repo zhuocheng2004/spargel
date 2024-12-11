@@ -11,8 +11,12 @@ typedef const char* LPCSTR;
 __declspec(dllimport) DWORD
     __stdcall GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
 
-ssize _spgl_get_executable_path(char* buf, ssize buf_size) {
-    return GetModuleFileNameA(NULL, buf, buf_size);
-}
+namespace spargel::base {
 
-void sbase_print_backtrace() { printf("<unknown backtrace>\n"); }
+    ssize _get_executable_path(char* buf, ssize buf_size) {
+        return GetModuleFileNameA(NULL, buf, buf_size);
+    }
+
+    void print_backtrace() { printf("<unknown backtrace>\n"); }
+
+}  // namespace spargel::base

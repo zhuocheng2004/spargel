@@ -11,7 +11,7 @@ int main() {
 
     resource_close_manager(&manager);
 
-    sbase_report_allocation();
-    sbase_check_leak();
+    spargel::base::report_allocation();
+    spargel::base::check_leak();
     return 0;
 }

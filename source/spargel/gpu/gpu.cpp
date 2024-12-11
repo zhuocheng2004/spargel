@@ -13,47 +13,48 @@
 #if SPARGEL_GPU_ENABLE_DIRECTX
 #endif
 
-int sgpu_create_default_device(struct sgpu_device_descriptor const* descriptor,
-                               sgpu_device_id* device) {
-    switch (descriptor->backend) {
+namespace spargel::gpu {
+
+    int create_default_device(struct device_descriptor const* descriptor, device_id* device) {
+        switch (descriptor->backend) {
 #if SPARGEL_GPU_ENABLE_METAL
-    case SGPU_BACKEND_METAL:
-        return sgpu_metal_create_default_device(descriptor, device);
+        case BACKEND_METAL:
+            return metal_create_default_device(descriptor, device);
 #endif
 #if SPARGEL_GPU_ENABLE_VULKAN
-    case SGPU_BACKEND_VULKAN:
-        return sgpu_vulkan_create_default_device(descriptor, device);
+        case BACKEND_VULKAN:
+            return vulkan_create_default_device(descriptor, device);
 #endif
 #if SPARGEL_GPU_ENABLE_DIRECTX
-    case SGPU_BACKEND_DIRECTX:
-        sbase_panic_here();
+        case BACKEND_DIRECTX:
+            spargel_panic_here();
 #endif
-    default:
-        sbase_panic_here();
+        default:
+            spargel_panic_here();
+        }
     }
-}
 
 #if SPARGEL_GPU_ENABLE_METAL
-#define MTL_DISPATCH(name, ...)         \
-    case SGPU_BACKEND_METAL:            \
-        sgpu_metal_##name(__VA_ARGS__); \
+#define MTL_DISPATCH(name, ...)    \
+    case BACKEND_METAL:            \
+        metal_##name(__VA_ARGS__); \
         break;
 #define MTL_DISPATCH_R(name, ...) \
-    case SGPU_BACKEND_METAL:      \
-        return sgpu_metal_##name(__VA_ARGS__);
+    case BACKEND_METAL:           \
+        return metal_##name(__VA_ARGS__);
 #else
 #define MTL_DISPATCH(name, ...)
 #define MTL_DISPATCH_R(name, ...)
 #endif
 
 #if SPARGEL_GPU_ENABLE_VULKAN
-#define VK_DISPATCH(name, ...)           \
-    case SGPU_BACKEND_VULKAN:            \
-        sgpu_vulkan_##name(__VA_ARGS__); \
+#define VK_DISPATCH(name, ...)      \
+    case BACKEND_VULKAN:            \
+        vulkan_##name(__VA_ARGS__); \
         break;
 #define VK_DISPATCH_R(name, ...) \
-    case SGPU_BACKEND_VULKAN:    \
-        return sgpu_vulkan_##name(__VA_ARGS__);
+    case BACKEND_VULKAN:         \
+        return vulkan_##name(__VA_ARGS__);
 #else
 #define VK_DISPATCH(name, ...)
 #define VK_DISPATCH_R(name, ...)
@@ -64,7 +65,7 @@ int sgpu_create_default_device(struct sgpu_device_descriptor const* descriptor,
         MTL_DISPATCH(name, __VA_ARGS__) \
         VK_DISPATCH(name, __VA_ARGS__)  \
     default:                            \
-        sbase_panic_here();             \
+        spargel_panic_here();           \
     }
 
 #define DISPATCH_R(name, ...)             \
@@ -72,85 +73,84 @@ int sgpu_create_default_device(struct sgpu_device_descriptor const* descriptor,
         MTL_DISPATCH_R(name, __VA_ARGS__) \
         VK_DISPATCH_R(name, __VA_ARGS__)  \
     default:                              \
-        sbase_panic_here();               \
+        spargel_panic_here();             \
     }
 
-void sgpu_destroy_device(sgpu_device_id device) { DISPATCH(destroy_device, device); }
+    void destroy_device(device_id device) { DISPATCH(destroy_device, device); }
 
-int sgpu_create_command_queue(sgpu_device_id device, sgpu_command_queue_id* queue) {
-    DISPATCH_R(create_command_queue, device, queue);
-}
+    int create_command_queue(device_id device, command_queue_id* queue) {
+        DISPATCH_R(create_command_queue, device, queue);
+    }
 
-void sgpu_destroy_command_queue(sgpu_device_id device, sgpu_command_queue_id queue) {
-    DISPATCH(destroy_command_queue, device, queue);
-}
+    void destroy_command_queue(device_id device, command_queue_id queue) {
+        DISPATCH(destroy_command_queue, device, queue);
+    }
 
-void sgpu_destroy_shader_function(sgpu_device_id device, sgpu_shader_function_id func) {
-    DISPATCH(destroy_shader_function, device, func);
-}
+    void destroy_shader_function(device_id device, shader_function_id func) {
+        DISPATCH(destroy_shader_function, device, func);
+    }
 
-int sgpu_create_render_pipeline(sgpu_device_id device,
-                                struct sgpu_render_pipeline_descriptor const* descriptor,
-                                sgpu_render_pipeline_id* pipeline) {
-    DISPATCH_R(create_render_pipeline, device, descriptor, pipeline);
-}
+    int create_render_pipeline(device_id device,
+                               struct render_pipeline_descriptor const* descriptor,
+                               render_pipeline_id* pipeline) {
+        DISPATCH_R(create_render_pipeline, device, descriptor, pipeline);
+    }
 
-void sgpu_destroy_render_pipeline(sgpu_device_id device, sgpu_render_pipeline_id pipeline) {
-    DISPATCH(destroy_render_pipeline, device, pipeline);
-}
+    void destroy_render_pipeline(device_id device, render_pipeline_id pipeline) {
+        DISPATCH(destroy_render_pipeline, device, pipeline);
+    }
 
-int sgpu_create_command_buffer(sgpu_device_id device,
-                               struct sgpu_command_buffer_descriptor const* descriptor,
-                               sgpu_command_buffer_id* command_buffer) {
-    DISPATCH_R(create_command_buffer, device, descriptor, command_buffer);
-}
+    int create_command_buffer(device_id device, struct command_buffer_descriptor const* descriptor,
+                              command_buffer_id* command_buffer) {
+        DISPATCH_R(create_command_buffer, device, descriptor, command_buffer);
+    }
 
-void sgpu_destroy_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer) {
-    DISPATCH(destroy_command_buffer, device, command_buffer);
-}
+    void destroy_command_buffer(device_id device, command_buffer_id command_buffer) {
+        DISPATCH(destroy_command_buffer, device, command_buffer);
+    }
 
-void sgpu_reset_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer) {
-    DISPATCH(reset_command_buffer, device, command_buffer);
-}
+    void reset_command_buffer(device_id device, command_buffer_id command_buffer) {
+        DISPATCH(reset_command_buffer, device, command_buffer);
+    }
 
-int sgpu_create_surface(sgpu_device_id device, struct sgpu_surface_descriptor const* descriptor,
-                        sgpu_surface_id* surface) {
-    DISPATCH_R(create_surface, device, descriptor, surface);
-}
+    int create_surface(device_id device, struct surface_descriptor const* descriptor,
+                       surface_id* surface) {
+        DISPATCH_R(create_surface, device, descriptor, surface);
+    }
 
-void sgpu_destroy_surface(sgpu_device_id device, sgpu_surface_id surface) {
-    DISPATCH(destroy_surface, device, surface);
-}
+    void destroy_surface(device_id device, surface_id surface) {
+        DISPATCH(destroy_surface, device, surface);
+    }
 
-int sgpu_create_swapchain(sgpu_device_id device, struct sgpu_swapchain_descriptor const* descriptor,
-                          sgpu_swapchain_id* swapchain) {
-    DISPATCH_R(create_swapchain, device, descriptor, swapchain);
-}
+    int create_swapchain(device_id device, struct swapchain_descriptor const* descriptor,
+                         swapchain_id* swapchain) {
+        DISPATCH_R(create_swapchain, device, descriptor, swapchain);
+    }
 
-void sgpu_destroy_swapchain(sgpu_device_id device, sgpu_swapchain_id swapchain) {
-    DISPATCH(destroy_swapchain, device, swapchain);
-}
+    void destroy_swapchain(device_id device, swapchain_id swapchain) {
+        DISPATCH(destroy_swapchain, device, swapchain);
+    }
 
-int sgpu_acquire_image(sgpu_device_id device, struct sgpu_acquire_descriptor const* descriptor,
-                       sgpu_presentable_id* presentable) {
-    DISPATCH_R(acquire_image, device, descriptor, presentable);
-}
+    int acquire_image(device_id device, struct acquire_descriptor const* descriptor,
+                      presentable_id* presentable) {
+        DISPATCH_R(acquire_image, device, descriptor, presentable);
+    }
 
-void sgpu_begin_render_pass(sgpu_device_id device,
-                            struct sgpu_render_pass_descriptor const* descriptor,
-                            sgpu_render_pass_encoder_id* encoder) {
-    DISPATCH(begin_render_pass, device, descriptor, encoder);
-}
+    void begin_render_pass(device_id device, struct render_pass_descriptor const* descriptor,
+                           render_pass_encoder_id* encoder) {
+        DISPATCH(begin_render_pass, device, descriptor, encoder);
+    }
 
-void sgpu_end_render_pass(sgpu_device_id device, sgpu_render_pass_encoder_id encoder) {
-    DISPATCH(end_render_pass, device, encoder);
-}
+    void end_render_pass(device_id device, render_pass_encoder_id encoder) {
+        DISPATCH(end_render_pass, device, encoder);
+    }
 
-void sgpu_present(sgpu_device_id device, struct sgpu_present_descriptor const* descriptor) {
-    DISPATCH(present, device, descriptor);
-}
+    void present(device_id device, struct present_descriptor const* descriptor) {
+        DISPATCH(present, device, descriptor);
+    }
 
-void sgpu_presentable_texture(sgpu_device_id device, sgpu_presentable_id presentable,
-                              sgpu_texture_id* texture) {
-    DISPATCH(presentable_texture, device, presentable, texture);
-}
+    void presentable_texture(device_id device, presentable_id presentable, texture_id* texture) {
+        DISPATCH(presentable_texture, device, presentable, texture);
+    }
+
+}  // namespace spargel::gpu

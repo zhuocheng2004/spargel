@@ -4,8 +4,12 @@
 #include <stdio.h>
 #include <unistd.h>
 
-ssize _spgl_get_executable_path(char* buf, ssize buf_size) {
-    return readlink("/proc/self/exe", buf, buf_size);
-}
+namespace spargel::base {
 
-void sbase_print_backtrace() { printf("<unknown backtrace>\n"); }
+    ssize _get_executable_path(char* buf, ssize buf_size) {
+        return readlink("/proc/self/exe", buf, buf_size);
+    }
+
+    void spargel::base::print_backtrace() { printf("<unknown backtrace>\n"); }
+
+}  // namespace spargel::base
