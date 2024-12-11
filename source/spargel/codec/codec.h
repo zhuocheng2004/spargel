@@ -63,6 +63,9 @@ namespace spargel::codec {
     };
 
     struct json_value {
+        json_value() : kind{-1} {}
+        ~json_value() {}
+
         int kind;
         union {
             spargel::base::string string;
@@ -84,13 +87,11 @@ namespace spargel::codec {
     void json_array_deinit(struct json_array const* array);
 
     void json_object_init(struct json_object* object);
-    struct json_value* json_object_insert(struct json_object* object,
-                                                        spargel::base::string key);
+    struct json_value* json_object_insert(struct json_object* object, spargel::base::string const& key);
     /**
      * @warning the returned pointer is not stable
      */
-    struct json_value* json_object_get(struct json_object* object,
-                                                     spargel::base::string key);
+    struct json_value* json_object_get(struct json_object* object, spargel::base::string const& key);
     void json_object_deinit(struct json_object const* object);
 
     void json_value_deinit(struct json_value const* value);

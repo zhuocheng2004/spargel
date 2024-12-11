@@ -165,48 +165,32 @@ namespace spargel::base {
         }
     }
 
-    string string_from_range(char const* begin, char const* end) {
-        spargel_assert(begin <= end);
-        spargel_assert(begin != NULL);
+    string string_from_cstr(char const* str) {
+        ssize len = strlen(str);
+        return string_from_range(str, str + len);
+    }
 
+    string string_from_range(char const* begin, char const* end) {
         string str;
-        str.length = end - begin;
-        str.data = (char*)allocate(str.length + 1, ALLOCATION_BASE);
-        memcpy(str.data, begin, str.length);
-        str.data[str.length] = 0;
+        str._length = end - begin;
+        str._data = (char*)allocate(str._length + 1, ALLOCATION_BASE);
+        memcpy(str._data, begin, str._length);
+        str._data[str._length] = 0;
         return str;
     }
 
     bool operator==(string const& lhs, string const& rhs) {
-        if (lhs.length != rhs.length) return false;
-        return memcmp(lhs.data, rhs.data, lhs.length) == 0;
+        if (lhs.length() != rhs.length()) return false;
+        return memcmp(lhs.data(), rhs.data(), lhs.length()) == 0;
     }
 
-    void destroy(string const& str) {
-        spargel_log_debug("str length = %ld", str.length);
-        if (str.data) deallocate(str.data, str.length + 1, ALLOCATION_BASE);
-    }
-
-    void string_copy(string* dst, string src) {
-        spargel_assert(src.data != NULL);
-
-        if (dst->data) deallocate(dst->data, dst->length + 1, ALLOCATION_BASE);
-        dst->length = src.length;
-        dst->data = (char*)allocate(dst->length + 1, ALLOCATION_BASE);
-        memcpy(dst->data, src.data, dst->length);
-        dst->data[dst->length] = '\0';
-    }
-
-    string string_concat(string str1, string str2) {
-        spargel_assert(str1.data != NULL);
-        spargel_assert(str2.data != NULL);
-
+    string string_concat(string const& str1, string const& str2) {
         string str;
-        str.length = str1.length + str2.length;
-        str.data = (char*)allocate(str.length + 1, ALLOCATION_BASE);
-        memcpy(str.data, str1.data, str1.length);
-        memcpy(str.data + str1.length, str2.data, str2.length);
-        str.data[str.length] = '\0';
+        str._length = str1._length + str2._length;
+        str._data = (char*)allocate(str._length + 1, ALLOCATION_BASE);
+        memcpy(str._data, str1._data, str1._length);
+        memcpy(str._data + str1._length, str2._data, str2._length);
+        str._data[str._length] = '\0';
         return str;
     }
 

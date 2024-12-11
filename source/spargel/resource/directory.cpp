@@ -13,29 +13,28 @@ namespace spargel::resource {
         spargel::base::string base;
     };
 
-    const spargel::base::string DOT = string_from_literal(".");
+    const auto DOT = base::string_from_cstr(".");
 
     static void normalize_path(spargel::base::string* path) {
-        if (path->length == 0) {
-            spargel::base::destroy(*path);
-            spargel::base::string_copy(path, DOT);
+        if (path->length() == 0) {
+            path->~string();
+            *path = DOT;
         } else {
-            ssize len = path->length;
+            ssize len = path->length();
             // FIXME
-            path->data =
-                (char*)spargel::base::reallocate(path->data, len + 1, len + 2, spargel::base::ALLOCATION_BASE);
-            path->data[len] = PATH_SPLIT;
-            path->data[len + 1] = '\0';
-            path->length = len + 1;
+            path->_data = (char*)spargel::base::reallocate(path->_data, len + 1, len + 2,
+                                                           spargel::base::ALLOCATION_BASE);
+            path->_data[len] = PATH_SPLIT;
+            path->_data[len + 1] = '\0';
+            path->_length = len + 1;
         }
     }
 
     void resource_directory_manager_init(struct resource_manager* manager,
-                                              spargel::base::string base_path) {
+                                         spargel::base::string base_path) {
         struct directory_manager_data* data =
             (struct directory_manager_data*)malloc(sizeof(struct directory_manager_data));
-        data->base.data = NULL;
-        spargel::base::string_copy(&data->base, base_path);
+        data->base = base_path;
         normalize_path(&data->base);
         manager->data = data;
         manager->op = &directory_manager_operations;
@@ -43,12 +42,12 @@ namespace spargel::resource {
 
     static void directory_manager_close(struct resource_manager* manager) {
         struct directory_manager_data* data = (struct directory_manager_data*)manager->data;
-        spargel::base::destroy(data->base);
+        data->base.~string();
         free(data);
     }
 
-    static struct resource* directory_manager_open_resource(
-        struct resource_manager* manager, struct resource_id id) {
+    static struct resource* directory_manager_open_resource(struct resource_manager* manager,
+                                                            struct resource_id id) {
         return NULL;
     }
 

@@ -8,10 +8,10 @@
 namespace spargel::codec {
 
     /* FNV-1a */
-    static u32 hash_string(spargel::base::string str) {
+    static u32 hash_string(spargel::base::string const& str) {
         u32 hash = 2166136261; /* FNV offset base */
-        for (ssize i = 0; i < str.length; i++) {
-            hash ^= str.data[i];
+        for (ssize i = 0; i < str.length(); i++) {
+            hash ^= str.data()[i];
             hash *= 16777619; /* FNV prime */
         }
         return hash;
@@ -25,7 +25,7 @@ namespace spargel::codec {
      *
      * @warning when the hash map if full, this method will not return
      */
-    static struct json_object_entry* find_entry(spargel::base::string key, u32 hash,
+    static struct json_object_entry* find_entry(spargel::base::string const& key, u32 hash,
                                                 struct json_object_entry* entries, ssize capacity);
 
     /**
@@ -235,7 +235,7 @@ namespace spargel::codec {
         return parse_element(&ctx, value);
     }
 
-    static struct json_object_entry* find_entry(spargel::base::string key, u32 hash,
+    static struct json_object_entry* find_entry(spargel::base::string const& key, u32 hash,
                                                 struct json_object_entry* entries, ssize capacity) {
         ssize index = hash % capacity;
         for (;;) {
@@ -272,7 +272,8 @@ namespace spargel::codec {
         object->capacity = 0;
     }
 
-    struct json_value* json_object_insert(struct json_object* object, spargel::base::string key) {
+    struct json_value* json_object_insert(struct json_object* object,
+                                          spargel::base::string const& key) {
         ensure_object_capacity(object);
         u32 hash = hash_string(key);
         struct json_object_entry* entry = find_entry(key, hash, object->entries, object->capacity);
@@ -285,7 +286,8 @@ namespace spargel::codec {
         return &entry->value;
     }
 
-    struct json_value* json_object_get(struct json_object* object, spargel::base::string key) {
+    struct json_value* json_object_get(struct json_object* object,
+                                       spargel::base::string const& key) {
         // ensure_object_capacity(object);
         u32 hash = hash_string(key);
         struct json_object_entry* entry = find_entry(key, hash, object->entries, object->capacity);
@@ -297,7 +299,7 @@ namespace spargel::codec {
         for (ssize i = 0; i < object->capacity; i++) {
             struct json_object_entry* entry = &object->entries[i];
             if (entry->used) {
-                spargel::base::destroy(entry->key);
+                entry->key.~string();
                 json_value_deinit(&entry->value);
             }
         }
@@ -336,7 +338,7 @@ namespace spargel::codec {
             json_object_deinit(&value->object);
             break;
         case JSON_VALUE_KIND_STRING:
-            spargel::base::destroy(value->string);
+            value->string.~string();
             break;
         default:
             break;

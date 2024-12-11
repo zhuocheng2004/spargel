@@ -5,8 +5,9 @@
 /* defines */
 #define RESOURCE_DEFAULT_NS "core"
 
-#define REOURCE_ID_WITH_NS(ns, path) \
-    ((struct resource_id){string_from_literal(ns), string_from_literal(path)})
+#define REOURCE_ID_WITH_NS(ns, path)                           \
+    ((struct resource_id){spargel::base::string_from_cstr(ns), \
+                          spargel::base::string_from_cstr(path)})
 
 #define RESOURCE_ID(path) REOURCE_ID_WITH_NS(RESOURCE_DEFAULT_NS, path)
 

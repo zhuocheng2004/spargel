@@ -4,6 +4,9 @@
 #include <spargel/base/types.h>
 #include <spargel/config.h>
 
+/* libc */
+#include <string.h>
+
 #if defined(__clang__)
 #define SPARGEL_COMPILER_IS_CLANG
 #elif defined(__GNUC__)
@@ -93,36 +96,51 @@ namespace spargel::base {
     void report_allocation();
     void check_leak();
 
-    struct allocator {
-        void* (*alloc)(ssize size, void* data);
-        void* (*realloc)(void* old_ptr, ssize old_size, ssize new_size, void* data);
-        void (*dealloc)(void* ptr, ssize size, void* data);
-        void* data;
-    };
-
     /* string */
 
     struct string {
-        ssize length;
-        char* data;
+        string() = default;
+
+        string(string const& other) {
+            _length = other._length;
+            if (_length > 0) {
+                _data = (char*)allocate(_length + 1, ALLOCATION_BASE);
+                memcpy(_data, other._data, _length);
+                _data[_length] = 0;
+            }
+        }
+        string& operator=(string const& other) {
+            if (_length > 0) {
+                deallocate(_data, _length + 1, ALLOCATION_BASE);
+            }
+            _length = other._length;
+            if (_length > 0) {
+                _data = (char*)allocate(_length + 1, ALLOCATION_BASE);
+                memcpy(_data, other._data, _length);
+                _data[_length] = 0;
+            }
+            return *this;
+        }
+
+        ~string() {
+            spargel_log_debug("str length = %ld", _length);
+            if (_data) deallocate(_data, _length + 1, ALLOCATION_BASE);
+        }
+
+        ssize length() const { return _length; }
+        char* data() { return _data; }
+        char const* data() const { return _data; }
+
+        ssize _length = 0;
+        char* _data = nullptr;
     };
 
-#define string_from_literal(str) ((struct ::spargel::base::string){sizeof(str) - 1, str})
+    string string_from_cstr(char const* str);
 
     string string_from_range(char const* begin, char const* end);
 
     bool operator==(string const& lhs, string const& rhs);
 
-    void destroy(string const& str);
-
-    void string_copy(string* dst, string src);
-
-    string string_concat(string str1, string str2);
-
-    template <typename F>
-    struct defer {
-        ~defer() { f(); }
-        F f;
-    };
+    string string_concat(string const& str1, string const& str2);
 
 }  // namespace spargel::base

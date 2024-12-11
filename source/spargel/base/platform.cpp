@@ -11,10 +11,10 @@ namespace spargel::base {
             _get_executable_path(buf, len + 1);
         }
         buf[len] = '\0';
-        return (string){
-            .length = len,
-            .data = buf,
-        };
+        string s;
+        s._length = len;
+        s._data = buf;
+        return s;
     }
 
 }  // namespace spargel::base

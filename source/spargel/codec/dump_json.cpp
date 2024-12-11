@@ -19,7 +19,7 @@ static void dump_json_object(struct spargel::codec::json_object const* object) {
     for (ssize i = 0; i < object->capacity; i++) {
         struct spargel::codec::json_object_entry* entry = &object->entries[i];
         if (entry->used) {
-            printf("\"%s\":", entry->key.data);
+            printf("\"%s\":", entry->key.data());
             dump_json_value(&entry->value);
             cnt++;
             if (cnt < object->count) printf(",");
@@ -37,7 +37,7 @@ static void dump_json_value(struct spargel::codec::json_value const* value) {
         dump_json_object(&value->object);
         break;
     case spargel::codec::JSON_VALUE_KIND_STRING:
-        printf("\"%s\"", value->string.data);
+        printf("\"%s\"", value->string.data());
         break;
     case spargel::codec::JSON_VALUE_KIND_BOOLEAN:
         if (value->boolean)
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     struct file f;
     read_file(argv[1], &f);
 
-    struct spargel::codec::json_value value;
+    spargel::codec::json_value value;
     int result = spargel::codec::json_parse(f.data, f.length, &value);
 
     dump_json_value(&value);
