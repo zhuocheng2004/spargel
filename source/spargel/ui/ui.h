@@ -2,68 +2,65 @@
 
 #include <spargel/base/base.h>
 
-#if __cplusplus
-#define EXTERN_C extern "C"
-#else
-#define EXTERN_C
-#endif
+namespace spargel::ui {
 
-enum sui_platform_id {
-    SUI_PLATFORM_APPKIT,
-    SUI_PLATFORM_WAYLAND,
-    SUI_PLATFORM_WIN32,
-    SUI_PLATFORM_XCB,
-};
-
-/**
- * @brief platform specific initialization
- */
-EXTERN_C void sui_init_platform();
-
-int sui_platform_id();
-
-/**
- * @brief start the platform event loop
- */
-EXTERN_C void sui_platform_run();
-
-typedef struct sui_window* sui_window_id;
-
-/**
- * @brief create a window with given width and height
- */
-EXTERN_C sui_window_id sui_create_window(int width, int height);
-
-/**
- * @brief destroy a window
- */
-void sui_destroy_window(sui_window_id window);
-
-/**
- * @brief set the title of a window
- */
-EXTERN_C void sui_window_set_title(sui_window_id window, char const* title);
-
-EXTERN_C void sui_window_set_render_callback(sui_window_id window, void (*render)(void*),
-                                             void* data);
-
-struct sui_window_handle {
-    union {
-        struct {
-            void* layer;
-        } apple;
-        struct {
-            void* display;
-            void* surface;
-        } wayland;
-        struct {
-            void* connection;
-            int window;
-        } xcb;
-        struct {
-            void* hwnd;
-        } win32;
+    enum platform_id {
+        PLATFORM_APPKIT,
+        PLATFORM_WAYLAND,
+        PLATFORM_WIN32,
+        PLATFORM_XCB,
     };
-};
 
-struct sui_window_handle sui_window_get_handle(sui_window_id window);
+    /**
+     * @brief platform specific initialization
+     */
+    void init_platform();
+
+    int platform_id();
+
+    /**
+     * @brief start the platform event loop
+     */
+    void platform_run();
+
+    typedef struct window* window_id;
+
+    /**
+     * @brief create a window with given width and height
+     */
+    window_id create_window(int width, int height);
+
+    /**
+     * @brief destroy a window
+     */
+    void destroy_window(window_id window);
+
+    /**
+     * @brief set the title of a window
+     */
+    void window_set_title(window_id window, char const* title);
+
+    void window_set_render_callback(window_id window, void (*render)(void*), void* data);
+
+    struct window_handle {
+        union {
+            struct {
+                void* layer;
+            } apple;
+            struct {
+                void* display;
+                void* surface;
+            } wayland;
+            struct {
+                void* connection;
+                int window;
+            } xcb;
+            struct {
+                void* hwnd;
+            } win32;
+        };
+    };
+
+    struct window_handle window_get_handle(window_id window);
+
+}  // namespace spargel::ui

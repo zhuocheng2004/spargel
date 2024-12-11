@@ -41,20 +41,18 @@ static void render(struct renderer* r) {
 
     sgpu_presentable_id presentable;
     sgpu_texture_id texture;
-    sgpu_acquire_image(device, &(struct sgpu_acquire_descriptor){.swapchain = swapchain},
-                       &presentable);
+    struct sgpu_acquire_descriptor adesc = {.swapchain = swapchain};
+    sgpu_acquire_image(device, &adesc, &presentable);
     sgpu_presentable_texture(device, presentable, &texture);
     sgpu_render_pass_encoder_id encoder;
-    sgpu_begin_render_pass(
-        device,
-        &(struct sgpu_render_pass_descriptor){
-            .command_buffer = cmdbuf,
-            .color_attachment = texture,
-            .clear_color = {fabs(sin(r->frame / 120.f + 72)), fabs(sin(r->frame / 120.f + 36)),
-                            fabs(sin(r->frame / 120.f)), 1.0},
-            .swapchain = swapchain,
-        },
-        &encoder);
+    struct sgpu_render_pass_descriptor rpdesc = {
+        .command_buffer = cmdbuf,
+        .color_attachment = texture,
+        .clear_color = {fabs(sin(r->frame / 120.f + 72)), fabs(sin(r->frame / 120.f + 36)),
+                        fabs(sin(r->frame / 120.f)), 1.0},
+        .swapchain = swapchain,
+    };
+    sgpu_begin_render_pass(device, &rpdesc, &encoder);
     sgpu_end_render_pass(device, encoder);
     {
         struct sgpu_present_descriptor desc = {
@@ -67,8 +65,8 @@ static void render(struct renderer* r) {
 }
 
 static int create(int backend, char const* title, struct renderer* r) {
-    sui_window_id window = sui_create_window(500, 500);
-    sui_window_set_title(window, title);
+    spargel::ui::window_id window = spargel::ui::create_window(500, 500);
+    spargel::ui::window_set_title(window, title);
 
     int result;
 
@@ -76,7 +74,7 @@ static int create(int backend, char const* title, struct renderer* r) {
     {
         struct sgpu_device_descriptor desc = {
             .backend = SGPU_BACKEND_VULKAN,
-            .platform = sui_platform_id(),
+            .platform = spargel::ui::platform_id(),
         };
         result = sgpu_create_default_device(&desc, &device);
     }
@@ -127,13 +125,13 @@ static int create(int backend, char const* title, struct renderer* r) {
     r->cmdbuf = cmdbuf;
     r->frame = 0;
 
-    sui_window_set_render_callback(window, (void (*)(void*))render, r);
+    window_set_render_callback(window, (void (*)(void*))render, r);
 
     return 0;
 }
 
 int main() {
-    sui_init_platform();
+    spargel::ui::init_platform();
 
 #if USE_VULKAN
     struct renderer r_vk;
@@ -144,6 +142,6 @@ int main() {
     if (create(SGPU_BACKEND_VULKAN, "Spargel Demo - Metal", &r_mtl) != 0) return 1;
 #endif
 
-    sui_platform_run();
+    spargel::ui::platform_run();
     return 0;
 }

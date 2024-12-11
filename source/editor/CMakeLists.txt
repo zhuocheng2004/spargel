@@ -1,7 +1,7 @@
 spargel_add_executable(
     NAME editor
-    PRIVATE main.c
-    DEPS codec renderer ui
+    PRIVATE main.cpp
+    DEPS codec ui
 )
 
 if(SPARGEL_IS_MACOS)

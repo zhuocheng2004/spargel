@@ -61,7 +61,7 @@ static void sbase_log_get_time(struct sbase_log_timestamp* time) {
 }
 
 void sbase_log(int level, char const* file, char const* func, ssize line, char const* format, ...) {
-    DCHECK(level >= 0 && level < _SBASE_LOG_COUNT);
+    spargel_assert(level >= 0 && level < _SBASE_LOG_COUNT);
     char const* name = sbase_log_names[level];
     struct sbase_log_timestamp time;
     sbase_log_get_time(&time);
@@ -113,7 +113,7 @@ static char const* sbase_alloc_names[_SBASE_ALLOCATION_COUNT] = {
 };
 
 void* sbase_allocate(ssize size, int tag) {
-    CHECK(tag >= 0 && tag < _SBASE_ALLOCATION_COUNT);
+    spargel_assert(tag >= 0 && tag < _SBASE_ALLOCATION_COUNT);
     void* ptr = malloc(size);
     sbase_alloc_stats[tag].current += size;
     sbase_alloc_stats[tag].total += size;
@@ -124,13 +124,13 @@ void* sbase_allocate(ssize size, int tag) {
 }
 
 void* sbase_reallocate(void* ptr, ssize old_size, ssize new_size, int tag) {
-    CHECK(tag >= 0 && tag < _SBASE_ALLOCATION_COUNT);
+    spargel_assert(tag >= 0 && tag < _SBASE_ALLOCATION_COUNT);
     void* new_ptr = realloc(ptr, new_size);
     sbase_alloc_stats[tag].current += new_size - old_size;
     if (new_size > old_size) {
         sbase_alloc_stats[tag].total += new_size - old_size;
     }
-    CHECK(sbase_alloc_stats[tag].current >= 0);
+    spargel_assert(sbase_alloc_stats[tag].current >= 0);
 #if SPARGEL_TRACE_ALLOCATION
     sbase_log_info("reallocated %ld -> %ld bytes with tag %s", old_size, new_size,
                    sbase_alloc_names[tag]);
@@ -139,10 +139,10 @@ void* sbase_reallocate(void* ptr, ssize old_size, ssize new_size, int tag) {
 }
 
 void sbase_deallocate(void* ptr, ssize size, int tag) {
-    CHECK(tag >= 0 && tag < _SBASE_ALLOCATION_COUNT);
+    spargel_assert(tag >= 0 && tag < _SBASE_ALLOCATION_COUNT);
     free(ptr);
     sbase_alloc_stats[tag].current -= size;
-    CHECK(sbase_alloc_stats[tag].current >= 0);
+    spargel_assert(sbase_alloc_stats[tag].current >= 0);
 #if SPARGEL_TRACE_ALLOCATION
     sbase_log_info("deallocated %ld bytes with tag %s", size, sbase_alloc_names[tag]);
 #endif
@@ -165,12 +165,12 @@ void sbase_check_leak() {
 }
 
 struct sbase_string sbase_string_from_range(char const* begin, char const* end) {
-    CHECK(begin <= end);
-    CHECK(begin != NULL);
+    spargel_assert(begin <= end);
+    spargel_assert(begin != NULL);
 
     struct sbase_string str;
     str.length = end - begin;
-    str.data = sbase_allocate(str.length + 1, SBASE_ALLOCATION_BASE);
+    str.data = (char*)sbase_allocate(str.length + 1, SBASE_ALLOCATION_BASE);
     memcpy(str.data, begin, str.length);
     str.data[str.length] = 0;
     return str;
@@ -187,22 +187,22 @@ void sbase_string_deinit(struct sbase_string str) {
 }
 
 void sbase_string_copy(struct sbase_string* dst, struct sbase_string src) {
-    CHECK(src.data != NULL);
+    spargel_assert(src.data != NULL);
 
     if (dst->data) sbase_deallocate(dst->data, dst->length + 1, SBASE_ALLOCATION_BASE);
     dst->length = src.length;
-    dst->data = sbase_allocate(dst->length + 1, SBASE_ALLOCATION_BASE);
+    dst->data = (char*)sbase_allocate(dst->length + 1, SBASE_ALLOCATION_BASE);
     memcpy(dst->data, src.data, dst->length);
     dst->data[dst->length] = '\0';
 }
 
 struct sbase_string sbase_string_concat(struct sbase_string str1, struct sbase_string str2) {
-    CHECK(str1.data != NULL);
-    CHECK(str2.data != NULL);
+    spargel_assert(str1.data != NULL);
+    spargel_assert(str2.data != NULL);
 
     struct sbase_string str;
     str.length = str1.length + str2.length;
-    str.data = sbase_allocate(str.length + 1, SBASE_ALLOCATION_BASE);
+    str.data = (char*)sbase_allocate(str.length + 1, SBASE_ALLOCATION_BASE);
     memcpy(str.data, str1.data, str1.length);
     memcpy(str.data + str1.length, str2.data, str2.length);
     str.data[str.length] = '\0';

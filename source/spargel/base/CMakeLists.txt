@@ -1,37 +1,37 @@
 spargel_add_library(
     NAME base
     PRIVATE
-        base.c
-        platform.c
+        base.cpp
+        platform.cpp
     PRIVATE_LINUX
-        platform_linux.c
+        platform_linux.cpp
     PRIVATE_MACOS
-        platform_mac.c
+        platform_mac.cpp
     PRIVATE_WINDOWS
-        platform_win.c
+        platform_win.cpp
     DEPS spargel_config
 )
 
 spargel_add_executable(
     NAME executable_path_demo
-    PRIVATE executable_path_demo.c
+    PRIVATE executable_path_demo.cpp
     DEPS base
 )
 
 spargel_add_executable(
     NAME backtrace_demo
-    PRIVATE backtrace_demo.c
+    PRIVATE backtrace_demo.cpp
     DEPS base
 )
 
 spargel_add_executable(
     NAME panic_demo
-    PRIVATE panic_demo.c
+    PRIVATE panic_demo.cpp
     DEPS base
 )
 
 spargel_add_executable(
     NAME log_demo
-    PRIVATE log_demo.c
+    PRIVATE log_demo.cpp
     DEPS base
 )

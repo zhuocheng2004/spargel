@@ -27,16 +27,10 @@
 #define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg)
 #endif
 
-#if SPARGEL_ENABLE_CHECK
-#define CHECK(cond) ((cond) ? (void)(0) : sbase_panic_here())
+#if SPARGEL_ENABLE_ASSERT
+#define spargel_assert(cond) ((cond) ? (void)(0) : sbase_panic_here())
 #else
-#define CHECK(cond)
-#endif
-
-#if SPARGEL_ENABLE_DCHECK
-#define DCHECK(cond) ((cond) ? (void)(0) : sbase_panic_here())
-#else
-#define DCHECK(cond)
+#define spargel_assert(cond)
 #endif
 
 /* panic */

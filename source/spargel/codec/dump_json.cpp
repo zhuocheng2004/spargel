@@ -60,7 +60,7 @@ static void read_file(char const* path, struct file* f) {
     FILE* file = fopen(path, "rb");
     fseek(file, 0, SEEK_END);
     ssize len = ftell(file);
-    char* data = sbase_allocate(len, SBASE_ALLOCATION_CODEC);
+    char* data = (char*)sbase_allocate(len, SBASE_ALLOCATION_CODEC);
     fseek(file, 0, SEEK_SET);
     fread(data, len, 1, file);
     // data[len] = 0;

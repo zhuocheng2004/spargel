@@ -2,6 +2,11 @@
 
 #include <spargel/base/base.h>
 
+/* external */
+namespace spargel::ui {
+    struct window;
+}
+
 typedef struct sgpu_device* sgpu_device_id;
 typedef u64 sgpu_command_queue_id;
 typedef u64 sgpu_command_buffer_id;
@@ -16,9 +21,6 @@ typedef u64 sgpu_presentable_id;
 typedef u64 sgpu_bind_group_layout;
 typedef u64 sgpu_bind_group;
 typedef u64 sgpu_pipeline_layout;
-
-/* external */
-struct sui_window;
 
 enum sgpu_result {
     SGPU_RESULT_SUCCESS,
@@ -61,7 +63,7 @@ struct sgpu_command_buffer_descriptor {
 };
 
 struct sgpu_surface_descriptor {
-    struct sui_window* window;
+    spargel::ui::window* window;
 };
 
 struct sgpu_swapchain_descriptor {

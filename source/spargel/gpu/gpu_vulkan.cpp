@@ -36,9 +36,9 @@
 #define VULKAN_LIB_FILENAME "vulkan-1.dll"
 #endif
 
-#define alloc_object(type, name)                                                   \
-    struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
-    if (!name) sbase_panic_here();                                                 \
+#define alloc_object(type, name)                                                                 \
+    struct type* name = (struct type*)sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
+    if (!name) sbase_panic_here();                                                               \
     memset(name, 0, sizeof(struct type));
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
@@ -164,7 +164,7 @@ static void array_reserve(struct array* a, ssize count) {
 }
 
 static void* array_at(struct array a, ssize i) {
-    CHECK(i >= 0 && i < a.count);
+    spargel_assert(i >= 0 && i < a.count);
     return (char*)a.data + i * a.stride;
 }
 
@@ -203,7 +203,8 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         return SGPU_RESULT_NO_BACKEND;
     }
 
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dlsym(d->library, "vkGetInstanceProcAddr");
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr =
+        (PFN_vkGetInstanceProcAddr)dlsym(d->library, "vkGetInstanceProcAddr");
     d->procs.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
 #define VULKAN_GENERAL_PROC(name) d->procs.name = (PFN_##name)vkGetInstanceProcAddr(NULL, #name);
 #include <spargel/gpu/vulkan_procs.inc>
@@ -217,7 +218,8 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         u32 count;
         CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, NULL));
         array_reserve(&all_layers, count);
-        CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, all_layers.data));
+        CHECK_VK_RESULT(
+            procs->vkEnumerateInstanceLayerProperties(&count, (VkLayerProperties*)all_layers.data));
         all_layers.count = count;
     }
 
@@ -233,7 +235,8 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         u32 count;
         CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(NULL, &count, NULL));
         array_reserve(&all_exts, count);
-        CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(NULL, &count, all_exts.data));
+        CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(
+            NULL, &count, (VkExtensionProperties*)all_exts.data));
         all_exts.count = count;
     }
 
@@ -249,7 +252,7 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
     for (ssize i = 0; i < all_layers.count; i++) {
         if (strcmp(((struct VkLayerProperties*)array_at(all_layers, i))->layerName,
                    "VK_LAYER_KHRONOS_validation") == 0) {
-            char const** ptr = array_push(&use_layers);
+            char const** ptr = (char const**)array_push(&use_layers);
             *ptr = "VK_LAYER_KHRONOS_validation";
             sbase_log_info("use layer VK_LAYER_KHRONOS_validation");
         }
@@ -289,24 +292,24 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
     for (ssize i = 0; i < all_exts.count; i++) {
         char const* name = ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName;
         if (strcmp(name, "VK_KHR_surface") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_KHR_surface";
             has_surface = true;
             sbase_log_info("use instance extension VK_KHR_surface");
         } else if (strcmp(name, "VK_KHR_portability_enumeration") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_KHR_portability_enumeration";
             has_portability = true;
             sbase_log_info("use instance extension VK_KHR_portability_enumeration");
         } else if (strcmp(name, "VK_EXT_debug_utils") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_EXT_debug_utils";
             has_debug_utils = true;
             sbase_log_info("use instance extension VK_EXT_debug_utils");
         }
 #if SPARGEL_IS_MACOS
         else if (strcmp(name, "VK_EXT_metal_surface") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_EXT_metal_surface";
             has_metal_surface = true;
             sbase_log_info("use instance extension VK_EXT_metal_surface");
@@ -314,12 +317,12 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
 #endif
 #if SPARGEL_IS_LINUX
         else if (strcmp(name, "VK_KHR_xcb_surface") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_KHR_xcb_surface";
             has_xcb_surface = true;
             sbase_log_info("use instance extension VK_KHR_xcb_surface");
         } else if (strcmp(name, "VK_KHR_wayland_surface") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_KHR_wayland_surface";
             has_wayland_surface = true;
             sbase_log_info("use instance extension VK_KHR_wayland_surface");
@@ -365,9 +368,9 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         info.flags = 0;
         info.pApplicationInfo = &app_info;
         info.enabledLayerCount = use_layers.count;
-        info.ppEnabledLayerNames = use_layers.data;
+        info.ppEnabledLayerNames = (char const**)use_layers.data;
         info.enabledExtensionCount = use_exts.count;
-        info.ppEnabledExtensionNames = use_exts.data;
+        info.ppEnabledExtensionNames = (char const**)use_exts.data;
 
         /**
          * VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR specifies that the instance will
@@ -418,7 +421,8 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         u32 count;
         CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, NULL));
         array_reserve(&adapters, count);
-        CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, adapters.data));
+        CHECK_VK_RESULT(
+            procs->vkEnumeratePhysicalDevices(instance, &count, (VkPhysicalDevice*)adapters.data));
         adapters.count = count;
     }
 
@@ -467,12 +471,13 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
             u32 count;
             procs->vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count, 0);
             array_reserve(&queue_families, count);
-            procs->vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count, queue_families.data);
+            procs->vkGetPhysicalDeviceQueueFamilyProperties(
+                adapter, &count, (VkQueueFamilyProperties*)queue_families.data);
             queue_families.count = count;
         }
         queue_family_index = -1;
         for (ssize j = 0; j < queue_families.count; j++) {
-            VkQueueFamilyProperties* prop = array_at(queue_families, j);
+            VkQueueFamilyProperties* prop = (VkQueueFamilyProperties*)array_at(queue_families, j);
             /**
              * Spec:
              * Each queue family must support at least one queue.
@@ -504,8 +509,8 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         u32 count;
         CHECK_VK_RESULT(procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, 0));
         array_reserve(&all_exts, count);
-        CHECK_VK_RESULT(
-            procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, all_exts.data));
+        CHECK_VK_RESULT(procs->vkEnumerateDeviceExtensionProperties(
+            adapter, 0, &count, (VkExtensionProperties*)all_exts.data));
         all_exts.count = count;
     }
     for (ssize i = 0; i < all_exts.count; i++) {
@@ -520,14 +525,14 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
     bool has_swapchain = false;
 
     for (ssize i = 0; i < all_exts.count; i++) {
-        struct VkExtensionProperties* prop = array_at(all_exts, i);
+        struct VkExtensionProperties* prop = (struct VkExtensionProperties*)array_at(all_exts, i);
         if (strcmp(prop->extensionName, "VK_KHR_swapchain") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_KHR_swapchain";
             has_swapchain = true;
             sbase_log_info("use instance extension VK_KHR_surface");
         } else if (strcmp(prop->extensionName, "VK_KHR_portability_subset") == 0) {
-            char const** ptr = array_push(&use_exts);
+            char const** ptr = (char const**)array_push(&use_exts);
             *ptr = "VK_KHR_portability_subset";
             sbase_log_info("use instance extension VK_KHR_portability_subset");
         }
@@ -560,7 +565,7 @@ int sgpu_vulkan_create_default_device(struct sgpu_device_descriptor const* descr
         info.enabledLayerCount = 0;
         info.ppEnabledLayerNames = 0;
         info.enabledExtensionCount = use_exts.count;
-        info.ppEnabledExtensionNames = use_exts.data;
+        info.ppEnabledExtensionNames = (char const**)use_exts.data;
         info.pEnabledFeatures = 0;
 
         CHECK_VK_RESULT(procs->vkCreateDevice(adapter, &info, 0, &dev));
@@ -706,7 +711,7 @@ int sgpu_vulkan_create_surface(sgpu_device_id device,
     cast_object(sgpu_vulkan_device, d, device);
     alloc_object(sgpu_vulkan_surface, s);
 
-    struct sui_window_handle wh = sui_window_get_handle(descriptor->window);
+    spargel::ui::window_handle wh = spargel::ui::window_get_handle(descriptor->window);
     VkSurfaceKHR surf;
 #if SPARGEL_IS_MACOS
     VkMetalSurfaceCreateInfoEXT info;
@@ -764,14 +769,14 @@ int sgpu_vulkan_create_swapchain(sgpu_device_id device,
         CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(d->physical_device, sf->surface,
                                                                     &count, 0));
         array_reserve(&formats, count);
-        CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(d->physical_device, sf->surface,
-                                                                    &count, formats.data));
+        CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(
+            d->physical_device, sf->surface, &count, (VkSurfaceFormatKHR*)formats.data));
         formats.count = count;
     }
 
-    VkSurfaceFormatKHR* chosen_format = array_at(formats, 0);
+    VkSurfaceFormatKHR* chosen_format = (VkSurfaceFormatKHR*)array_at(formats, 0);
     for (ssize i = 0; i < formats.count; i++) {
-        VkSurfaceFormatKHR* fmt = array_at(formats, i);
+        VkSurfaceFormatKHR* fmt = (VkSurfaceFormatKHR*)array_at(formats, i);
         if (fmt->format == VK_FORMAT_B8G8R8A8_SRGB &&
             fmt->colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             chosen_format = fmt;
@@ -806,9 +811,11 @@ int sgpu_vulkan_create_swapchain(sgpu_device_id device,
         u32 count;
         CHECK_VK_RESULT(procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count, 0));
         sw->image_capacity = count;
-        sw->images = sbase_allocate(sizeof(VkImage) * count, SBASE_ALLOCATION_GPU);
-        sw->image_views = sbase_allocate(sizeof(VkImageView) * count, SBASE_ALLOCATION_GPU);
-        sw->framebuffers = sbase_allocate(sizeof(VkFramebuffer) * count, SBASE_ALLOCATION_GPU);
+        sw->images = (VkImage*)sbase_allocate(sizeof(VkImage) * count, SBASE_ALLOCATION_GPU);
+        sw->image_views =
+            (VkImageView*)sbase_allocate(sizeof(VkImageView) * count, SBASE_ALLOCATION_GPU);
+        sw->framebuffers =
+            (VkFramebuffer*)sbase_allocate(sizeof(VkFramebuffer) * count, SBASE_ALLOCATION_GPU);
         CHECK_VK_RESULT(
             procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count, sw->images));
         sw->image_count = count;

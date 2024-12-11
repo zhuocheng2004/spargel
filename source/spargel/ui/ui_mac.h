@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spargel/ui/ui.h>
+
 #import <AppKit/AppKit.h>
 #import <QuartzCore/QuartzCore.h>
 
@@ -7,22 +9,26 @@
 @end
 
 @interface SpargelMetalView : NSView {
-    struct sui_window* _swindow;
+    spargel::ui::window* _swindow;
 }
 @end
 
 @interface SpargelWindowDelegate : NSObject <NSWindowDelegate> {
-    struct sui_window* _swindow;
+    spargel::ui::window* _swindow;
 }
 @end
 
-struct sui_window {
-    NSWindow* window;
-    SpargelWindowDelegate* delegate;
-    CAMetalLayer* layer;
-    float drawable_width;
-    float drawable_height;
+namespace spargel::ui {
 
-    void (*render_callback)(void*);
-    void* render_data;
-};
+    struct window {
+        NSWindow* window;
+        SpargelWindowDelegate* delegate;
+        CAMetalLayer* layer;
+        float drawable_width;
+        float drawable_height;
+
+        void (*render_callback)(void*);
+        void* render_data;
+    };
+
+}  // namespace spargel::ui

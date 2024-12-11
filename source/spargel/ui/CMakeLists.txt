@@ -1,11 +1,11 @@
 spargel_add_library(
     NAME ui
     PRIVATE_LINUX
-        ui_xcb.c
+        ui_xcb.cpp
     PRIVATE_MACOS
-        ui_mac.m
+        ui_mac.mm
     PRIVATE_WINDOWS
-        dummy.c
+        dummy.cpp
     DEPS base
 )
 
@@ -43,6 +43,6 @@ endif ()
 
 spargel_add_executable(
     NAME window_demo
-    PRIVATE window_demo.c
+    PRIVATE window_demo.cpp
     DEPS ui
 )

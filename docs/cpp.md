@@ -8,6 +8,12 @@ Important decisions in Spargel:
 -   Do not use RTTI or exceptions.
 -   Avoid the standard library.
 -   Use `#pragma once`.
+-   Only use meta-programming where necessary, and where it reduces code complexity.
+-   Current C++ standard: C++20.
+
+## Tips
+
+- Global constants: `inline constexpr`.
 
 ## Coroutine
 

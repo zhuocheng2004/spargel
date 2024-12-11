@@ -49,8 +49,7 @@ endif()
 #### Spargel Options ####
 
 spargel_add_option(SPARGEL_ENABLE_COVERAGE "enable coverge" OFF)
-spargel_add_option(SPARGEL_ENABLE_CHECK "enable CHECK()" ON)
-spargel_add_option(SPARGEL_ENABLE_DCHECK "enable DCHECK()" ON)
+spargel_add_option(SPARGEL_ENABLE_ASSERT "enable assert()" ON)
 spargel_add_option(SPARGEL_ENABLE_LOG_ANSI_COLOR "enable ANSI color for loggin" OFF)
 spargel_add_option(SPARGEL_ENABLE_SANITIZER_ADDRESS "enable asan" ON)
 spargel_add_option(SPARGEL_GPU_ENABLE_DIRECTX "enable directx backend" ${SPARGEL_GPU_ENABLE_DIRECTX_DEFAULT})

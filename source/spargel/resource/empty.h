@@ -2,4 +2,6 @@
 
 #include <spargel/resource/resource.h>
 
-void spgl_resource_empty_manager_init(struct spgl_resource_manager* manager);
+namespace spargel::resource {
+    void resource_empty_manager_init(struct resource_manager* manager);
+}

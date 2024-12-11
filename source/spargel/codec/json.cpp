@@ -256,8 +256,8 @@ static void ensure_object_capacity(struct scodec_json_object* object) {
     /* need to grow */
     ssize safe_capacity = object->capacity * 2;
     safe_capacity = safe_capacity < 8 ? 8 : safe_capacity;
-    struct scodec_json_object_entry* entries =
-        malloc(sizeof(struct scodec_json_object_entry) * safe_capacity);
+    struct scodec_json_object_entry* entries = (struct scodec_json_object_entry*)malloc(
+        sizeof(struct scodec_json_object_entry) * safe_capacity);
     memset(entries, 0, sizeof(struct scodec_json_object_entry) * safe_capacity);
     for (ssize i = 0; i < object->capacity; i++) {
         struct scodec_json_object_entry* entry = &object->entries[i];

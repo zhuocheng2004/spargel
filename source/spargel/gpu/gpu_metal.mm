@@ -7,8 +7,8 @@
 /* platform */
 #import <Metal/Metal.h>
 
-#define alloc_object(type, name)                                                   \
-    struct type* name = sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
+#define alloc_object(type, name)                                                                 \
+    struct type* name = (struct type*)sbase_allocate(sizeof(struct type), SBASE_ALLOCATION_GPU); \
     if (!name) sbase_panic_here();
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
@@ -167,9 +167,9 @@ int sgpu_metal_create_render_pipeline(sgpu_device_id device,
     cast_object(sgpu_metal_shader_function, fs, descriptor->fragment_function);
     alloc_object(sgpu_metal_render_pipeline, p);
 
-    CHECK(d != 0);
-    CHECK(vs != 0);
-    CHECK(fs != 0);
+    spargel_assert(d != 0);
+    spargel_assert(vs != 0);
+    spargel_assert(fs != 0);
 
     MTLRenderPipelineDescriptor* desc = [[MTLRenderPipelineDescriptor alloc] init];
     desc.vertexFunction = vs->function;
@@ -218,8 +218,7 @@ void sgpu_metal_destroy_command_buffer(sgpu_device_id device,
     dealloc_object(sgpu_metal_command_buffer, c);
 }
 
-void sgpu_metal_reset_command_buffer(sgpu_device_id device,
-                                      sgpu_command_buffer_id command_buffer) {
+void sgpu_metal_reset_command_buffer(sgpu_device_id device, sgpu_command_buffer_id command_buffer) {
     cast_object(sgpu_metal_command_buffer, c, command_buffer);
     c->buffer = [c->queue commandBuffer];
 }

@@ -1,7 +1,7 @@
 spargel_add_library(
     NAME gpu
     PRIVATE
-        gpu.c
+        gpu.cpp
     DEPS
         base
         spargel_config
@@ -17,7 +17,7 @@ spargel_add_library(
 if(${SPARGEL_GPU_ENABLE_METAL})
   target_sources(gpu
     PRIVATE
-      gpu_metal.m
+      gpu_metal.mm
   )
   target_link_libraries(gpu PRIVATE ${FRAMEWORK_METAL})
 endif()
@@ -25,7 +25,7 @@ endif()
 if(${SPARGEL_GPU_ENABLE_VULKAN})
   target_sources(gpu
     PRIVATE
-      gpu_vulkan.c
+      gpu_vulkan.cpp
   )
   target_link_libraries(gpu PRIVATE Vulkan::Headers)
 endif()

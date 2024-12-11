@@ -1,6 +1,6 @@
 spargel_add_executable(
     NAME demo_gpu
-    PRIVATE demo_gpu.c
+    PRIVATE demo_gpu.cpp
     DEPS gpu ui
 )
 if (SPARGEL_IS_LINUX)
@@ -73,3 +73,9 @@ if (SPARGEL_GPU_ENABLE_METAL)
     )
     add_dependencies(demo_gpu demo_gpu_metal_shaders)
 endif ()
+
+spargel_add_executable(
+    NAME demo_gpu3
+    PRIVATE demo_gpu3.cpp
+    DEPS gpu ui
+)

@@ -3,66 +3,69 @@
 #include <spargel/base/base.h>
 
 /* defines */
-#define SPGL_RESOURCE_DEFAULT_NS "core"
+#define RESOURCE_DEFAULT_NS "core"
 
-#define SPGL_REOURCE_ID_WITH_NS(ns, path) \
-    ((struct spgl_resource_id){sbase_string_from_literal(ns), sbase_string_from_literal(path)})
+#define REOURCE_ID_WITH_NS(ns, path) \
+    ((struct resource_id){sbase_string_from_literal(ns), sbase_string_from_literal(path)})
 
-#define SPGL_RESOURCE_ID(path) SPGL_REOURCE_ID_WITH_NS(SPGL_RESOURCE_DEFAULT_NS, path)
+#define RESOURCE_ID(path) REOURCE_ID_WITH_NS(RESOURCE_DEFAULT_NS, path)
 
-/* types */
+namespace spargel::resource {
 
-typedef int spgl_resource_err;
+    /* types */
 
-struct spgl_resource_id {
-    struct sbase_string ns;
-    struct sbase_string path;
-};
+    typedef int resource_err;
 
-struct spgl_resource {
-    ssize size;
-    int ref_cnt;
-    struct spgl_resource_operations* op;
+    struct resource_id {
+        struct sbase_string ns;
+        struct sbase_string path;
+    };
 
-    void* data;
-};
+    struct resource {
+        ssize size;
+        int ref_cnt;
+        struct resource_operations* op;
 
-struct spgl_resource_operations {
-    void (*close)(struct spgl_resource*);
-    spgl_resource_err (*get_data)(struct spgl_resource*, void* addr);
-};
+        void* data;
+    };
 
-struct spgl_resource_manager {
-    struct spgl_resource_manager_operations* op;
+    struct resource_operations {
+        void (*close)(struct resource*);
+        resource_err (*get_data)(struct resource*, void* addr);
+    };
 
-    void* data;
-};
+    struct resource_manager {
+        struct resource_manager_operations* op;
 
-struct spgl_resource_manager_operations {
-    void (*close)(struct spgl_resource_manager*);
-    struct spgl_resource* (*open_resource)(struct spgl_resource_manager*,
-                                           struct spgl_resource_id id);
-};
+        void* data;
+    };
 
-/* functions */
+    struct resource_manager_operations {
+        void (*close)(struct resource_manager*);
+        struct resource* (*open_resource)(struct resource_manager*, struct resource_id id);
+    };
 
-/* reference +1 */
-static inline void spgl_resource_get(struct spgl_resource* resource) { resource->ref_cnt++; }
+    /* functions */
 
-/* reference -1 ; close resource if there are no references */
-void spgl_resource_put(struct spgl_resource* resource);
+    /* reference +1 */
+    inline void resource_get(struct resource* resource) { resource->ref_cnt++; }
 
-static inline ssize spgl_resource_size(struct spgl_resource* resource) { return resource->size; }
+    /* reference -1 ; close resource if there are no references */
+    void resource_put(struct resource* resource);
 
-static inline spgl_resource_err spgl_resource_get_data(struct spgl_resource* resource, void* addr) {
-    return resource->op->get_data(resource, addr);
-}
+    inline ssize resource_size(struct resource* resource) { return resource->size; }
 
-static inline struct spgl_resource* spgl_resource_open_resource(
-    struct spgl_resource_manager* manager, struct spgl_resource_id id) {
-    return manager->op->open_resource(manager, id);
-}
+    inline resource_err resource_get_data(struct resource* resource, void* addr) {
+        return resource->op->get_data(resource, addr);
+    }
 
-static inline void spgl_resource_close_manager(struct spgl_resource_manager* manager) {
-    manager->op->close(manager);
-}
+    inline struct resource* resource_open_resource(struct resource_manager* manager,
+                                                   struct resource_id id) {
+        return manager->op->open_resource(manager, id);
+    }
+
+    inline void resource_close_manager(struct resource_manager* manager) {
+        manager->op->close(manager);
+    }
+
+}  // namespace spargel::resource
