@@ -297,8 +297,8 @@ namespace spargel::codec {
         for (ssize i = 0; i < object->capacity; i++) {
             struct json_object_entry* entry = &object->entries[i];
             if (entry->used) {
-                spargel::base::destroy(entry->key);
-                json_value_deinit(&entry->value);
+                entry->key.deinit();
+                json_value_deinit(entry->value);
             }
         }
         if (object->entries) free(object->entries);
@@ -322,21 +322,21 @@ namespace spargel::codec {
 
     void json_array_deinit(struct json_array const* array) {
         for (ssize i = 0; i < array->count; i++) {
-            json_value_deinit(&array->values[i]);
+            json_value_deinit(array->values[i]);
         }
         if (array->values) free(array->values);
     }
 
-    void json_value_deinit(struct json_value const* value) {
-        switch (value->kind) {
+    void json_value_deinit(json_value& value) {
+        switch (value.kind) {
         case JSON_VALUE_KIND_ARRAY:
-            json_array_deinit(&value->array);
+            json_array_deinit(&value.array);
             break;
         case JSON_VALUE_KIND_OBJECT:
-            json_object_deinit(&value->object);
+            json_object_deinit(&value.object);
             break;
         case JSON_VALUE_KIND_STRING:
-            spargel::base::destroy(value->string);
+            value.string.deinit();
             break;
         default:
             break;

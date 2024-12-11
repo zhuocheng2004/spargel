@@ -187,14 +187,19 @@ namespace spargel::base {
         if (str.data) deallocate(str.data, str.length + 1, ALLOCATION_BASE);
     }
 
-    void string_copy(string* dst, string src) {
+    void string::deinit() {
+        spargel_log_debug("str length = %ld", length);
+        if (data) deallocate(data, length + 1, ALLOCATION_BASE);
+    }
+
+    void string_copy(string& dst, string src) {
         spargel_assert(src.data != NULL);
 
-        if (dst->data) deallocate(dst->data, dst->length + 1, ALLOCATION_BASE);
-        dst->length = src.length;
-        dst->data = (char*)allocate(dst->length + 1, ALLOCATION_BASE);
-        memcpy(dst->data, src.data, dst->length);
-        dst->data[dst->length] = '\0';
+        if (dst.data) deallocate(dst.data, dst.length + 1, ALLOCATION_BASE);
+        dst.length = src.length;
+        dst.data = (char*)allocate(dst.length + 1, ALLOCATION_BASE);
+        memcpy(dst.data, src.data, dst.length);
+        dst.data[dst.length] = '\0';
     }
 
     string string_concat(string str1, string str2) {

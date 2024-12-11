@@ -84,16 +84,14 @@ namespace spargel::codec {
     void json_array_deinit(struct json_array const* array);
 
     void json_object_init(struct json_object* object);
-    struct json_value* json_object_insert(struct json_object* object,
-                                                        spargel::base::string key);
+    struct json_value* json_object_insert(struct json_object* object, spargel::base::string key);
     /**
      * @warning the returned pointer is not stable
      */
-    struct json_value* json_object_get(struct json_object* object,
-                                                     spargel::base::string key);
+    struct json_value* json_object_get(struct json_object* object, spargel::base::string key);
     void json_object_deinit(struct json_object const* object);
 
-    void json_value_deinit(struct json_value const* value);
+    void json_value_deinit(json_value& value);
 
     enum json_parse_result {
         JSON_PARSE_RESULT_SUCCESS,

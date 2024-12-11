@@ -69,20 +69,23 @@ static void read_file(char const* path, struct file* f) {
 }
 
 int main(int argc, char* argv[]) {
+    spargel_defer(([] {
+        spargel::base::report_allocation();
+        spargel::base::check_leak();
+    }));
+
     if (argc < 2) return -1;
     struct file f;
     read_file(argv[1], &f);
+    spargel_defer(
+        ([&] { spargel::base::deallocate(f.data, f.length, spargel::base::ALLOCATION_CODEC); }));
 
-    struct spargel::codec::json_value value;
+    spargel::codec::json_value value;
+    spargel_defer(([&] { spargel::codec::json_value_deinit(value); }));
+
     int result = spargel::codec::json_parse(f.data, f.length, &value);
 
     dump_json_value(&value);
 
-    spargel::base::deallocate(f.data, f.length, spargel::base::ALLOCATION_CODEC);
-
-    spargel::codec::json_value_deinit(&value);
-
-    spargel::base::report_allocation();
-    spargel::base::check_leak();
     return result;
 }

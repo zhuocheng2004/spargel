@@ -56,18 +56,18 @@ namespace spargel::base {
 
     }  // namespace
 
-#define MAX_STACK_TRACES 128
-#define MAX_SYMBOL_SIZE 255
+    inline constexpr ssize max_stack_traces = 128;
+    inline constexpr ssize max_symbol_size = 255;
 
     void print_backtrace() {
-        void* entries[MAX_STACK_TRACES] = {};
-        int count = backtrace(entries, MAX_STACK_TRACES);
-        char symbol_buf[MAX_SYMBOL_SIZE + 1] = {};
+        void* entries[max_stack_traces] = {};
+        int count = backtrace(entries, max_stack_traces);
+        char symbol_buf[max_symbol_size + 1] = {};
         for (int i = 0; i < count; i++) {
             write_stderr("  # 0x", 6);
             write_pointer(entries[i]);
             write_stderr(" ", 1);
-            if (symbolize(entries[i], symbol_buf, MAX_SYMBOL_SIZE)) {
+            if (symbolize(entries[i], symbol_buf, max_symbol_size)) {
                 write_stderr(symbol_buf, strlen(symbol_buf));
             } else {
                 write_stderr("<unknown>", 9);

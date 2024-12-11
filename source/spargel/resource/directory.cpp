@@ -15,40 +15,40 @@ namespace spargel::resource {
 
     const spargel::base::string DOT = string_from_literal(".");
 
-    static void normalize_path(spargel::base::string* path) {
-        if (path->length == 0) {
-            spargel::base::destroy(*path);
+    static void normalize_path(spargel::base::string& path) {
+        if (path.length == 0) {
+            path.deinit();
             spargel::base::string_copy(path, DOT);
         } else {
-            ssize len = path->length;
+            ssize len = path.length;
             // FIXME
-            path->data =
-                (char*)spargel::base::reallocate(path->data, len + 1, len + 2, spargel::base::ALLOCATION_BASE);
-            path->data[len] = PATH_SPLIT;
-            path->data[len + 1] = '\0';
-            path->length = len + 1;
+            path.data = (char*)spargel::base::reallocate(path.data, len + 1, len + 2,
+                                                         spargel::base::ALLOCATION_BASE);
+            path.data[len] = PATH_SPLIT;
+            path.data[len + 1] = '\0';
+            path.length = len + 1;
         }
     }
 
     void resource_directory_manager_init(struct resource_manager* manager,
-                                              spargel::base::string base_path) {
+                                         spargel::base::string base_path) {
         struct directory_manager_data* data =
             (struct directory_manager_data*)malloc(sizeof(struct directory_manager_data));
         data->base.data = NULL;
-        spargel::base::string_copy(&data->base, base_path);
-        normalize_path(&data->base);
+        spargel::base::string_copy(data->base, base_path);
+        normalize_path(data->base);
         manager->data = data;
         manager->op = &directory_manager_operations;
     }
 
     static void directory_manager_close(struct resource_manager* manager) {
         struct directory_manager_data* data = (struct directory_manager_data*)manager->data;
-        spargel::base::destroy(data->base);
+        data->base.deinit();
         free(data);
     }
 
-    static struct resource* directory_manager_open_resource(
-        struct resource_manager* manager, struct resource_id id) {
+    static struct resource* directory_manager_open_resource(struct resource_manager* manager,
+                                                            struct resource_id id) {
         return NULL;
     }
 

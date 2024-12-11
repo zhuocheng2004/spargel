@@ -11,7 +11,7 @@ namespace spargel::base {
             _get_executable_path(buf, len + 1);
         }
         buf[len] = '\0';
-        return (string){
+        return {
             .length = len,
             .data = buf,
         };

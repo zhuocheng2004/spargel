@@ -105,6 +105,8 @@ namespace spargel::base {
     struct string {
         ssize length;
         char* data;
+
+        void deinit();
     };
 
 #define string_from_literal(str) ((struct ::spargel::base::string){sizeof(str) - 1, str})
@@ -113,9 +115,7 @@ namespace spargel::base {
 
     bool operator==(string const& lhs, string const& rhs);
 
-    void destroy(string const& str);
-
-    void string_copy(string* dst, string src);
+    void string_copy(string& dst, string src);
 
     string string_concat(string str1, string str2);
 
@@ -124,5 +124,11 @@ namespace spargel::base {
         ~defer() { f(); }
         F f;
     };
+
+#define _concat2(a, b) a##b
+#define _concat(a, b) _concat2(a, b)
+
+#define spargel_defer(body) \
+    auto _concat(__defer_, __LINE__) = ::spargel::base::defer { body }
 
 }  // namespace spargel::base
