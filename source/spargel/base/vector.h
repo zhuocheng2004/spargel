@@ -56,6 +56,17 @@ namespace spargel::base {
                 _end--;
             }
 
+            void clear() {
+                destruct_items();
+                _end = _begin;
+            }
+
+            void reserve(ssize capacity) {
+                if (_begin + capacity > _capacity) {
+                    grow(capacity);
+                }
+            }
+
             // unsafe;
             void set_count(ssize count) { _end = _begin + count; }
 

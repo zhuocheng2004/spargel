@@ -22,5 +22,10 @@ int main() {
     spargel_assert(v3.count() == 100);
     spargel_assert(v2[2] == 3);
     spargel_assert(v3[0] == 1);
+    v3.reserve(200);
+    spargel_assert(v3.count() == 100);
+    spargel_assert(v3.capacity() >= 200);
+    v2.clear();
+    spargel_assert(v2.count() == 0);
     return 0;
 }

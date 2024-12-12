@@ -1,4 +1,6 @@
 #include <spargel/base/base.h>
+#include <spargel/base/object.h>
+#include <spargel/base/vector.h>
 #include <spargel/ecs/ecs.h>
 
 /* libc */
@@ -22,57 +24,57 @@ namespace spargel::ecs {
     };
 
     struct world {
-        struct entity_info* entities;
-        ssize entity_count;
-        ssize entity_capacity;
+        base::vector<entity_info> entities;
         struct {
-            ssize* sizes;
-            ssize count;
-            ssize capacity;
+            ssize* sizes = nullptr;
+            ssize count = 0;
+            ssize capacity = 0;
         } components;
-        struct archetype* archetypes;
-        ssize archetype_count;
-        ssize archetype_capacity;
+        struct archetype* archetypes = nullptr;
+        ssize archetype_count = 0;
+        ssize archetype_capacity = 0;
     };
 
     world_id create_world() {
-        struct world* world =
-            (struct world*)spargel::base::allocate(sizeof(struct world), spargel::base::ALLOCATION_ECS);
-        memset(world, 0, sizeof(struct world));
+        struct world* world = (struct world*)spargel::base::allocate(sizeof(struct world),
+                                                                     spargel::base::ALLOCATION_ECS);
+        base::construct_at<struct world>(world);
         return world;
     }
 
     void destroy_world(world_id world) {
         if (!world) return;
-        if (world->entities)
-            spargel::base::deallocate(world->entities, sizeof(struct entity_info) * world->entity_capacity,
-                             spargel::base::ALLOCATION_ECS);
         for (ssize i = 0; i < world->archetype_count; i++) {
             struct archetype* archetype = &world->archetypes[i];
             for (ssize j = 0; j < archetype->row_count; j++) {
                 if (archetype->components[j])
                     spargel::base::deallocate(archetype->components[j],
-                                     world->components.sizes[archetype->component_ids[j]] *
-                                         archetype->col_capacity,
-                                     spargel::base::ALLOCATION_ECS);
+                                              world->components.sizes[archetype->component_ids[j]] *
+                                                  archetype->col_capacity,
+                                              spargel::base::ALLOCATION_ECS);
             }
             if (archetype->entities)
-                spargel::base::deallocate(archetype->entities, sizeof(entity_id) * archetype->col_capacity,
-                                 spargel::base::ALLOCATION_ECS);
+                spargel::base::deallocate(archetype->entities,
+                                          sizeof(entity_id) * archetype->col_capacity,
+                                          spargel::base::ALLOCATION_ECS);
             if (archetype->component_ids)
                 spargel::base::deallocate(archetype->component_ids,
-                                 sizeof(component_id) * archetype->row_count, spargel::base::ALLOCATION_ECS);
+                                          sizeof(component_id) * archetype->row_count,
+                                          spargel::base::ALLOCATION_ECS);
             if (archetype->components)
-                spargel::base::deallocate(archetype->components, sizeof(void*) * archetype->row_count,
-                                 spargel::base::ALLOCATION_ECS);
+                spargel::base::deallocate(archetype->components,
+                                          sizeof(void*) * archetype->row_count,
+                                          spargel::base::ALLOCATION_ECS);
         }
         if (world->components.sizes)
-            spargel::base::deallocate(world->components.sizes, sizeof(ssize) * world->components.capacity,
-                             spargel::base::ALLOCATION_ECS);
+            spargel::base::deallocate(world->components.sizes,
+                                      sizeof(ssize) * world->components.capacity,
+                                      spargel::base::ALLOCATION_ECS);
         if (world->archetypes)
             spargel::base::deallocate(world->archetypes,
-                             sizeof(struct archetype) * world->archetype_capacity,
-                             spargel::base::ALLOCATION_ECS);
+                                      sizeof(struct archetype) * world->archetype_capacity,
+                                      spargel::base::ALLOCATION_ECS);
+        base::destruct_at<struct world>(world);
         spargel::base::deallocate(world, sizeof(struct world), spargel::base::ALLOCATION_ECS);
     }
 
@@ -87,7 +89,8 @@ namespace spargel::ecs {
         ssize cap2 = *capacity * 2;
         ssize new_cap = cap2 > need ? cap2 : need;
         if (new_cap < 8) new_cap = 8;
-        *ptr = spargel::base::reallocate(*ptr, *capacity * stride, new_cap * stride, spargel::base::ALLOCATION_ECS);
+        *ptr = spargel::base::reallocate(*ptr, *capacity * stride, new_cap * stride,
+                                         spargel::base::ALLOCATION_ECS);
         *capacity = new_cap;
     }
 
@@ -153,8 +156,8 @@ namespace spargel::ecs {
         archetype->component_ids = (component_id*)spargel::base::allocate(
             sizeof(component_id) * component_count, spargel::base::ALLOCATION_ECS);
         memcpy(archetype->component_ids, component_ids, sizeof(component_id) * component_count);
-        archetype->components =
-            (void**)spargel::base::allocate(sizeof(void*) * component_count, spargel::base::ALLOCATION_ECS);
+        archetype->components = (void**)spargel::base::allocate(sizeof(void*) * component_count,
+                                                                spargel::base::ALLOCATION_ECS);
         memset(archetype->components, 0, sizeof(void*) * component_count);
         return id;
     }
@@ -183,17 +186,13 @@ namespace spargel::ecs {
         view->archetype_id = archetype_id;
         view->entity_count = desc->entity_count;
 
-        if (world->entity_count + desc->entity_count > world->entity_capacity) {
-            grow_array((void**)&world->entities, &world->entity_capacity,
-                       sizeof(struct entity_info), world->entity_count + desc->entity_count);
-        }
+        world->entities.reserve(world->entities.count() + desc->entity_count);
 
         view->entities = archetype->entities + offset;
         for (ssize i = 0; i < desc->entity_count; i++) {
-            ssize entity = world->entity_count++;
+            ssize entity = world->entities.count();
             view->entities[i] = entity;
-            world->entities[entity].archetype_id = archetype_id;
-            world->entities[entity].index = offset + i;
+            world->entities.push(archetype_id, offset + i);
         }
 
         for (ssize i = 0; i < desc->component_count; i++) {

@@ -1,6 +1,8 @@
 #include <spargel/base/assert.h>
 #include <spargel/base/base.h>
 #include <spargel/base/logging.h>
+#include <spargel/base/object.h>
+#include <spargel/base/vector.h>
 #include <spargel/config.h>
 #include <spargel/gpu/gpu_vulkan.h>
 #include <spargel/ui/ui.h>
@@ -38,15 +40,16 @@
 #define VULKAN_LIB_FILENAME "vulkan-1.dll"
 #endif
 
-#define alloc_object(type, name)                                                                   \
-    struct type* name =                                                                            \
-        (struct type*)spargel::base::allocate(sizeof(struct type), spargel::base::ALLOCATION_GPU); \
-    if (!name) spargel_panic_here();                                                               \
-    memset(name, 0, sizeof(struct type));
+#define alloc_object(type, name)                                                              \
+    type* name = (type*)spargel::base::allocate(sizeof(type), spargel::base::ALLOCATION_GPU); \
+    if (!name) spargel_panic_here();                                                          \
+    base::construct_at<type>(name);
+// memset(name, 0, sizeof(struct type));
 
 #define cast_object(type, name, object) struct type* name = (struct type*)(object);
 
 #define dealloc_object(type, name) \
+    base::destruct_at<type>(name); \
     spargel::base::deallocate(name, sizeof(struct type), spargel::base::ALLOCATION_GPU);
 
 namespace spargel::gpu {
@@ -70,22 +73,22 @@ namespace spargel::gpu {
         VkSurfaceKHR surface;
     };
 
+    struct vulkan_swapchain;
+
     struct vulkan_presentable {
         u32 index;
-        struct vulkan_swapchain* swapchain;
+        vulkan_swapchain* swapchain;
     };
 
     struct vulkan_swapchain {
         VkSwapchainKHR swapchain;
         int width;
         int height;
-        ssize image_count;
-        ssize image_capacity;
         /* todo: fix this */
         VkRenderPass render_pass;
-        VkImage* images;
-        VkImageView* image_views;
-        VkFramebuffer* framebuffers;
+        base::vector<VkImage> images;
+        base::vector<VkImageView> image_views;
+        base::vector<VkFramebuffer> framebuffers;
         /* todo: fix this */
         struct vulkan_presentable presentable;
         VkFence image_available;
@@ -136,51 +139,6 @@ namespace spargel::gpu {
         }                                                                \
     } while (0)
 
-    struct array {
-        void* data;
-        ssize count;
-        ssize capacity;
-        ssize stride;
-    };
-
-    static void init_array(struct array* a, ssize stride) {
-        a->data = NULL;
-        a->count = 0;
-        a->capacity = 0;
-        a->stride = stride;
-    }
-
-    static void deinit_array(struct array a) {
-        if (a.data) {
-            spargel::base::deallocate(a.data, a.stride * a.capacity, spargel::base::ALLOCATION_GPU);
-        }
-    }
-
-    static void array_reserve(struct array* a, ssize count) {
-        if (count > a->capacity) {
-            ssize new_cap = a->capacity * 2;
-            new_cap = count > new_cap ? count : new_cap;
-            new_cap = 8 > new_cap ? 8 : new_cap;
-            void* new_data =
-                spargel::base::reallocate(a->data, a->stride * a->capacity, a->stride * new_cap,
-                                          spargel::base::ALLOCATION_GPU);
-            a->data = new_data;
-            a->capacity = new_cap;
-        }
-    }
-
-    static void* array_at(struct array a, ssize i) {
-        spargel_assert(i >= 0 && i < a.count);
-        return (char*)a.data + i * a.stride;
-    }
-
-    static void* array_push(struct array* a) {
-        array_reserve(a, a->count + 1);
-        ssize i = a->count;
-        a->count++;
-        return array_at(*a, i);
-    }
-
     static VkBool32 vulkan_debug_messenger_callback(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
         VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
@@ -218,48 +176,40 @@ namespace spargel::gpu {
         struct vulkan_proc_table* procs = &d->procs;
 
         /* step 1. enumerate layers */
-        struct array all_layers;
-        init_array(&all_layers, sizeof(struct VkLayerProperties));
+        base::vector<VkLayerProperties> all_layers;
         {
             u32 count;
             CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, NULL));
-            array_reserve(&all_layers, count);
-            CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(
-                &count, (VkLayerProperties*)all_layers.data));
-            all_layers.count = count;
+            all_layers.reserve(count);
+            CHECK_VK_RESULT(procs->vkEnumerateInstanceLayerProperties(&count, all_layers.data()));
+            all_layers.set_count(count);
         }
 
-        for (ssize i = 0; i < all_layers.count; i++) {
-            spargel_log_info("layer #%ld = %s", i,
-                             ((struct VkLayerProperties*)array_at(all_layers, i))->layerName);
+        for (ssize i = 0; i < all_layers.count(); i++) {
+            spargel_log_info("layer #%ld = %s", i, all_layers[i].layerName);
         }
 
         /* step 2. enumerate instance extensions */
-        struct array all_exts;
-        init_array(&all_exts, sizeof(struct VkExtensionProperties));
+        base::vector<VkExtensionProperties> all_exts;
         {
             u32 count;
             CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(NULL, &count, NULL));
-            array_reserve(&all_exts, count);
-            CHECK_VK_RESULT(procs->vkEnumerateInstanceExtensionProperties(
-                NULL, &count, (VkExtensionProperties*)all_exts.data));
-            all_exts.count = count;
+            all_exts.reserve(count);
+            CHECK_VK_RESULT(
+                procs->vkEnumerateInstanceExtensionProperties(NULL, &count, all_exts.data()));
+            all_exts.set_count(count);
         }
 
-        for (ssize i = 0; i < all_exts.count; i++) {
-            spargel_log_info("instance extension #%ld = %s", i,
-                             ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName);
+        for (ssize i = 0; i < all_exts.count(); i++) {
+            spargel_log_info("instance extension #%ld = %s", i, all_exts[i].extensionName);
         }
 
         /* step 3. select layers */
         /* we need VK_LAYER_KHRONOS_validation */
-        struct array use_layers;
-        init_array(&use_layers, sizeof(char const*));
-        for (ssize i = 0; i < all_layers.count; i++) {
-            if (strcmp(((struct VkLayerProperties*)array_at(all_layers, i))->layerName,
-                       "VK_LAYER_KHRONOS_validation") == 0) {
-                char const** ptr = (char const**)array_push(&use_layers);
-                *ptr = "VK_LAYER_KHRONOS_validation";
+        base::vector<char const*> use_layers;
+        for (ssize i = 0; i < all_layers.count(); i++) {
+            if (strcmp(all_layers[i].layerName, "VK_LAYER_KHRONOS_validation") == 0) {
+                use_layers.push("VK_LAYER_KHRONOS_validation");
                 spargel_log_info("use layer VK_LAYER_KHRONOS_validation");
             }
         }
@@ -283,8 +233,8 @@ namespace spargel::gpu {
          * supports the VK_KHR_portability_subset extension mandates that the extension must be
          * enabled if that device is used.
          */
-        struct array use_exts;
-        init_array(&use_exts, sizeof(char const*));
+
+        base::vector<char const*> use_exts;
         bool has_surface = false;
         bool has_portability = false;
         bool has_debug_utils = false;
@@ -295,42 +245,35 @@ namespace spargel::gpu {
         bool has_xcb_surface = false;
         bool has_wayland_surface = false;
 #endif
-        for (ssize i = 0; i < all_exts.count; i++) {
-            char const* name =
-                ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName;
+        for (ssize i = 0; i < all_exts.count(); i++) {
+            char const* name = all_exts[i].extensionName;
             if (strcmp(name, "VK_KHR_surface") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_KHR_surface";
+                use_exts.push("VK_KHR_surface");
                 has_surface = true;
                 spargel_log_info("use instance extension VK_KHR_surface");
             } else if (strcmp(name, "VK_KHR_portability_enumeration") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_KHR_portability_enumeration";
+                use_exts.push("VK_KHR_portability_enumeration");
                 has_portability = true;
                 spargel_log_info("use instance extension VK_KHR_portability_enumeration");
             } else if (strcmp(name, "VK_EXT_debug_utils") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_EXT_debug_utils";
+                use_exts.push("VK_EXT_debug_utils");
                 has_debug_utils = true;
                 spargel_log_info("use instance extension VK_EXT_debug_utils");
             }
 #if SPARGEL_IS_MACOS
             else if (strcmp(name, "VK_EXT_metal_surface") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_EXT_metal_surface";
+                use_exts.push("VK_EXT_metal_surface");
                 has_metal_surface = true;
                 spargel_log_info("use instance extension VK_EXT_metal_surface");
             }
 #endif
 #if SPARGEL_IS_LINUX
             else if (strcmp(name, "VK_KHR_xcb_surface") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_KHR_xcb_surface";
+                use_exts.push("VK_KHR_xcb_surface");
                 has_xcb_surface = true;
                 spargel_log_info("use instance extension VK_KHR_xcb_surface");
             } else if (strcmp(name, "VK_KHR_wayland_surface") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_KHR_wayland_surface";
+                use_exts.push("VK_KHR_wayland_surface");
                 has_wayland_surface = true;
                 spargel_log_info("use instance extension VK_KHR_wayland_surface");
             }
@@ -374,10 +317,10 @@ namespace spargel::gpu {
             info.pNext = NULL;
             info.flags = 0;
             info.pApplicationInfo = &app_info;
-            info.enabledLayerCount = use_layers.count;
-            info.ppEnabledLayerNames = (char const**)use_layers.data;
-            info.enabledExtensionCount = use_exts.count;
-            info.ppEnabledExtensionNames = (char const**)use_exts.data;
+            info.enabledLayerCount = use_layers.count();
+            info.ppEnabledLayerNames = use_layers.data();
+            info.enabledExtensionCount = use_exts.count();
+            info.ppEnabledExtensionNames = use_exts.data();
 
             /**
              * VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR specifies that the instance will
@@ -394,11 +337,6 @@ namespace spargel::gpu {
 
 #define VULKAN_INSTANCE_PROC(name) procs->name = (PFN_##name)vkGetInstanceProcAddr(instance, #name);
 #include <spargel/gpu/vulkan_procs.inc>
-
-        deinit_array(use_exts);
-        deinit_array(use_layers);
-        deinit_array(all_exts);
-        deinit_array(all_layers);
 
         /* step 6. create debug messenger */
         if (has_debug_utils) {
@@ -422,15 +360,13 @@ namespace spargel::gpu {
 
         /* step 7. enumerate physical devices */
 
-        struct array adapters;
-        init_array(&adapters, sizeof(VkPhysicalDevice));
+        base::vector<VkPhysicalDevice> adapters;
         {
             u32 count;
             CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, NULL));
-            array_reserve(&adapters, count);
-            CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count,
-                                                              (VkPhysicalDevice*)adapters.data));
-            adapters.count = count;
+            adapters.reserve(count);
+            CHECK_VK_RESULT(procs->vkEnumeratePhysicalDevices(instance, &count, adapters.data()));
+            adapters.set_count(count);
         }
 
         /* step 8. choose a physical device */
@@ -459,16 +395,15 @@ namespace spargel::gpu {
          * and compute.
          */
 
-        struct array queue_families;
-        init_array(&queue_families, sizeof(VkQueueFamilyProperties));
+        base::vector<VkQueueFamilyProperties> queue_families;
 
         VkPhysicalDevice adapter;
         ssize queue_family_index;
 
-        for (ssize i = 0; i < adapters.count; i++) {
-            queue_families.count = 0;
+        for (ssize i = 0; i < adapters.count(); i++) {
+            queue_families.clear();
 
-            adapter = *(VkPhysicalDevice*)array_at(adapters, i);
+            adapter = adapters[i];
 
             VkPhysicalDeviceProperties prop;
             procs->vkGetPhysicalDeviceProperties(adapter, &prop);
@@ -479,15 +414,14 @@ namespace spargel::gpu {
             {
                 u32 count;
                 procs->vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count, 0);
-                array_reserve(&queue_families, count);
-                procs->vkGetPhysicalDeviceQueueFamilyProperties(
-                    adapter, &count, (VkQueueFamilyProperties*)queue_families.data);
-                queue_families.count = count;
+                queue_families.reserve(count);
+                procs->vkGetPhysicalDeviceQueueFamilyProperties(adapter, &count,
+                                                                queue_families.data());
+                queue_families.set_count(count);
             }
             queue_family_index = -1;
-            for (ssize j = 0; j < queue_families.count; j++) {
-                VkQueueFamilyProperties* prop =
-                    (VkQueueFamilyProperties*)array_at(queue_families, j);
+            for (ssize j = 0; j < queue_families.count(); j++) {
+                VkQueueFamilyProperties* prop = &queue_families[j];
                 /**
                  * Spec:
                  * Each queue family must support at least one queue.
@@ -510,41 +444,34 @@ namespace spargel::gpu {
         d->physical_device = adapter;
         d->queue_family = queue_family_index;
 
-        deinit_array(queue_families);
-        deinit_array(adapters);
-
         /* step 9. enumerate device extensions */
-        init_array(&all_exts, sizeof(struct VkExtensionProperties));
+        all_exts.clear();
         {
             u32 count;
             CHECK_VK_RESULT(procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, 0));
-            array_reserve(&all_exts, count);
-            CHECK_VK_RESULT(procs->vkEnumerateDeviceExtensionProperties(
-                adapter, 0, &count, (VkExtensionProperties*)all_exts.data));
-            all_exts.count = count;
+            all_exts.reserve(count);
+            CHECK_VK_RESULT(
+                procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, all_exts.data()));
+            all_exts.set_count(count);
         }
-        for (ssize i = 0; i < all_exts.count; i++) {
-            spargel_log_info("device extension #%ld = %s", i,
-                             ((struct VkExtensionProperties*)array_at(all_exts, i))->extensionName);
+        for (ssize i = 0; i < all_exts.count(); i++) {
+            spargel_log_info("device extension #%ld = %s", i, all_exts[i].extensionName);
         }
 
         /* step 10. choose device extensions */
 
-        init_array(&use_exts, sizeof(char const*));
+        use_exts.clear();
 
         bool has_swapchain = false;
 
-        for (ssize i = 0; i < all_exts.count; i++) {
-            struct VkExtensionProperties* prop =
-                (struct VkExtensionProperties*)array_at(all_exts, i);
+        for (ssize i = 0; i < all_exts.count(); i++) {
+            struct VkExtensionProperties* prop = &all_exts[i];
             if (strcmp(prop->extensionName, "VK_KHR_swapchain") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_KHR_swapchain";
+                use_exts.push("VK_KHR_swapchain");
                 has_swapchain = true;
                 spargel_log_info("use instance extension VK_KHR_surface");
             } else if (strcmp(prop->extensionName, "VK_KHR_portability_subset") == 0) {
-                char const** ptr = (char const**)array_push(&use_exts);
-                *ptr = "VK_KHR_portability_subset";
+                use_exts.push("VK_KHR_portability_subset");
                 spargel_log_info("use instance extension VK_KHR_portability_subset");
             }
         }
@@ -575,8 +502,8 @@ namespace spargel::gpu {
             info.pQueueCreateInfos = &queue_info;
             info.enabledLayerCount = 0;
             info.ppEnabledLayerNames = 0;
-            info.enabledExtensionCount = use_exts.count;
-            info.ppEnabledExtensionNames = (char const**)use_exts.data;
+            info.enabledExtensionCount = use_exts.count();
+            info.ppEnabledExtensionNames = use_exts.data();
             info.pEnabledFeatures = 0;
 
             CHECK_VK_RESULT(procs->vkCreateDevice(adapter, &info, 0, &dev));
@@ -586,9 +513,6 @@ namespace spargel::gpu {
         PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = procs->vkGetDeviceProcAddr;
 #define VULKAN_DEVICE_PROC(name) procs->name = (PFN_##name)vkGetDeviceProcAddr(dev, #name);
 #include <spargel/gpu/vulkan_procs.inc>
-
-        deinit_array(use_exts);
-        deinit_array(all_exts);
 
         d->queue.backend = BACKEND_VULKAN;
 
@@ -770,21 +694,20 @@ namespace spargel::gpu {
             min_images = surf_caps.maxImageCount;
         }
 
-        struct array formats;
-        init_array(&formats, sizeof(VkSurfaceFormatKHR));
+        base::vector<VkSurfaceFormatKHR> formats;
         {
             u32 count;
             CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(d->physical_device,
                                                                         sf->surface, &count, 0));
-            array_reserve(&formats, count);
+            formats.reserve(count);
             CHECK_VK_RESULT(procs->vkGetPhysicalDeviceSurfaceFormatsKHR(
-                d->physical_device, sf->surface, &count, (VkSurfaceFormatKHR*)formats.data));
-            formats.count = count;
+                d->physical_device, sf->surface, &count, formats.data()));
+            formats.set_count(count);
         }
 
-        VkSurfaceFormatKHR* chosen_format = (VkSurfaceFormatKHR*)array_at(formats, 0);
-        for (ssize i = 0; i < formats.count; i++) {
-            VkSurfaceFormatKHR* fmt = (VkSurfaceFormatKHR*)array_at(formats, i);
+        VkSurfaceFormatKHR* chosen_format = &formats[0];
+        for (ssize i = 0; i < formats.count(); i++) {
+            VkSurfaceFormatKHR* fmt = &formats[i];
             if (fmt->format == VK_FORMAT_B8G8R8A8_SRGB &&
                 fmt->colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 chosen_format = fmt;
@@ -818,17 +741,17 @@ namespace spargel::gpu {
         {
             u32 count;
             CHECK_VK_RESULT(procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count, 0));
-            sw->image_capacity = count;
-            sw->images = (VkImage*)spargel::base::allocate(sizeof(VkImage) * count,
-                                                           spargel::base::ALLOCATION_GPU);
-            sw->image_views = (VkImageView*)spargel::base::allocate(sizeof(VkImageView) * count,
-                                                                    spargel::base::ALLOCATION_GPU);
-            sw->framebuffers = (VkFramebuffer*)spargel::base::allocate(
-                sizeof(VkFramebuffer) * count, spargel::base::ALLOCATION_GPU);
-            CHECK_VK_RESULT(
-                procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count, sw->images));
-            sw->image_count = count;
+            sw->images.reserve(count);
+            sw->image_views.reserve(count);
+            sw->framebuffers.reserve(count);
+            CHECK_VK_RESULT(procs->vkGetSwapchainImagesKHR(d->device, sw->swapchain, &count,
+                                                           sw->images.data()));
+            sw->images.set_count(count);
+            sw->image_views.set_count(count);
+            sw->framebuffers.set_count(count);
         }
+
+        auto image_count = sw->images.count();
 
         {
             VkImageViewCreateInfo info;
@@ -846,7 +769,7 @@ namespace spargel::gpu {
             info.subresourceRange.levelCount = 1;
             info.subresourceRange.baseArrayLayer = 0;
             info.subresourceRange.layerCount = 1;
-            for (ssize i = 0; i < sw->image_count; i++) {
+            for (ssize i = 0; i < image_count; i++) {
                 info.image = sw->images[i];
                 CHECK_VK_RESULT(procs->vkCreateImageView(d->device, &info, 0, &sw->image_views[i]));
             }
@@ -916,14 +839,12 @@ namespace spargel::gpu {
             info.width = descriptor->width;
             info.height = descriptor->height;
             info.layers = 1;
-            for (ssize i = 0; i < sw->image_count; i++) {
+            for (ssize i = 0; i < image_count; i++) {
                 info.pAttachments = &sw->image_views[i];
                 CHECK_VK_RESULT(
                     procs->vkCreateFramebuffer(d->device, &info, 0, &sw->framebuffers[i]));
             }
         }
-
-        deinit_array(formats);
 
         sw->width = descriptor->width;
         sw->height = descriptor->height;
@@ -960,22 +881,14 @@ namespace spargel::gpu {
 
         struct vulkan_proc_table* procs = &d->procs;
 
-        for (ssize i = 0; i < s->image_count; i++) {
-            procs->vkDestroyFramebuffer(d->device, s->framebuffers[i], 0);
+        for (auto f : s->framebuffers) {
+            procs->vkDestroyFramebuffer(d->device, f, 0);
         }
-        for (ssize i = 0; i < s->image_count; i++) {
-            procs->vkDestroyImageView(d->device, s->image_views[i], 0);
+        for (auto iv : s->image_views) {
+            procs->vkDestroyImageView(d->device, iv, 0);
         }
         procs->vkDestroyRenderPass(d->device, s->render_pass, 0);
         procs->vkDestroySwapchainKHR(d->device, s->swapchain, 0);
-
-        spargel::base::deallocate(s->framebuffers, sizeof(VkFramebuffer) * s->image_capacity,
-                                  spargel::base::ALLOCATION_GPU);
-        spargel::base::deallocate(s->image_views, sizeof(VkImageView) * s->image_capacity,
-                                  spargel::base::ALLOCATION_GPU);
-        spargel::base::deallocate(s->images, sizeof(VkImage) * s->image_capacity,
-                                  spargel::base::ALLOCATION_GPU);
-
         dealloc_object(vulkan_swapchain, s);
     }
 
