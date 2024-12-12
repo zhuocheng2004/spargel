@@ -89,13 +89,13 @@ namespace spargel::base {
             T* end() { return _end; }
             T const* end() const { return _end; }
 
-        private:
             friend void tag_invoke(tag<swap>, vector& lhs, vector& rhs) {
                 swap(lhs._begin, rhs._begin);
                 swap(lhs._end, rhs._end);
                 swap(lhs._capacity, rhs._capacity);
             }
 
+        private:
             ssize next_capacity(ssize count) {
                 auto new_capacity = capacity() * 2;
                 if (new_capacity < count) {
@@ -147,7 +147,7 @@ namespace spargel::base {
             T* _begin = nullptr;
             T* _end = nullptr;
             T* _capacity = nullptr;
-            allocator* _alloc = default_allocator::instance();
+            allocator* _alloc = default_allocator();
         };
 
     }  // namespace __vector

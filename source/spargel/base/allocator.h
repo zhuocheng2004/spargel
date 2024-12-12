@@ -22,12 +22,14 @@ namespace spargel::base {
         virtual void free(void* ptr, ssize size) = 0;
     };
 
-    struct default_allocator final : allocator {
-        static default_allocator* instance();
+    struct libc_allocator final : allocator {
+        static libc_allocator* instance();
 
         void* alloc(ssize size) override;
         void* resize(void* ptr, ssize old_size, ssize new_size) override;
         void free(void* ptr, ssize size) override;
     };
+
+    allocator* default_allocator();
 
 }  // namespace spargel::base

@@ -1,18 +1,57 @@
 #pragma once
 
+#include <spargel/base/unique_ptr.h>
+
 namespace spargel::gpu {
 
-    using texture_handle = int;
+    class device;
+    struct texture;
 
-    class render_task_builder {
+    template <typename T>
+    struct resource_handle {};
+
+    using texture_handle = resource_handle<texture>;
+
+    class render_encoder {
     public:
-        render_task_builder& set_name(char const* name);
-        render_task_builder& read(texture_handle handle);
-        // write to color attachment
-        render_task_builder& write(texture_handle handle);
-        render_task_builder& depth_stencil(texture_handle handle);
+        void set_clear_color();
+        void draw();
     };
 
-    class task_graph {};
+    class render_task {
+    public:
+        render_task& set_name(char const* name) { return *this; }
+        render_task& set_pipeline() { return *this; }
+        render_task& read(texture_handle handle) { return *this; }
+        // write to color attachment
+        render_task& write(texture_handle handle) { return *this; }
+        template <typename F>
+        render_task& callback(F&& f) {
+            return *this;
+        }
+    };
+
+    class present_task {
+    public:
+        void texture(texture_handle handle);
+    };
+
+    class task_graph {
+    public:
+        explicit task_graph(device* d) {}
+
+        texture_handle current_surface();
+        render_task& add_render_task();
+        present_task& add_present_task();
+
+        void execute() {}
+    };
+
+    class device {
+    public:
+        virtual ~device() = default;
+    };
+
+    base::unique_ptr<device> make_device();
 
 }  // namespace spargel::gpu

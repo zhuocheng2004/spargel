@@ -102,4 +102,11 @@ namespace spargel::base {
 #error unimplemented
 #endif
 
+#if spargel_has_builtin(__is_convertible)
+    template <typename S, typename T>
+    inline constexpr bool is_convertible = __is_convertible(S, T);
+#else
+#error unimplemented
+#endif
+
 }  // namespace spargel::base
