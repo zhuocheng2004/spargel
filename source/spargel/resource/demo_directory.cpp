@@ -1,3 +1,5 @@
+#include <spargel/base/assert.h>
+#include <spargel/base/logging.h>
 #include <spargel/resource/directory.h>
 
 using namespace spargel::resource;

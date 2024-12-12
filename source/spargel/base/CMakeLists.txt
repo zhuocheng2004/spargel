@@ -1,8 +1,11 @@
 spargel_add_library(
     NAME base
     PRIVATE
+        allocator.cpp
         base.cpp
         platform.cpp
+        string.cpp
+        logging.cpp
     PRIVATE_LINUX
         platform_linux.cpp
     PRIVATE_MACOS
@@ -33,5 +36,17 @@ spargel_add_executable(
 spargel_add_executable(
     NAME log_demo
     PRIVATE log_demo.cpp
+    DEPS base
+)
+
+spargel_add_executable(
+    NAME tag_invoke_demo
+    PRIVATE tag_invoke_demo.cpp
+    DEPS base
+)
+
+spargel_add_executable(
+    NAME vector_test
+    PRIVATE vector_test.cpp
     DEPS base
 )

@@ -1,10 +1,6 @@
 #pragma once
 
-#if defined(__has_builtin)
-#define spargel_has_builtin(x) __has_builtin(x)
-#else
-#define spargel_has_builtin(x) 0
-#endif
+#include <spargel/base/compiler.h>
 
 // notes:
 //
@@ -46,13 +42,64 @@
 //
 // note: user-provided means implicitly-defined or defaulted.
 //
-//
-// note:
-//
-// There are three different kinds of operations to an object.
-// - copy: create a copy of the object.
-// - move: move the object to another object; both the two objects are alive after move
-// - relocate: place the object into a new address; the original object becomes dead
-//
-// - trivially copyable: the type can be copied via memcpy
-// - trivially relocatable:
+
+namespace spargel::base {
+
+#if spargel_has_builtin(__is_same)
+    template <typename S, typename T>
+    inline constexpr bool is_same = __is_same(S, T);
+#else
+    namespace __is_same {
+        template <typename S, typename T>
+        struct is_same {
+            static constexpr bool value = false;
+        };
+        template <typename T>
+        struct is_same<T, T> {
+            static constexpr bool value = false;
+        };
+    }  // namespace __is_same
+    template <typename S, typename T>
+    inline constexpr bool is_same = __is_same ::is_same<S, T>::value;
+#endif
+
+#if spargel_has_builtin(__remove_reference_t)
+    template <typename T>
+    using remove_reference = __remove_reference_t(T);
+#else
+    namespace __remove_reference {
+        template <typename T>
+        struct remove_reference {
+            using type = T;
+        };
+        template <typename T>
+        struct remove_reference<T&> {
+            using type = T;
+        };
+        template <typename T>
+        struct remove_reference<T&&> {
+            using type = T;
+        };
+    }  // namespace __remove_reference
+    template <typename T>
+    using remove_reference = __remove_reference::remove_reference<T>::type;
+#endif
+
+    template <typename T>
+    constexpr remove_reference<T>&& move(T&& t) {
+        return static_cast<remove_reference<T>&&>(t);
+    }
+
+    template <typename T>
+    constexpr T&& forward(remove_reference<T>& t) {
+        return static_cast<T&&>(t);
+    }
+
+#if spargel_has_builtin(__decay)
+    template <typename T>
+    using decay = __decay(T);
+#else
+#error unimplemented
+#endif
+
+}  // namespace spargel::base

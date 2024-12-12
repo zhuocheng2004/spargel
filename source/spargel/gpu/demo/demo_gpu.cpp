@@ -1,3 +1,4 @@
+#include <spargel/base/logging.h>
 #include <spargel/gpu/gpu.h>
 #include <spargel/gpu/gpu_metal.h>
 #include <spargel/gpu/gpu_vulkan.h>

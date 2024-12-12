@@ -1,4 +1,5 @@
 #include <spargel/base/base.h>
+#include <spargel/base/logging.h>
 
 int main() {
     spargel_log_debug("hello");

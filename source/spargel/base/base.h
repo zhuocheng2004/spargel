@@ -4,38 +4,6 @@
 #include <spargel/base/types.h>
 #include <spargel/config.h>
 
-/* libc */
-#include <string.h>
-
-#if defined(__clang__)
-#define SPARGEL_COMPILER_IS_CLANG
-#elif defined(__GNUC__)
-#define SPARGEL_COMPILER_IS_GCC
-#elif defined(_MSC_VER)
-#define SPARGEL_COMPILER_IS_MSVC
-#else
-#error unknown compiler
-#endif
-
-#if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
-#define SPARGEL_ATTRIBUTE_NORETURN __attribute__((noreturn))
-#else
-#define SPARGEL_ATTRIBUTE_NORETURN
-#endif
-
-#if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
-#define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg) \
-    __attribute__((format(printf, format_arg, params_arg)))
-#else
-#define SPARGEL_ATTRIBUTE_PRINTF_FORMAT(format_arg, params_arg)
-#endif
-
-#if SPARGEL_ENABLE_ASSERT
-#define spargel_assert(cond) ((cond) ? (void)(0) : spargel_panic_here())
-#else
-#define spargel_assert(cond)
-#endif
-
 namespace spargel::base {
 
     /* panic */
@@ -45,33 +13,6 @@ namespace spargel::base {
     [[noreturn]] void panic_at(char const* file, char const* func, ssize line);
 
 #define spargel_panic_here() ::spargel::base::panic_at(__FILE__, __func__, __LINE__)
-
-    /* logging */
-
-    enum log_level {
-        /* message for debugging */
-        LOG_DEBUG = 0,
-        /* general log events */
-        LOG_INFO,
-        /* warning, not necessarily shown to users */
-        LOG_WARN,
-        /* error that can recover from */
-        LOG_ERROR,
-        /* nothing more can be done other than aborting */
-        LOG_FATAL,
-
-        _LOG_COUNT,
-    };
-
-    void log(int level, char const* file, char const* func, ssize line, char const* format, ...)
-        SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6);
-
-#define LOG_IMPL(level, ...) ::spargel::base::log(level, __FILE__, __func__, __LINE__, __VA_ARGS__)
-#define spargel_log_debug(...) LOG_IMPL(::spargel::base::LOG_DEBUG, __VA_ARGS__)
-#define spargel_log_info(...) LOG_IMPL(::spargel::base::LOG_INFO, __VA_ARGS__)
-#define spargel_log_warn(...) LOG_IMPL(::spargel::base::LOG_WARN, __VA_ARGS__)
-#define spargel_log_error(...) LOG_IMPL(::spargel::base::LOG_ERROR, __VA_ARGS__)
-#define spargel_log_fatal(...) LOG_IMPL(::spargel::base::LOG_FATAL, __VA_ARGS__);
 
     /* backtrace */
 
@@ -95,52 +36,5 @@ namespace spargel::base {
 
     void report_allocation();
     void check_leak();
-
-    /* string */
-
-    struct string {
-        string() = default;
-
-        string(string const& other) {
-            _length = other._length;
-            if (_length > 0) {
-                _data = (char*)allocate(_length + 1, ALLOCATION_BASE);
-                memcpy(_data, other._data, _length);
-                _data[_length] = 0;
-            }
-        }
-        string& operator=(string const& other) {
-            if (_length > 0) {
-                deallocate(_data, _length + 1, ALLOCATION_BASE);
-            }
-            _length = other._length;
-            if (_length > 0) {
-                _data = (char*)allocate(_length + 1, ALLOCATION_BASE);
-                memcpy(_data, other._data, _length);
-                _data[_length] = 0;
-            }
-            return *this;
-        }
-
-        ~string() {
-            spargel_log_debug("str length = %ld", _length);
-            if (_data) deallocate(_data, _length + 1, ALLOCATION_BASE);
-        }
-
-        ssize length() const { return _length; }
-        char* data() { return _data; }
-        char const* data() const { return _data; }
-
-        ssize _length = 0;
-        char* _data = nullptr;
-    };
-
-    string string_from_cstr(char const* str);
-
-    string string_from_range(char const* begin, char const* end);
-
-    bool operator==(string const& lhs, string const& rhs);
-
-    string string_concat(string const& str1, string const& str2);
 
 }  // namespace spargel::base

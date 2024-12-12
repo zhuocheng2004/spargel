@@ -1,3 +1,4 @@
+#include <spargel/base/assert.h>
 #include <spargel/base/base.h>
 #include <spargel/codec/codec.h>
 

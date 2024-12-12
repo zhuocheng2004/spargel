@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spargel/base/base.h>
+#include <spargel/base/string.h>
 
 /* defines */
 #define RESOURCE_DEFAULT_NS "core"

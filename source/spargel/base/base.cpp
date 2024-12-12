@@ -1,16 +1,12 @@
+#include <spargel/base/assert.h>
 #include <spargel/base/base.h>
+#include <spargel/base/compiler.h>
+#include <spargel/base/logging.h>
 
 /* libc */
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
 
-/* platform */
-#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
-#include <sys/time.h>
-#endif
 
 namespace spargel::base {
 
@@ -19,9 +15,9 @@ namespace spargel::base {
         /* todo: rewrite fprintf */
         fprintf(stderr, "======== PANIC [%s:%s:%ld] ========\n", file, func, line);
         print_backtrace();
-#if defined(SPARGEL_COMPILER_IS_CLANG) || defined(SPARGEL_COMPILER_IS_GCC)
+#if defined(SPARGEL_IS_CLANG) || defined(SPARGEL_IS_GCC)
         __builtin_trap();
-#elif defined(SPARGEL_COMPILER_IS_MSVC)
+#elif defined(SPARGEL_IS_MSVC)
         __assume(false);
 #else
 #error unimplemented
@@ -29,80 +25,6 @@ namespace spargel::base {
     }
 
     void panic() { panic_at("<unknown>", "<unknown>", 0); }
-
-    static char const* log_names[_LOG_COUNT] = {
-        "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
-    };
-
-    struct log_timestamp {
-        int mon;
-        int day;
-        int hour;
-        int min;
-        int sec;
-        int usec;
-    };
-
-    static void log_get_time(struct log_timestamp* time) {
-#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        time_t t = tv.tv_sec;
-        struct tm local_time;
-        localtime_r(&t, &local_time);
-        struct tm* tm_time = &local_time;
-        time->mon = tm_time->tm_mon + 1;
-        time->day = tm_time->tm_mday;
-        time->hour = tm_time->tm_hour;
-        time->min = tm_time->tm_min;
-        time->sec = tm_time->tm_sec;
-        time->usec = tv.tv_usec;
-#else
-#error unimplemented
-#endif
-    }
-
-    void log(int level, char const* file, char const* func, ssize line, char const* format, ...) {
-        spargel_assert(level >= 0 && level < _LOG_COUNT);
-        char const* name = log_names[level];
-        struct log_timestamp time;
-        log_get_time(&time);
-
-#if SPARGEL_ENABLE_LOG_ANSI_COLOR
-        switch (level) {
-        case 0:
-            fputs("\033[34m", stderr);
-            break;
-        case 1:
-            fputs("\033[36m", stderr);
-            break;
-        case 2:
-            fputs("\033[93m", stderr);
-            break;
-        case 3:
-        case 4:
-            fputs("\033[91m", stderr);
-            break;
-        default:
-            fputs("\033[0m", stderr);
-            break;
-        }
-#endif
-
-        fprintf(stderr, "[%02d%02d/%02d%02d%02d.%06d:%s:%s:%s:%ld] ", time.mon, time.day, time.hour,
-                time.min, time.sec, time.usec, name, file, func, line);
-
-        va_list ap;
-        va_start(ap, format);
-        vfprintf(stderr, format, ap);
-        va_end(ap);
-
-#if SPARGEL_ENABLE_LOG_ANSI_COLOR
-        fputs("\033[0m", stderr);
-#endif
-
-        fprintf(stderr, "\n");
-    }
 
     struct alloc_stat {
         ssize current;
@@ -163,35 +85,6 @@ namespace spargel::base {
                 spargel_log_error("leak detected in %s", alloc_names[i]);
             }
         }
-    }
-
-    string string_from_cstr(char const* str) {
-        ssize len = strlen(str);
-        return string_from_range(str, str + len);
-    }
-
-    string string_from_range(char const* begin, char const* end) {
-        string str;
-        str._length = end - begin;
-        str._data = (char*)allocate(str._length + 1, ALLOCATION_BASE);
-        memcpy(str._data, begin, str._length);
-        str._data[str._length] = 0;
-        return str;
-    }
-
-    bool operator==(string const& lhs, string const& rhs) {
-        if (lhs.length() != rhs.length()) return false;
-        return memcmp(lhs.data(), rhs.data(), lhs.length()) == 0;
-    }
-
-    string string_concat(string const& str1, string const& str2) {
-        string str;
-        str._length = str1._length + str2._length;
-        str._data = (char*)allocate(str._length + 1, ALLOCATION_BASE);
-        memcpy(str._data, str1._data, str1._length);
-        memcpy(str._data + str1._length, str2._data, str2._length);
-        str._data[str._length] = '\0';
-        return str;
     }
 
 }  // namespace spargel::base

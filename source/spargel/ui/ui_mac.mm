@@ -1,4 +1,4 @@
-#include <spargel/base/base.h>
+#include <spargel/base/assert.h>
 #include <spargel/ui/ui.h>
 #include <spargel/ui/ui_mac.h>
 

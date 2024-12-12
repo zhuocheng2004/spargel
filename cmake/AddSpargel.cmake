@@ -1,6 +1,8 @@
 # for targets in SpargelEngine
 function(spargel_target_common name)
     target_compile_features(${name} PUBLIC cxx_std_23)
+    set_target_properties(${name} PROPERTIES CXX_EXTENSIONS OFF)
+
     target_include_directories(${name}
         PUBLIC
             "${PROJECT_SOURCE_DIR}/source"

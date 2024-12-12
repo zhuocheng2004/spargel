@@ -1,3 +1,4 @@
+#include <spargel/base/assert.h>
 #include <spargel/resource/empty.h>
 
 using namespace spargel::resource;

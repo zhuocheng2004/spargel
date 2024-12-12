@@ -1,4 +1,6 @@
+#include <spargel/base/assert.h>
 #include <spargel/base/base.h>
+#include <spargel/base/logging.h>
 #include <spargel/config.h>
 #include <spargel/gpu/gpu_vulkan.h>
 #include <spargel/ui/ui.h>

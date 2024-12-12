@@ -1,3 +1,4 @@
+#include <spargel/base/assert.h>
 #include <spargel/gpu/gpu_metal.h>
 #include <spargel/ui/ui_mac.h>
 
