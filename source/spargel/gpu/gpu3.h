@@ -9,6 +9,17 @@ namespace spargel::gpu {
         bgra8_srgb,
     };
 
+    enum class load_action {
+        dont_care,
+        load,
+        clear,
+    };
+
+    enum class store_action {
+        dont_care,
+        store,
+    };
+
     class device;
     struct texture;
 
@@ -19,44 +30,54 @@ namespace spargel::gpu {
 
     class render_encoder {
     public:
-        void set_clear_color();
-        void set_pipeline();
-        void draw();
+        void set_pipeline() {}
+        void draw() {}
     };
 
     class render_task {
     public:
-        render_task& set_name(char const* name) { return *this; }
-        render_task& read(texture_handle handle) { return *this; }
+        void set_name(char const* name) {}
+        void read(texture_handle handle) {}
         // write to color attachment
-        render_task& write(texture_handle handle) { return *this; }
-        template <typename F>
-        render_task& callback(F&& f) {
-            return *this;
-        }
-    };
+        void write(texture_handle handle, load_action load, store_action store) {}
 
-    class present_task {
-    public:
-        void texture(texture_handle handle);
+        virtual void configure() {}
+        virtual void execute(render_encoder& encoder) {}
     };
 
     class task_graph {
     public:
         explicit task_graph(device* d) {}
 
-        texture_handle current_surface();
-        render_task& add_render_task();
-        present_task& add_present_task();
+        texture_handle current_surface() { return {}; }
+        template <typename T, typename... Args>
+        void add_render_task(Args&&... args) {}
+        void add_present_task(texture_handle handle) {}
 
         void execute() {}
+    };
+
+    enum class device_kind {
+        directx,
+        metal,
+        vulkan,
     };
 
     class device {
     public:
         virtual ~device() = default;
+
+        device_kind kind() const { return _kind; }
+
+        virtual void make_pipeline() = 0;
+
+    protected:
+        explicit device(device_kind k) : _kind{k} {}
+
+    private:
+        device_kind _kind;
     };
 
-    base::unique_ptr<device> make_device();
+    base::unique_ptr<device> make_device(device_kind kind);
 
 }  // namespace spargel::gpu

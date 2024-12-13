@@ -37,7 +37,7 @@ namespace spargel::ui {
     public:
         virtual ~window_delegate() = default;
 
-        virtual void render() = 0;
+        virtual void render() {}
     };
 
     class window {
