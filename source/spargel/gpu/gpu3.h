@@ -4,6 +4,11 @@
 
 namespace spargel::gpu {
 
+    enum class texture_format {
+        bgra8_unorm,
+        bgra8_srgb,
+    };
+
     class device;
     struct texture;
 
@@ -15,13 +20,13 @@ namespace spargel::gpu {
     class render_encoder {
     public:
         void set_clear_color();
+        void set_pipeline();
         void draw();
     };
 
     class render_task {
     public:
         render_task& set_name(char const* name) { return *this; }
-        render_task& set_pipeline() { return *this; }
         render_task& read(texture_handle handle) { return *this; }
         // write to color attachment
         render_task& write(texture_handle handle) { return *this; }

@@ -1,46 +1,18 @@
 #pragma once
 
 #include <spargel/base/base.h>
+#include <spargel/base/unique_ptr.h>
 
 namespace spargel::ui {
 
-    enum platform_id {
-        PLATFORM_APPKIT,
-        PLATFORM_WAYLAND,
-        PLATFORM_WIN32,
-        PLATFORM_XCB,
+    enum class platform_kind {
+        android,
+        appkit,
+        uikit,
+        wayland,
+        win32,
+        xcb,
     };
-
-    /**
-     * @brief platform specific initialization
-     */
-    void init_platform();
-
-    int platform_id();
-
-    /**
-     * @brief start the platform event loop
-     */
-    void platform_run();
-
-    typedef struct window* window_id;
-
-    /**
-     * @brief create a window with given width and height
-     */
-    window_id create_window(int width, int height);
-
-    /**
-     * @brief destroy a window
-     */
-    void destroy_window(window_id window);
-
-    /**
-     * @brief set the title of a window
-     */
-    void window_set_title(window_id window, char const* title);
-
-    void window_set_render_callback(window_id window, void (*render)(void*), void* data);
 
     struct window_handle {
         union {
@@ -61,6 +33,46 @@ namespace spargel::ui {
         };
     };
 
-    struct window_handle window_get_handle(window_id window);
+    class window_delegate {
+    public:
+        virtual ~window_delegate() = default;
+
+        virtual void render() = 0;
+    };
+
+    class window {
+    public:
+        virtual ~window() = default;
+
+        void set_delegate(window_delegate* delegate) { _delegate = delegate; }
+        window_delegate* delegate() { return _delegate; }
+
+        virtual void set_title(char const* title) = 0;
+
+        // todo: improve
+        virtual window_handle handle() = 0;
+
+    private:
+        window_delegate* _delegate = nullptr;
+    };
+
+    class platform {
+    public:
+        virtual ~platform() = default;
+
+        platform_kind kind() const { return _kind; }
+
+        virtual void start_loop() = 0;
+
+        virtual base::unique_ptr<window> make_window(int width, int height) = 0;
+
+    protected:
+        explicit platform(platform_kind k) : _kind{k} {}
+
+    private:
+        platform_kind _kind;
+    };
+
+    base::unique_ptr<platform> make_platform();
 
 }  // namespace spargel::ui

@@ -228,7 +228,7 @@ namespace spargel::gpu {
                              surface_id* surface) {
         cast_object(metal_device, d, device);
         alloc_object(metal_surface, s);
-        s->layer = descriptor->window->layer;
+        s->layer = (CAMetalLayer*)descriptor->window->handle().apple.layer;
         [s->layer retain];
         s->layer.device = d->device;
         *surface = (surface_id)s;

@@ -1,11 +1,7 @@
 #pragma once
 
 #include <spargel/base/base.h>
-
-/* external */
-namespace spargel::ui {
-    struct window;
-}
+#include <spargel/ui/ui.h>
 
 namespace spargel::gpu {
 
@@ -50,7 +46,7 @@ namespace spargel::gpu {
 
     struct device_descriptor {
         int backend;
-        int platform;
+        ui::platform_kind platform;
     };
 
     struct render_pipeline_descriptor {

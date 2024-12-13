@@ -1,5 +1,7 @@
 spargel_add_library(
     NAME ui
+    PRIVATE
+        ui.cpp
     PRIVATE_LINUX
         ui_xcb.cpp
     PRIVATE_MACOS

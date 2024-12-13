@@ -13,13 +13,19 @@ namespace spargel::base {
         class unique_ptr {
         public:
             constexpr unique_ptr() = default;
-            constexpr unique_ptr(nullptr_t) = default;
+            constexpr unique_ptr(nullptr_t) {}
 
             explicit constexpr unique_ptr(T* ptr) : _ptr{ptr} {}
 
             template <typename U>
                 requires(is_convertible<U*, T*>)
             constexpr unique_ptr(unique_ptr<U>&& other) : _ptr{other.release()} {}
+
+            constexpr unique_ptr& operator=(unique_ptr&& other) {
+                unique_ptr tmp(move(other));
+                swap(*this, tmp);
+                return *this;
+            }
 
             unique_ptr(unique_ptr const&) = delete;
 
@@ -52,5 +58,12 @@ namespace spargel::base {
     }  // namespace __unique_ptr
 
     using __unique_ptr::unique_ptr;
+
+    template <typename T, typename... Args>
+    unique_ptr<T> make_unique(Args&&... args) {
+        T* ptr = static_cast<T*>(default_allocator()->alloc(sizeof(T)));
+        construct_at(ptr, forward<Args>(args)...);
+        return unique_ptr<T>(ptr);
+    }
 
 }  // namespace spargel::base

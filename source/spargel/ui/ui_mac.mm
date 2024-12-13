@@ -1,14 +1,10 @@
+#include <spargel/base/allocator.h>
 #include <spargel/base/assert.h>
 #include <spargel/ui/ui.h>
 #include <spargel/ui/ui_mac.h>
 
-/* platform */
+// platform
 #include <Carbon/Carbon.h>
-
-namespace spargel::ui {
-    static void set_drawable_size(struct window* window, float width, float height);
-    static void window_render(struct window* window);
-}  // namespace spargel::ui
 
 @implementation SpargelApplicationDelegate
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
@@ -16,10 +12,12 @@ namespace spargel::ui {
 }
 @end
 
-@implementation SpargelMetalView
-- (instancetype)initWithSpargelUIWindow:(spargel::ui::window*)window {
+@implementation SpargelMetalView {
+    spargel::ui::window_appkit* _bridge;
+}
+- (instancetype)initWithSpargelUIWindow:(spargel::ui::window_appkit*)w {
     [super init];
-    _swindow = window;
+    _bridge = w;
     return self;
 }
 - (void)createDisplayLink:(NSWindow*)window {
@@ -27,7 +25,7 @@ namespace spargel::ui {
     [display_link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
 }
 - (void)render:(CADisplayLink*)sender {
-    window_render(_swindow);
+    _bridge->_bridge_render();
 }
 - (void)viewDidChangeBackingProperties {
     [super viewDidChangeBackingProperties];
@@ -49,7 +47,7 @@ namespace spargel::ui {
     if (newSize.width <= 0 || newSize.width <= 0) {
         return;
     }
-    set_drawable_size(_swindow, (float)newSize.width, (float)newSize.height);
+    _bridge->_set_drawable_size((float)newSize.width, (float)newSize.height);
 }
 /*
 - (void)keyDown:(NSEvent*)event {
@@ -66,17 +64,43 @@ namespace spargel::ui {
 }
 @end
 
-@implementation SpargelWindowDelegate
-- (instancetype)initWithSpargelUIWindow:(spargel::ui::window*)window {
+@implementation SpargelWindowDelegate {
+    spargel::ui::window_appkit* _bridge;
+}
+- (instancetype)initWithSpargelUIWindow:(spargel::ui::window_appkit*)w {
     [super init];
-    _swindow = window;
+    _bridge = w;
     return self;
 }
 @end
 
 namespace spargel::ui {
 
-    static void init_global_menu() {
+    base::unique_ptr<platform> make_platform_appkit() {
+        return base::make_unique<platform_appkit>();
+    }
+
+    platform_appkit::platform_appkit() : platform(platform_kind::appkit) {
+        _app = [NSApplication sharedApplication];
+        [_app setActivationPolicy:NSApplicationActivationPolicyRegular];
+
+        SpargelApplicationDelegate* delegate = [[SpargelApplicationDelegate alloc] init];
+        // NSApp.delegate is a weak reference
+        _app.delegate = delegate;
+
+        init_global_menu();
+    }
+
+    platform_appkit::~platform_appkit() {}
+
+    void platform_appkit::start_loop() { [_app run]; }
+
+    base::unique_ptr<window> platform_appkit::make_window(int width, int height) {
+        spargel_assert(width > 0 && height > 0);
+        return base::make_unique<window_appkit>(width, height);
+    }
+
+    void platform_appkit::init_global_menu() {
         NSMenu* menu_bar = [[NSMenu alloc] init];
 
         NSMenu* app_menu = [[NSMenu alloc] initWithTitle:@"Spargel"];
@@ -88,106 +112,74 @@ namespace spargel::ui {
         [app_menu_item setSubmenu:app_menu];
         [menu_bar addItem:app_menu_item];
 
-        /* mainMenu is a strong reference */
-        NSApp.mainMenu = menu_bar;
+        // mainMenu is a strong reference
+        _app.mainMenu = menu_bar;
     }
 
-    void init_platform() {
-        [NSApplication sharedApplication];
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-
-        SpargelApplicationDelegate* delegate = [[SpargelApplicationDelegate alloc] init];
-        /* NSApp.delegate is a weak reference */
-        NSApp.delegate = delegate;
-
-        init_global_menu();
-    }
-
-    int platform_id() { return PLATFORM_APPKIT; }
-
-    void platform_run() {
-        @autoreleasepool {
-            /* run until stop: or terminate: */
-            [NSApp run];
-        }
-    }
-
-    window_id create_window(int width, int height) {
-        spargel_assert(width > 0 && height > 0);
-
-        window_id window = (struct window*)malloc(sizeof(struct window));
-        if (!window) return NULL;
-        window->render_callback = NULL;
-        window->render_data = NULL;
-
+    window_appkit::window_appkit(int width, int height) {
         NSScreen* screen = [NSScreen mainScreen];
 
         NSWindowStyleMask style = NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable |
                                   NSWindowStyleMaskResizable | NSWindowStyleMaskTitled;
 
         NSRect rect = NSMakeRect(0, 0, width, height);
-        /* center the window */
+        // center the window
         rect.origin.x = (screen.frame.size.width - width) / 2;
         rect.origin.y = (screen.frame.size.height - height) / 2;
 
-        window->delegate = [[SpargelWindowDelegate alloc] initWithSpargelUIWindow:window];
+        _bridge = [[SpargelWindowDelegate alloc] initWithSpargelUIWindow:this];
 
-        window->window = [[NSWindow alloc] initWithContentRect:rect
-                                                     styleMask:style
-                                                       backing:NSBackingStoreBuffered
-                                                         defer:NO
-                                                        screen:screen];
-        /* weak reference */
-        window->window.delegate = window->delegate;
-        window->window.releasedWhenClosed = NO;
-        window->window.minSize = NSMakeSize(200, 200);
+        _window = [[NSWindow alloc] initWithContentRect:rect
+                                              styleMask:style
+                                                backing:NSBackingStoreBuffered
+                                                  defer:NO
+                                                 screen:screen];
+        // weak reference
+        _window.delegate = _bridge;
+        _window.releasedWhenClosed = NO;
+        // TODO: fix this
+        _window.minSize = NSMakeSize(200, 200);
 
-        window->layer = [[CAMetalLayer alloc] init];
+        _layer = [[CAMetalLayer alloc] init];
 
-        SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:window];
-        view.layer = window->layer;
+        SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this];
+        view.layer = _layer;
         view.wantsLayer = YES;
-        [view createDisplayLink:window->window];
+        [view createDisplayLink:_window];
 
-        /* strong reference */
-        window->window.contentView = view;
+        // strong reference
+        _window.contentView = view;
+
         [view release];
 
-        [window->window makeKeyAndOrderFront:nil];
-
-        return window;
+        [_window makeKeyAndOrderFront:nil];
     }
 
-    void destroy_window(window_id window) {
-        [window->window release];
-        [window->delegate release];
+    window_appkit::~window_appkit() {
+        [_window release];
+        [_bridge release];
     }
 
-    void window_set_title(window_id window, char const* title) {
-        window->window.title = [NSString stringWithUTF8String:title];
+    void window_appkit::set_title(char const* title) {
+        _window.title = [NSString stringWithUTF8String:title];
     }
 
-    void window_set_render_callback(window_id window, void (*render)(void*), void* data) {
-        window->render_callback = render;
-        window->render_data = data;
+    void window_appkit::_set_drawable_size(float width, float height) {
+        _drawable_width = width;
+        _drawable_height = height;
+        _layer.drawableSize = NSMakeSize(width, height);
     }
 
-    static void set_drawable_size(struct window* window, float width, float height) {
-        window->drawable_width = width;
-        window->drawable_height = height;
-        window->layer.drawableSize = NSMakeSize(width, height);
-    }
-
-    static void window_render(struct window* window) {
-        if (window->render_callback) {
-            window->render_callback(window->render_data);
-        }
-    }
-
-    struct window_handle window_get_handle(window_id window) {
-        struct window_handle handle;
-        handle.apple.layer = window->layer;
+    window_handle window_appkit::handle() {
+        window_handle handle;
+        handle.apple.layer = _layer;
         return handle;
+    }
+
+    void window_appkit::_bridge_render() {
+        if (delegate() != nullptr) {
+            delegate()->render();
+        }
     }
 
 }  // namespace spargel::ui

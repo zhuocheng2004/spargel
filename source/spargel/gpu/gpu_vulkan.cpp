@@ -290,11 +290,11 @@ namespace spargel::gpu {
         }
 #endif
 #if SPARGEL_IS_LINUX
-        if (descriptor->platform == ui::PLATFORM_XCB && !has_xcb_surface) {
+        if (descriptor->platform == ui::platform_kind::xcb && !has_xcb_surface) {
             spargel_log_fatal("VK_KHR_xcb_surface is required");
             spargel_panic_here();
         }
-        if (descriptor->platform == ui::PLATFORM_WAYLAND && !has_wayland_surface) {
+        if (descriptor->platform == ui::platform_kind::wayland && !has_wayland_surface) {
             spargel_log_fatal("VK_KHR_wayland_surface is required");
             spargel_panic_here();
         }
@@ -644,7 +644,7 @@ namespace spargel::gpu {
         cast_object(vulkan_device, d, device);
         alloc_object(vulkan_surface, s);
 
-        spargel::ui::window_handle wh = spargel::ui::window_get_handle(descriptor->window);
+        spargel::ui::window_handle wh = descriptor->window->handle();
         VkSurfaceKHR surf;
 #if SPARGEL_IS_MACOS
         VkMetalSurfaceCreateInfoEXT info;
