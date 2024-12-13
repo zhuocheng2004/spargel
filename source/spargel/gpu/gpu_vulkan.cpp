@@ -290,11 +290,11 @@ namespace spargel::gpu {
         }
 #endif
 #if SPARGEL_IS_LINUX
-        if (descriptor->platform == SUI_PLATFORM_XCB && !has_xcb_surface) {
+        if (descriptor->platform == ui::PLATFORM_XCB && !has_xcb_surface) {
             spargel_log_fatal("VK_KHR_xcb_surface is required");
             spargel_panic_here();
         }
-        if (descriptor->platform == SUI_PLATFORM_WAYLAND && !has_wayland_surface) {
+        if (descriptor->platform == ui::PLATFORM_WAYLAND && !has_wayland_surface) {
             spargel_log_fatal("VK_KHR_wayland_surface is required");
             spargel_panic_here();
         }
@@ -658,7 +658,7 @@ namespace spargel::gpu {
         info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
         info.pNext = 0;
         info.flags = 0;
-        info.connection = wh.xcb.connection;
+        info.connection = (xcb_connection_t*)wh.xcb.connection;
         info.window = wh.xcb.window;
         CHECK_VK_RESULT(d->procs.vkCreateXcbSurfaceKHR(d->instance, &info, 0, &surf));
 #endif

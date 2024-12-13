@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 namespace spargel::base {
 
     /* there is no need to report allocation or check memory leaks if the program panics */
@@ -42,7 +41,7 @@ namespace spargel::base {
         alloc_stats[tag].current += size;
         alloc_stats[tag].total += size;
 #if SPARGEL_TRACE_ALLOCATION
-        log_info("allocated %ld bytes with tag %s", size, alloc_names[tag]);
+        spargel_log_info("allocated %ld bytes with tag %s", size, alloc_names[tag]);
 #endif
         return ptr;
     }
@@ -56,7 +55,8 @@ namespace spargel::base {
         }
         spargel_assert(alloc_stats[tag].current >= 0);
 #if SPARGEL_TRACE_ALLOCATION
-        log_info("reallocated %ld -> %ld bytes with tag %s", old_size, new_size, alloc_names[tag]);
+        spargel_log_info("reallocated %ld -> %ld bytes with tag %s", old_size, new_size,
+                         alloc_names[tag]);
 #endif
         return new_ptr;
     }
@@ -67,7 +67,7 @@ namespace spargel::base {
         alloc_stats[tag].current -= size;
         spargel_assert(alloc_stats[tag].current >= 0);
 #if SPARGEL_TRACE_ALLOCATION
-        log_info("deallocated %ld bytes with tag %s", size, alloc_names[tag]);
+        spargel_log_info("deallocated %ld bytes with tag %s", size, alloc_names[tag]);
 #endif
     }
 

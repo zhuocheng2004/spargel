@@ -2,7 +2,9 @@
 #include <spargel/ui/ui.h>
 
 /* for clock_gettime */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 /* libc */
 #include <stdio.h>
@@ -169,9 +171,7 @@ namespace spargel::ui {
 
     void destroy_window(window_id window) { puts("TODO: destroy_window\n"); }
 
-    void window_set_title(window_id window, char const* title) {
-        puts("TODO: window_set_title\n");
-    }
+    void window_set_title(window_id window, char const* title) { puts("TODO: window_set_title\n"); }
 
     void window_set_render_callback(window_id window, void (*render)(void*), void* data) {
         window->render_callback = render;
