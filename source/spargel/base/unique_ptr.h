@@ -21,7 +21,9 @@ namespace spargel::base {
                 requires(is_convertible<U*, T*>)
             constexpr unique_ptr(unique_ptr<U>&& other) : _ptr{other.release()} {}
 
-            constexpr unique_ptr& operator=(unique_ptr&& other) {
+            template <typename U>
+                requires(is_convertible<U*, T*>)
+            constexpr unique_ptr& operator=(unique_ptr<U>&& other) {
                 unique_ptr tmp(move(other));
                 swap(*this, tmp);
                 return *this;

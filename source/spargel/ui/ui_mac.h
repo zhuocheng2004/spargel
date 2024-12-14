@@ -50,6 +50,8 @@ namespace spargel::ui {
         // todo: refactor
         void _bridge_render();
 
+        void _bridge_key_down(int key);
+
     private:
         NSWindow* _window;
         SpargelWindowDelegate* _bridge;

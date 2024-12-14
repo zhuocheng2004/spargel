@@ -49,16 +49,11 @@
     }
     _bridge->_set_drawable_size((float)newSize.width, (float)newSize.height);
 }
-/*
 - (void)keyDown:(NSEvent*)event {
-  NSLog(@"keyDown!");
-  unsigned short keyCode = [event keyCode];
-  if (keyCode == kVK_Escape) {
-    spargel::base::print_backtrace();
-  }
-  [self interpretKeyEvents:@[ event ]];
+    auto code = [event keyCode];
+    _bridge->_bridge_key_down(code);
+    // [self interpretKeyEvents:@[ event ]];
 }
-*/
 - (BOOL)acceptsFirstResponder {
     return YES;
 }
@@ -179,6 +174,13 @@ namespace spargel::ui {
     void window_appkit::_bridge_render() {
         if (delegate() != nullptr) {
             delegate()->render();
+        }
+    }
+
+    void window_appkit::_bridge_key_down(int key) {
+        if (delegate() != nullptr) {
+            keyboard_event e{key};
+            delegate()->on_keyboard(e);
         }
     }
 

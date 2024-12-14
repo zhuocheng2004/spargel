@@ -33,11 +33,33 @@ namespace spargel::ui {
         };
     };
 
+    enum keyboard_action {
+        press,
+        release,
+    };
+
+    enum physical_key {
+        escape,
+        key_a,
+        key_b,
+        key_c,
+        space,
+    };
+
+    struct keyboard_event {
+        int key;
+    };
+
     class window_delegate {
     public:
         virtual ~window_delegate() = default;
 
         virtual void render() {}
+
+        virtual void on_close_requested() {}
+        virtual void on_closed() {}
+
+        virtual void on_keyboard(keyboard_event& e) {}
     };
 
     class window {
