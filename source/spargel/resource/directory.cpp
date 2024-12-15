@@ -1,6 +1,8 @@
-
 #include <spargel/base/const.h>
 #include <spargel/resource/directory.h>
+
+// libc
+#include <stdio.h>
 
 namespace spargel::resource {
 
@@ -20,13 +22,12 @@ namespace spargel::resource {
 
     directory_resource* directory_resource_manager::open(const resource_id& id) {
         base::string real_path = _real_path(id);
-
         FILE* fp = fopen(real_path.data(), "rb");
         return fp ? new directory_resource(fp) : nullptr;
     }
 
     base::string directory_resource_manager::_real_path(const resource_id& id) {
-        base::string root = _root_path.length() == 0 ? base::string_from_cstr(".") : _root_path;
+        base::string root = _root_path.length() == 0 ? base::string(".") : _root_path;
         return root + PATH_SPLIT + id.path();
     }
 

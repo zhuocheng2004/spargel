@@ -10,18 +10,17 @@ struct android_app;
 namespace spargel::entry {
 
     struct simple_entry_data {
-        spargel::base::unique_ptr<spargel::ui::platform> platform;
-        spargel::base::unique_ptr<spargel::ui::window> window;
+        base::unique_ptr<spargel::ui::platform> platform;
+        base::unique_ptr<spargel::ui::window> window;
 #if SPARGEL_IS_ANDROID
         android_app* app;
 #endif
     };
 
-    resource::resource_manager* get_resource_manager(simple_entry_data* data);
+    base::unique_ptr<resource::resource_manager> make_resource_manager(simple_entry_data* data);
 
 }  // namespace spargel::entry
 
 extern "C" {
-
 int simple_entry(spargel::entry::simple_entry_data* data);
 }

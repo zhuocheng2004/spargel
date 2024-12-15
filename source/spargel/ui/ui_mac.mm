@@ -4,6 +4,8 @@
 #include <spargel/ui/ui_mac.h>
 
 // platform
+#import <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
 #include <Carbon/Carbon.h>
 
 @implementation SpargelApplicationDelegate
@@ -13,19 +15,40 @@
 @end
 
 @implementation SpargelMetalView {
+    CADisplayLink* _link;
+    CAMetalLayer* _layer;
     spargel::ui::window_appkit* _bridge;
 }
-- (instancetype)initWithSpargelUIWindow:(spargel::ui::window_appkit*)w {
+- (instancetype)initWithSpargelUIWindow:(spargel::ui::window_appkit*)w metalLayer:(CAMetalLayer*)layer {
     [super init];
     _bridge = w;
+    _layer = layer;
+    self.layer = _layer;
+    self.wantsLayer = YES;
+        // view.layer = _layer;
+        // view.wantsLayer = YES;  // layer-hosting view
     return self;
 }
-- (void)createDisplayLink:(NSWindow*)window {
-    CADisplayLink* display_link = [window displayLinkWithTarget:self selector:@selector(render:)];
-    [display_link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+- (void)viewDidMoveToWindow {
+    [super viewDidMoveToWindow];
+    if (self.window == nil) {
+        // move off a window
+        [_link invalidate];
+        _link = nil;
+        return;
+    }
+    [self setupDisplayLink:self.window];
+    [_link addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+    [self resizeDrawable:self.window.screen.backingScaleFactor];
+}
+- (void)setupDisplayLink:(NSWindow*)window {
+    [_link invalidate];
+    _link = [window displayLinkWithTarget:self selector:@selector(render:)];
 }
 - (void)render:(CADisplayLink*)sender {
-    _bridge->_bridge_render();
+    @autoreleasepool {
+        _bridge->_bridge_render();
+    }
 }
 - (void)viewDidChangeBackingProperties {
     [super viewDidChangeBackingProperties];
@@ -47,7 +70,12 @@
     if (newSize.width <= 0 || newSize.width <= 0) {
         return;
     }
-    _bridge->_set_drawable_size((float)newSize.width, (float)newSize.height);
+    if (newSize.width == _layer.drawableSize.width && newSize.height == _layer.drawableSize.height) {
+        return;
+    }
+    _layer.drawableSize = newSize;
+
+    // _bridge->_set_drawable_size((float)newSize.width, (float)newSize.height);
 }
 - (void)keyDown:(NSEvent*)event {
     auto code = [event keyCode];
@@ -137,10 +165,9 @@ namespace spargel::ui {
 
         _layer = [[CAMetalLayer alloc] init];
 
-        SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this];
-        view.layer = _layer;
-        view.wantsLayer = YES;
-        [view createDisplayLink:_window];
+        SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this metalLayer:_layer];
+        // view.layer = _layer;
+        // view.wantsLayer = YES;  // layer-hosting view
 
         // strong reference
         _window.contentView = view;
@@ -162,7 +189,7 @@ namespace spargel::ui {
     void window_appkit::_set_drawable_size(float width, float height) {
         _drawable_width = width;
         _drawable_height = height;
-        _layer.drawableSize = NSMakeSize(width, height);
+        // _layer.drawableSize = NSMakeSize(width, height);
     }
 
     window_handle window_appkit::handle() {

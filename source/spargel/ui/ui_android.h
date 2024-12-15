@@ -33,7 +33,7 @@ namespace spargel::ui {
 
         base::unique_ptr<window_android> generate_window_handle();
 
-        inline window_android* window_handle() { return window; }
+        window_android* window_handle() { return window; }
 
     private:
         struct android_app* _app;

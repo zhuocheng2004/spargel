@@ -1,5 +1,7 @@
 # GPU
 
+[Mapping](https://docs.vulkan.org/guide/latest/decoder_ring.html)
+
 DirectX | Metal | Vulkan | WebGPU
 --- | --- | --- | ---
 IDXGIFactory | - | VkInstance | navigator.gpu

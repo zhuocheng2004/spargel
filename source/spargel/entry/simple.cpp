@@ -23,15 +23,15 @@ int main() {
 
 namespace spargel::entry {
 #if SPARGEL_IS_ANDROID
-    resource::resource_manager* get_resource_manager(simple_entry_data* data) {
-        return new resource::android_asset_resource_manager(data->app->activity->assetManager);
+    base::unique_ptr<resource::resource_manager> make_resource_manager(simple_entry_data* data) {
+        return base::make_unique<resource::android_asset_resource_manager>(
+            data->app->activity->assetManager);
     }
 #else
-    resource::resource_manager* get_resource_manager(simple_entry_data* data) {
-        base::string root_path = util::dirname(base::get_executable_path()) + PATH_SPLIT +
-                                 base::string_from_cstr("resources");
-
-        return new resource::directory_resource_manager(root_path);
+    base::unique_ptr<resource::resource_manager> make_resource_manager(simple_entry_data* data) {
+        base::string root_path =
+            util::dirname(base::get_executable_path()) + PATH_SPLIT + base::string("resources");
+        return base::make_unique<resource::directory_resource_manager>(root_path.view());
     }
 #endif
 }  // namespace spargel::entry

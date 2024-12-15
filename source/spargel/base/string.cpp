@@ -1,10 +1,19 @@
-#include <spargel/base/logging.h>
+#include <spargel/base/base.h>
 #include <spargel/base/string.h>
 
 // libc
 #include <string.h>
 
 namespace spargel::base {
+
+    string::string(string_view v) {
+        _length = v.length();
+        if (_length > 0) {
+            _data = (char*)allocate(_length + 1, ALLOCATION_BASE);
+            memcpy(_data, v.data(), _length);
+            _data[_length] = 0;
+        }
+    }
 
     string::string(string const& other) {
         _length = other._length;
@@ -29,7 +38,6 @@ namespace spargel::base {
     }
 
     string::~string() {
-        spargel_log_debug("str length = %ld", _length);
         if (_data) deallocate(_data, _length + 1, ALLOCATION_BASE);
     }
 

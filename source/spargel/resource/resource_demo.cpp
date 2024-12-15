@@ -16,12 +16,11 @@ static void put_hex(u8 ch) {
 }
 
 int simple_entry(spargel::entry::simple_entry_data* data) {
-    spargel::resource::resource_manager* resource_manager =
-        spargel::entry::get_resource_manager(data);
+    auto resource_manager = spargel::entry::make_resource_manager(data);
 
-    spargel::base::string path = spargel::base::string_from_cstr("abc.txt");
+    spargel::base::string_view path = "abc.txt";
 
-    spargel::resource::resource* resource =
+    auto resource =
         resource_manager->open(spargel::resource::resource_id(path));
     if (!resource) {
         spargel_log_error("Cannot open resource \"%s\"", path.data());
@@ -66,7 +65,5 @@ int simple_entry(spargel::entry::simple_entry_data* data) {
     delete resource;
 
     resource_manager->close();
-    delete resource_manager;
-
     return 0;
 }

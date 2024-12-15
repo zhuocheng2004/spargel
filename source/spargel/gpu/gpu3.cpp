@@ -20,4 +20,13 @@ namespace spargel::gpu {
         }
     }
 
+    render_task* task_graph::add_render_task() {
+        _tasks.push();
+        return &_tasks[_tasks.count() - 1];
+    }
+
+    void task_graph::execute() {
+
+    }
+
 }  // namespace spargel::gpu

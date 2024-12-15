@@ -23,7 +23,7 @@ namespace spargel::resource {
 
     class directory_resource_manager : public resource_manager {
     public:
-        directory_resource_manager(const base::string& root_path) : _root_path(root_path) {}
+        directory_resource_manager(base::string_view root_path) : _root_path(root_path) {}
 
         directory_resource* open(const resource_id& id) override;
 

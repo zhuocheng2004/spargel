@@ -5,6 +5,5 @@
 
 int simple_entry(spargel::entry::simple_entry_data* data) {
     spargel_log_info("running executable: %s", spargel::base::get_executable_path().data());
-
     return 0;
 }

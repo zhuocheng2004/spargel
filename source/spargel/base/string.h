@@ -1,13 +1,14 @@
 #pragma once
 
-#include <spargel/base/base.h>
+#include <spargel/base/string_view.h>
+#include <spargel/base/types.h>
 
 namespace spargel::base {
 
-    /* string */
-
     struct string {
         string() = default;
+
+        string(string_view v);
 
         string(string const& other);
         string& operator=(string const& other);
@@ -20,6 +21,7 @@ namespace spargel::base {
         ssize length() const { return _length; }
         char* data() { return _data; }
         char const* data() const { return _data; }
+        string_view view() const { return string_view(_data, _data + _length); }
 
         friend bool operator==(string const& lhs, string const& rhs);
 

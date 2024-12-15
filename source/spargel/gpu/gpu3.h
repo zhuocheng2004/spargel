@@ -5,6 +5,11 @@
 #include <spargel/base/object.h>
 #include <spargel/base/span.h>
 #include <spargel/base/unique_ptr.h>
+#include <spargel/base/vector.h>
+
+namespace spargel::ui {
+    class window;
+}
 
 namespace spargel::gpu {
 
@@ -25,12 +30,13 @@ namespace spargel::gpu {
     };
 
     class device;
-    struct texture;
 
     template <typename T>
     struct resource_handle {};
 
-    using texture_handle = resource_handle<texture>;
+    class texture_tag;
+
+    using texture_handle = resource_handle<texture_tag>;
 
     class render_encoder {
     public:
@@ -77,13 +83,18 @@ namespace spargel::gpu {
 
     class task_graph {
     public:
-        explicit task_graph(device* d) {}
+        explicit task_graph(device* d) : _device{d} {}
 
         texture_handle current_surface() { return {}; }
-        render_task* add_render_task() { return nullptr; }
+        texture_handle add_texture(int width, int height) { return {}; }
+        render_task* add_render_task();
         void add_present_task(texture_handle handle) {}
 
-        void execute() {}
+        void execute();
+
+    private:
+        device* _device;
+        base::vector<render_task> _tasks;
     };
 
     enum class device_kind {
@@ -97,8 +108,8 @@ namespace spargel::gpu {
     // msl = metal shading language specification
     //
     // [msl, v3.2, p84]
-    // an address space attribute specifies the region of memory from where buffer memory objects are allocated.
-    // these attributes describe disjoint address spaces:
+    // an address space attribute specifies the region of memory from where buffer memory objects
+    // are allocated. these attributes describe disjoint address spaces:
     // - device
     // - constant
     // - thread
@@ -106,7 +117,8 @@ namespace spargel::gpu {
     // - threadgroup_imageblock
     // - ray_data
     // - object_data
-    // all arguments to a graphics or kernel function that are a pointer or reference to a type needs to be declared with an address space attribute.
+    // all arguments to a graphics or kernel function that are a pointer or reference to a type
+    // needs to be declared with an address space attribute.
     //
     // the address space for a variable at program scope needs to be `constant`.
     //
@@ -117,7 +129,8 @@ namespace spargel::gpu {
     // - ...
     //
     // [msl, v3.2, p99]
-    // for each argument, an attribute can be optionally specified to identify the location of a buffer, texture, or sampler to use for this argument type.
+    // for each argument, an attribute can be optionally specified to identify the location of a
+    // buffer, texture, or sampler to use for this argument type.
     // - device and constant buffers: `[[buffer(index)]]`
     // - textures (including texture buffers): `[[texture(index)]]`
     // - samplers: `[[sampler(index)]]`
@@ -140,7 +153,8 @@ namespace spargel::gpu {
 
     /// @brief the front-facing orientation
     ///
-    /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_rasterizer_desc
+    /// directx:
+    /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_rasterizer_desc
     /// metal: https://developer.apple.com/documentation/metal/mtlwinding
     /// vulkan: https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkFrontFace.html
     ///
@@ -153,7 +167,8 @@ namespace spargel::gpu {
 
     /// @brief geometric primitive type for rendering
     ///
-    /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_primitive_topology_type
+    /// directx:
+    /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_primitive_topology_type
     /// metal: https://developer.apple.com/documentation/metal/mtlprimitivetopologyclass
     /// vulkan: https://registry.khronos.org/vulkan/specs/latest/man/html/VkPrimitiveTopology.html
     ///
@@ -165,9 +180,11 @@ namespace spargel::gpu {
 
     /// @brief the rate of fetching vertex attributes
     ///
-    /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification
+    /// directx:
+    /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_input_classification
     /// metal: https://developer.apple.com/documentation/metal/mtlvertexstepfunction
-    /// vulkan: https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkVertexInputRate.html
+    /// vulkan:
+    /// https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkVertexInputRate.html
     ///
     enum class vertex_step_mode {
         /// @brief attributes are fetched per vertex
@@ -282,12 +299,12 @@ namespace spargel::gpu {
 
         template <typename U>
             requires(base::is_convertible<U*, T*>)
-        object_ptr(object_ptr<U> ptr) : _ptr{ptr.get()} {}
+        object_ptr(object_ptr<U> const ptr) : _ptr{ptr.get()} {}
 
         T* operator->() { return _ptr; }
         T const* operator->() const { return _ptr; }
 
-        T* get() { return _ptr; }
+        T* get() const { return _ptr; }
 
         template <typename U>
         object_ptr<U> cast() {
@@ -319,9 +336,10 @@ namespace spargel::gpu {
 
     class render_pipeline {};
 
+    class buffer {};
+
     struct shader_library_descriptor {
-        ssize size;
-        u8* bytes;
+        base::span<u8> bytes;
     };
 
     struct shader_function {
@@ -331,16 +349,18 @@ namespace spargel::gpu {
 
     /// @brief
     ///
-    /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_input_element_desc
+    /// directx:
+    /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_input_element_desc
     /// metal: https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor
-    /// vulkan: https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkVertexInputAttributeDescription.html
+    /// vulkan:
+    /// https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkVertexInputAttributeDescription.html
     ///
     struct vertex_attribute_descriptor {
         /// @brief index of the vertex buffer where the data of the attribute is fetched
         int buffer;
 
         /// @brief the location of the vertex attribute
-        /// 
+        ///
         /// this is called input element in directx.
         ///
         /// synatx in shaders:
@@ -365,16 +385,21 @@ namespace spargel::gpu {
 
     /// @brief description of one vertex buffer
     ///
-    /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_input_layout_desc
+    /// directx:
+    /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_input_layout_desc
     /// metal: https://developer.apple.com/documentation/metal/mtlvertexdescriptor
-    /// vulkan: https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html
+    /// vulkan:
+    /// https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html
     ///
     struct vertex_buffer_descriptor {
         /// @brief the number of bytes between consecutive elements in the buffer
-        /// 
-        /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_vertex_buffer_view
-        /// metal: https://developer.apple.com/documentation/metal/mtlvertexbufferlayoutdescriptor/1515441-stride
-        /// vulkan: https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkVertexInputBindingDescription.html
+        ///
+        /// directx:
+        /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_vertex_buffer_view
+        /// metal:
+        /// https://developer.apple.com/documentation/metal/mtlvertexbufferlayoutdescriptor/1515441-stride
+        /// vulkan:
+        /// https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkVertexInputBindingDescription.html
         ///
         ssize stride;
 
@@ -384,11 +409,16 @@ namespace spargel::gpu {
         // TODO: step rate is not supported by vulkan.
     };
 
+    class bind_group {};
+    class bind_group_layout {};
+
     /// @brief description of a render pipeline
     ///
-    /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_graphics_pipeline_state_desc
+    /// directx:
+    /// https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_graphics_pipeline_state_desc
     /// metal: https://developer.apple.com/documentation/metal/mtlrenderpipelinedescriptor
-    /// vulkan: https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkGraphicsPipelineCreateInfo.html
+    /// vulkan:
+    /// https://registry.khronos.org/VulkanSC/specs/1.0-extensions/man/html/VkGraphicsPipelineCreateInfo.html
     ///
     struct render_pipeline_descriptor {
         // the input-assembler stage
@@ -413,17 +443,63 @@ namespace spargel::gpu {
         shader_function fragment_shader;
     };
 
+    class texture {};
+
+    class surface {
+    public:
+        virtual object_ptr<texture> next_texture() = 0;
+        virtual float width() = 0;
+        virtual float height() = 0;
+    };
+
+    struct viewport {
+        float x;
+        float y;
+        float width;
+        float height;
+        float z_near;
+        float z_far;
+    };
+
+    struct vertex_buffer_location {
+        struct {
+            int buffer_index;
+        } apple;
+        struct {
+            int vertex_buffer_index;
+        } vulkan;
+    };
+
     class device {
     public:
         virtual ~device() = default;
 
         device_kind kind() const { return _kind; }
 
-        virtual object_ptr<shader_library> make_shader_library(shader_library_descriptor const& descriptor) = 0;
-        virtual object_ptr<render_pipeline> make_render_pipeline(render_pipeline_descriptor const& descriptor) = 0;
+        virtual object_ptr<shader_library> make_shader_library(
+            shader_library_descriptor const& descriptor) = 0;
+        virtual object_ptr<render_pipeline> make_render_pipeline(
+            render_pipeline_descriptor const& descriptor) = 0;
+
+        virtual object_ptr<buffer> make_buffer_with_bytes(base::span<u8> bytes) = 0;
+
+        virtual object_ptr<surface> make_surface(ui::window* w) = 0;
+
+        virtual void begin_render_pass(object_ptr<texture> t) = 0;
+        virtual void set_render_pipeline(object_ptr<render_pipeline> p) = 0;
+        virtual void set_vertex_buffer(object_ptr<buffer> b, vertex_buffer_location const& loc) = 0;
+        virtual void set_viewport(viewport v) = 0;
+        virtual void draw(int vertex_start, int vertex_count) = 0;
+        virtual void draw(int vertex_start, int vertex_count, int instance_start,
+                          int instance_count) = 0;
+        virtual void end_render_pass() = 0;
+        virtual void present(object_ptr<surface> s) = 0;
 
         virtual void destroy_shader_library(object_ptr<shader_library> library) = 0;
         virtual void destroy_render_pipeline(object_ptr<render_pipeline> pipeline) = 0;
+        virtual void destroy_buffer(object_ptr<buffer> b) = 0;
+
+        virtual void execute(task_graph& graph) = 0;
 
     protected:
         explicit device(device_kind k) : _kind{k} {}

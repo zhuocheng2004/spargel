@@ -1,25 +1,22 @@
 #pragma once
 
 #include <spargel/base/string.h>
+#include <spargel/base/string_view.h>
 
 namespace spargel::resource {
 
-    const base::string DEFAULT_NS = base::string_from_cstr("core");
-
     class resource_id {
     public:
-        resource_id(const base::string& ns, const base::string& path) : _ns(ns), _path(path) {}
-        resource_id(const base::string& path) : resource_id(DEFAULT_NS, path) {}
+        static constexpr base::string_view default_namespace = "core";
 
-        resource_id(const char* ns, const char* path)
-            : resource_id(base::string_from_cstr(ns), base::string_from_cstr(path)) {}
-        resource_id(const char* path) : resource_id(base::string_from_cstr(path)) {}
+        resource_id(base::string_view ns, base::string_view path) : _namespace(ns), _path(path) {}
+        resource_id(base::string_view path) : resource_id(default_namespace, path) {}
 
-        const base::string& ns() const { return _ns; }
+        const base::string& ns() const { return _namespace; }
         const base::string& path() const { return _path; }
 
     private:
-        base::string _ns;
+        base::string _namespace;
         base::string _path;
     };
 
@@ -48,7 +45,8 @@ namespace spargel::resource {
     };
 
     // The most trivial example
-    class empty_resource_manager : public resource_manager {
+    class empty_resource_manager final : public resource_manager {
+    public:
         resource* open(const resource_id& id) override { return nullptr; }
     };
 }  // namespace spargel::resource
