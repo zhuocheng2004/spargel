@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spargel/base/initializer_list.h>
+
 namespace spargel::base {
 
     template <typename T>
@@ -7,19 +9,18 @@ namespace spargel::base {
     public:
         constexpr span() = default;
 
-        explicit constexpr span(T* begin, T* end) : _begin{begin}, _end{end} {}
+        explicit constexpr span(T const* begin, T const* end) : _begin{begin}, _end{end} {}
 
+        constexpr span(initializer_list<T> l) : _begin{l.begin()}, _end{l.end()} {}
 
-        T& operator[](ssize i) { return _begin[i]; }
-        T const& operator[](ssize i) const { return _end[i]; }
+        constexpr T const& operator[](ssize i) const { return _begin[i]; }
 
-        ssize count() const { return _end - _begin; }
-        T* data() { return _begin; }
-        T const* data() const { return _begin; }
+        constexpr ssize count() const { return _end - _begin; }
+        constexpr T const* data() const { return _begin; }
 
     private:
-        T* _begin = nullptr;
-        T* _end = nullptr;
+        T const* _begin = nullptr;
+        T const* _end = nullptr;
     };
 
 }

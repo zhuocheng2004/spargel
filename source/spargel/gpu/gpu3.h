@@ -154,7 +154,7 @@ namespace spargel::gpu {
     /// @brief geometric primitive type for rendering
     ///
     /// directx: https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_primitive_topology_type
-    /// metal: https://developer.apple.com/documentation/metal/mtlprimitivetype
+    /// metal: https://developer.apple.com/documentation/metal/mtlprimitivetopologyclass
     /// vulkan: https://registry.khronos.org/vulkan/specs/latest/man/html/VkPrimitiveTopology.html
     ///
     enum class primitive_kind {
@@ -293,6 +293,10 @@ namespace spargel::gpu {
         object_ptr<U> cast() {
             return object_ptr<U>(static_cast<U*>(_ptr));
         }
+        template <typename U>
+        object_ptr<U> const cast() const {
+            return object_ptr<U>(static_cast<U*>(_ptr));
+        }
 
     private:
         T* _ptr = nullptr;
@@ -419,6 +423,7 @@ namespace spargel::gpu {
         virtual object_ptr<render_pipeline> make_render_pipeline(render_pipeline_descriptor const& descriptor) = 0;
 
         virtual void destroy_shader_library(object_ptr<shader_library> library) = 0;
+        virtual void destroy_render_pipeline(object_ptr<render_pipeline> pipeline) = 0;
 
     protected:
         explicit device(device_kind k) : _kind{k} {}

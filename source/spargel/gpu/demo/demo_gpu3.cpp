@@ -52,6 +52,41 @@ int main() {
         .bytes = demo_gpu_metal_shader_code,
     });
 
+    // spargel::base::span<vertex_buffer_descriptor> vertex_buffers = {
+    //         vertex_buffer_descriptor{
+    //             .stride = sizeof(float) * 3,
+    //             .step_mode = vertex_step_mode::vertex,
+    //         },
+    //         vertex_buffer_descriptor{
+    //             .stride = sizeof(float) * 3,
+    //             .step_mode = vertex_step_mode::vertex,
+    //         },
+    //     };
+
+
+    auto pipeline = device->make_render_pipeline({
+        .primitive = primitive_kind::triangle,
+        .front_face = orientation::clockwise,
+        .cull = cull_mode::back,
+        .vertex_shader = {
+            .library = shader,
+            .entry = "vertex_shader",
+        },
+        // .vertex_buffers = vertex_buffers,
+        .vertex_buffers = {
+            vertex_buffer_descriptor{
+                .stride = sizeof(float) * 3,
+                .step_mode = vertex_step_mode::vertex,
+            },
+            vertex_buffer_descriptor{
+                .stride = sizeof(float) * 3,
+                .step_mode = vertex_step_mode::vertex,
+            },
+        },
+    });
+
+    device->destroy_render_pipeline(pipeline);
+
     device->destroy_shader_library(shader);
 
     // platform->start_loop();
