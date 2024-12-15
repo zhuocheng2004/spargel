@@ -14,6 +14,10 @@
 #include <sys/time.h>
 #endif
 
+#if SPARGEL_IS_ANDROID
+#include <android/log.h>
+#endif
+
 namespace spargel::base {
 
     static char const* log_names[_LOG_COUNT] = {
@@ -82,6 +86,33 @@ namespace spargel::base {
         va_start(ap, format);
         vfprintf(stderr, format, ap);
         va_end(ap);
+
+#if SPARGEL_IS_ANDROID
+        int android_log_prio;
+        switch (level) {
+        case 0:
+            android_log_prio = ANDROID_LOG_DEBUG;
+            break;
+        case 1:
+            android_log_prio = ANDROID_LOG_INFO;
+            break;
+        case 2:
+            android_log_prio = ANDROID_LOG_WARN;
+            break;
+        case 3:
+            android_log_prio = ANDROID_LOG_ERROR;
+            break;
+        case 4:
+            android_log_prio = ANDROID_LOG_FATAL;
+            break;
+        default:
+            android_log_prio = ANDROID_LOG_UNKNOWN;
+            break;
+        }
+        va_start(ap, format);
+        __android_log_vprint(android_log_prio, "spargel", format, ap);
+        va_end(ap);
+#endif
 
 #if SPARGEL_ENABLE_LOG_ANSI_COLOR
         fputs("\033[0m", stderr);
