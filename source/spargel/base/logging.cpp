@@ -30,7 +30,7 @@ namespace spargel::base {
     };
 
     static void log_get_time(struct log_timestamp* time) {
-#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
         struct timeval tv;
         gettimeofday(&tv, NULL);
         time_t t = tv.tv_sec;

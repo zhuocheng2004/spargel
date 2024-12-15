@@ -14,6 +14,12 @@ include(AddSpargel)
 
 #### System Detection ####
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL Android)
+  set(SPARGEL_IS_ANDROID YES CACHE BOOL "")
+else()
+  set(SPARGEL_IS_ANDROID NO CACHE BOOL "")
+endif()
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
   set(SPARGEL_IS_MACOS YES CACHE BOOL "")
 else()
@@ -31,6 +37,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
 else()
   set(SPARGEL_IS_WINDOWS NO CACHE BOOL "")
 endif()
+
+#### UI ####
+
+spargel_add_option(SPARGEL_UI_DUMMY "nogui" OFF)
 
 #### GPU Backend ####
 
@@ -61,6 +71,10 @@ spargel_add_option(SPARGEL_TRACE_ALLOCATION "trace allocation" ON)
 
 if (SPARGEL_GPU_ENABLE_VULKAN)
     find_package(Vulkan REQUIRED glslangValidator)
+endif ()
+
+if (SPARGEL_IS_ANDROID)
+  find_package(game-activity REQUIRED CONFIG)
 endif ()
 
 if (SPARGEL_IS_MACOS)

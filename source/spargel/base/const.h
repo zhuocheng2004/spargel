@@ -8,7 +8,7 @@
  * Use dynamic-size buffers.
  */
 #undef PATH_MAX
-#if SPARGEL_IS_LINUX
+#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX
 #define PATH_MAX 4096
 #elif SPARGEL_IS_MACOS
 #define PATH_MAX 1024

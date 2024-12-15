@@ -6,6 +6,8 @@ spargel_add_library(
         platform.cpp
         string.cpp
         logging.cpp
+    PRIVATE_ANDROID
+        platform_linux.cpp
     PRIVATE_LINUX
         platform_linux.cpp
     PRIVATE_MACOS
