@@ -24,7 +24,7 @@
 #endif
 
 struct renderer final : spargel::ui::window_delegate {
-    void render() override {
+    void on_render() override {
         spargel::gpu::reset_command_buffer(device, cmdbuf);
 
         spargel::gpu::presentable_id presentable;

@@ -173,7 +173,7 @@ namespace spargel::ui {
 
     void window_appkit::_bridge_render() {
         if (delegate() != nullptr) {
-            delegate()->render();
+            delegate()->on_render();
         }
     }
 
