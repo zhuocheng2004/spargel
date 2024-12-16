@@ -13,5 +13,5 @@ namespace spargel::entry {
 
 extern "C" {
 
-int simple_entry(spargel::entry::simple_entry_data& data);
+int simple_entry(spargel::entry::simple_entry_data* data);
 }

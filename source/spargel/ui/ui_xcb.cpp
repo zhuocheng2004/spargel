@@ -1,6 +1,6 @@
 #include <spargel/base/base.h>
 #include <spargel/base/logging.h>
-#include <spargel/ui/ui.h>
+#include <spargel/ui/ui_xcb.h>
 
 /* for clock_gettime */
 #ifndef _GNU_SOURCE
@@ -15,8 +15,6 @@
 
 /* xcb */
 #include <xcb/xcb.h>
-
-#include "ui_xcb.h"
 
 namespace spargel::ui {
 

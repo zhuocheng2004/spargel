@@ -74,7 +74,6 @@ function(spargel_add_application)
         target_link_libraries(${ARGS_NAME} PRIVATE ${ARGS_DEPS})
         # Mark the top-level symbol as used, otherwise the library will be optimized out.
         target_link_options(${ARGS_NAME} PRIVATE -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode)
-        set_target_properties(${ARGS_NAME} PROPERTIES OUTPUT_NAME spargeldemo)
     else ()
         spargel_add_executable(${ARGN})
     endif ()

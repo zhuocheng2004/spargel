@@ -7,7 +7,7 @@ int main() {
     data.platform = spargel::ui::make_platform();
     data.window = data.platform->make_window(500, 500);
 
-    int ret = simple_entry(data);
+    int ret = simple_entry(&data);
 
     return ret;
 }

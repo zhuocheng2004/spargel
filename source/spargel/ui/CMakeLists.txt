@@ -2,6 +2,8 @@ spargel_add_library(
     NAME ui
     PRIVATE
         ui.cpp
+    PRIVATE_ANDROID
+        ui_android.cpp
     PRIVATE_LINUX
         ui_xcb.cpp
     PRIVATE_MACOS
@@ -10,6 +12,11 @@ spargel_add_library(
         dummy.cpp
     DEPS base
 )
+
+if (SPARGEL_IS_ANDROID)
+    get_target_property(ANDROID_GAME_ACTIVITY_INCLUDE game-activity::game-activity INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(ui PRIVATE ${ANDROID_GAME_ACTIVITY_INCLUDE})
+endif ()
 
 if (SPARGEL_IS_LINUX)
     find_package(X11)
@@ -47,4 +54,10 @@ spargel_add_executable(
     NAME window_demo
     PRIVATE window_demo.cpp
     DEPS ui
+)
+
+spargel_add_application(
+    NAME window_demo2
+    PRIVATE window_demo2.cpp
+    DEPS entry
 )

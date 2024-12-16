@@ -67,6 +67,13 @@ spargel_add_option(SPARGEL_GPU_ENABLE_METAL "enable metal backend" ${SPARGEL_GPU
 spargel_add_option(SPARGEL_GPU_ENABLE_VULKAN "enable vulkan backend" ON)
 spargel_add_option(SPARGEL_TRACE_ALLOCATION "trace allocation" ON)
 
+#### Platform Specific Options ####
+
+if (SPARGEL_IS_ANDROID)
+  set(SPARGEL_ANDROID_TARGET simple_entry_demo CACHE STRING "the target to be built" )
+  message("Android build target: ${SPARGEL_ANDROID_TARGET}")
+endif ()
+
 #### External Libraries ####
 
 if (SPARGEL_GPU_ENABLE_VULKAN)
@@ -85,3 +92,7 @@ endif ()
 
 add_subdirectory(games)
 add_subdirectory(source)
+
+if (SPARGEL_IS_ANDROID)
+  set_target_properties(${SPARGEL_ANDROID_TARGET} PROPERTIES OUTPUT_NAME spargeldemo)
+endif ()
