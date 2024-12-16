@@ -101,7 +101,12 @@ namespace spargel::ui {
 
     void platform_xcb::_run_render_callbacks() {
         for (auto& window : _windows) {
-            window->delegate()->on_render();
+            auto delegate = window->delegate();
+            if (!delegate) {
+                spargel_log_fatal("window delegate not set");
+                spargel_panic_here();
+            }
+            delegate->on_render();
         }
     }
 

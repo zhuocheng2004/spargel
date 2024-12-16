@@ -2,11 +2,12 @@
 spargel_add_library(
     NAME entry
     PRIVATE
-        simple.c
+        simple.cpp
     PRIVATE_ANDROID
         simple_android.cpp
     DEPS
         base
+        ui
 )
 
 
