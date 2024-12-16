@@ -1,4 +1,5 @@
 #include <spargel/base/base.h>
+#include <spargel/base/logging.h>
 #include <spargel/ui/ui.h>
 
 /* for clock_gettime */
@@ -15,52 +16,30 @@
 /* xcb */
 #include <xcb/xcb.h>
 
+#include "ui_xcb.h"
+
 namespace spargel::ui {
 
-    struct window {
-        xcb_window_t id;
+    base::unique_ptr<platform> make_platform_xcb() { return base::make_unique<platform_xcb>(); }
 
-        void (*render_callback)(void*);
-        void* render_data;
-    };
-
-    static int window_count;
-    static struct window** windows;
-
-    static xcb_connection_t* connection;
-    static xcb_screen_t* screen;
-
-    void init_platform() {
+    platform_xcb::platform_xcb() : platform(platform_kind::xcb) {
         /*
          * Open the connection to the X server.
          * Use the DISPLAY environment variable as the default display name.
          */
-        connection = xcb_connect(NULL, NULL);
+        _connection = xcb_connect(NULL, NULL);
 
         /* Get the first screen */
-        screen = xcb_setup_roots_iterator(xcb_get_setup(connection)).data;
+        _screen = xcb_setup_roots_iterator(xcb_get_setup(_connection)).data;
 
-        printf("\n");
-        printf("Information of screen %d: \n", screen->root);
-        printf("  width:\t%d\n", screen->width_in_pixels);
-        printf("  height:\t%d\n", screen->height_in_pixels);
-        printf("  white pixel:\t%08x\n", screen->white_pixel);
-        printf("  black pixel:\t%08x\n", screen->black_pixel);
-        printf("\n");
+        spargel_log_debug("Information of XCB screen %d:", _screen->root);
+        spargel_log_debug("  width:\t%d", _screen->width_in_pixels);
+        spargel_log_debug("  height:\t%d", _screen->height_in_pixels);
+        spargel_log_debug("  white pixel:\t%08x", _screen->white_pixel);
+        spargel_log_debug("  black pixel:\t%08x", _screen->black_pixel);
     }
 
-    int platform_id() { return PLATFORM_XCB; }
-
-    static void run_render_callbacks() {
-        if (window_count > 0) {
-            for (int i = 0; i < window_count; i++) {
-                struct window* window = windows[i];
-                if (window->render_callback) {
-                    window->render_callback(window->render_data);
-                }
-            }
-        }
-    }
+    platform_xcb::~platform_xcb() { xcb_disconnect(_connection); }
 
     const float FPS = 60;
     const unsigned int SECOND_NS = 1000000000U;
@@ -76,16 +55,16 @@ namespace spargel::ui {
         }
     }
 
-    void platform_run() {
-        int should_stop = 0;
+    void platform_xcb::start_loop() {
         xcb_generic_event_t* event;
         struct timespec t1, t2, duration = {.tv_sec = 0, .tv_nsec = 0};
-        while (!should_stop) {
-            event = xcb_poll_for_event(connection);
+        while (true) {
+            event = xcb_poll_for_event(_connection);
             if (!event) {
                 clock_gettime(CLOCK_MONOTONIC, &t1);
 
-                run_render_callbacks();
+                _run_render_callbacks();
+                xcb_flush(_connection);
 
                 /*
                  * wait for the next frame
@@ -106,12 +85,11 @@ namespace spargel::ui {
 
             switch (event->response_type & ~0x80) {
             case XCB_EXPOSE: {
-                run_render_callbacks();
-                xcb_flush(connection);
+                _run_render_callbacks();
+                xcb_flush(_connection);
             } break;
             case XCB_KEY_PRESS: {
-                xcb_key_press_event_t* ev = (xcb_key_press_event_t*)event;
-                if (ev->detail == 9 /*FIXME*/) should_stop = 1;
+                // TODO
             } break;
             default:
                 break;
@@ -119,69 +97,50 @@ namespace spargel::ui {
 
             free(event);
         }
-
-        for (int i = 0; i < window_count; i++) {
-            free(windows[i]);
-        }
-        if (window_count > 0) {
-            free(windows);
-        }
-        window_count = 0;
-        windows = NULL;
-
-        xcb_disconnect(connection);
     }
 
-    window_id create_window(int width, int height) {
-        xcb_window_t id = xcb_generate_id(connection);
+    void platform_xcb::_run_render_callbacks() {
+        for (auto& window : _windows) {
+            window->delegate()->on_render();
+        }
+    }
+
+    base::unique_ptr<window> platform_xcb::make_window(int width, int height) {
+        return base::make_unique<window_xcb>(*this, width, height);
+    }
+
+    window_xcb::window_xcb(platform_xcb& platform, int width, int height) : _platform(platform) {
+        _id = xcb_generate_id(platform._connection);
 
         uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-        uint32_t values[2] = {screen->white_pixel,
-                              XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY |
-                                  XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
-                                  XCB_EVENT_MASK_BUTTON_1_MOTION | XCB_EVENT_MASK_KEY_PRESS |
-                                  XCB_EVENT_MASK_KEY_RELEASE};
+        uint32_t values[2] = {platform._screen->white_pixel,
+                              XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
 
-        xcb_create_window(connection, XCB_COPY_FROM_PARENT, /* depth*/
-                          id, screen->root,                 /* parent window */
-                          0, 0,                             /* x, y */
-                          width, height,                    /* width, height */
-                          10,                               /* border width */
-                          XCB_WINDOW_CLASS_INPUT_OUTPUT,    /* class */
-                          screen->root_visual,              /* visual */
+        xcb_create_window(platform._connection, XCB_COPY_FROM_PARENT, /* depth*/
+                          _id, platform._screen->root,                /* parent window */
+                          0, 0,                                       /* x, y */
+                          width, height,                              /* width, height */
+                          10,                                         /* border width */
+                          XCB_WINDOW_CLASS_INPUT_OUTPUT,              /* class */
+                          platform._screen->root_visual,              /* visual */
                           mask, values);
 
-        xcb_map_window(connection, id);
-        xcb_flush(connection);
+        xcb_map_window(platform._connection, _id);
+        xcb_flush(platform._connection);
 
-        window_id window = (window_id)malloc(sizeof(struct window));
-        if (!window) return NULL;
-        window->render_callback = NULL;
-        window->render_data = NULL;
-
-        window->id = id;
-
-        if (window_count == 0) windows = (struct window**)malloc(sizeof(struct window*));
-        window_count++;
-        windows = (struct window**)realloc(windows, window_count * sizeof(struct window*));
-        windows[window_count - 1] = window;
-
-        return window;
+        platform._windows.push(this);
     }
 
-    void destroy_window(window_id window) { puts("TODO: destroy_window\n"); }
+    window_xcb::~window_xcb() { spargel_log_debug("TODO: window_xcb::~window_xcb"); }
 
-    void window_set_title(window_id window, char const* title) { puts("TODO: window_set_title\n"); }
-
-    void window_set_render_callback(window_id window, void (*render)(void*), void* data) {
-        window->render_callback = render;
-        window->render_data = data;
+    void window_xcb::set_title(char const* title) {
+        spargel_log_debug("TODO: window_xcb::set_title");
     }
 
-    struct window_handle window_get_handle(window_id window) {
-        struct window_handle handle;
-        handle.xcb.connection = connection;
-        handle.xcb.window = window->id;
+    window_handle window_xcb::handle() {
+        window_handle handle;
+        handle.xcb.connection = _platform._connection;
+        handle.xcb.window = _id;
         return handle;
     }
 

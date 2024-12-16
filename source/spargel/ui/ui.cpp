@@ -1,7 +1,11 @@
 #include <spargel/config.h>
 #include <spargel/ui/ui.h>
 
-#if SPARGEL_IS_MACOS
+#if SPARGEL_IS_LINUX
+namespace spargel::ui {
+    base::unique_ptr<platform> make_platform_xcb();
+}
+#elif SPARGEL_IS_MACOS
 namespace spargel::ui {
     base::unique_ptr<platform> make_platform_appkit();
 }
@@ -10,7 +14,9 @@ namespace spargel::ui {
 namespace spargel::ui {
 
     base::unique_ptr<platform> make_platform() {
-#if SPARGEL_IS_MACOS
+#if SPARGEL_IS_LINUX
+        return make_platform_xcb();
+#elif SPARGEL_IS_MACOS
         return make_platform_appkit();
 #endif
         return nullptr;

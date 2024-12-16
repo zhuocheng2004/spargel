@@ -16,11 +16,12 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets("simple_entry_demo")
+                targets(property("spargel_cmake_target").toString())
                 arguments(
                     "-DANDROID_STL=c++_shared",
                     "-DSPARGEL_ENABLE_SANITIZER_ADDRESS=OFF",
-                    "-DSPARGEL_GPU_ENABLE_VULKAN=OFF"
+                    "-DSPARGEL_GPU_ENABLE_VULKAN=OFF",
+                    "-DSPARGEL_TRACE_ALLOCATION=OFF",
                 )
             }
         }
