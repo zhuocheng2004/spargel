@@ -2,6 +2,7 @@
 # IDE
 *.swp
 *.tmp
+.idea
 .vs
 .vscode
 .cache
