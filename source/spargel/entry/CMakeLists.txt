@@ -10,30 +10,20 @@ spargel_add_library(
         ui
 )
 
-
 if (SPARGEL_IS_ANDROID)
-
-    target_link_libraries(entry PUBLIC
+    get_target_property(ANDROID_GAME_ACTIVITY_INCLUDE game-activity::game-activity INTERFACE_INCLUDE_DIRECTORIES)
+    target_include_directories(entry PRIVATE ${ANDROID_GAME_ACTIVITY_INCLUDE})
+    target_link_libraries(entry PRIVATE
         android
         log
         game-activity::game-activity_static
     )
-
-    # Mark the top-level symbol as used, otherwise the library will be optimized out.
-    set(CMAKE_SHARED_LINKER_FLAGS
-        "${CMAKE_SHARED_LINKER_FLAGS} -u \
-        Java_com_google_androidgamesdk_GameActivity_initializeNativeCode")
-
-    add_library(simple_entry_demo SHARED simple_demo.cpp)
-    target_link_libraries(simple_entry_demo PUBLIC entry)
-    set_target_properties(simple_entry_demo PROPERTIES OUTPUT_NAME spargeldemo)
-
-else ()
-
-    spargel_add_executable(
-        NAME simple_entry_demo
-        PRIVATE simple_demo.cpp
-        DEPS entry
-    )
-
 endif ()
+
+spargel_add_application(
+    NAME simple_entry_demo
+    PRIVATE
+        simple_demo.cpp
+    DEPS
+        entry
+)

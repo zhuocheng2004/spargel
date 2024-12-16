@@ -57,6 +57,29 @@ function(spargel_add_executable)
     endif()
 endfunction()
 
+function(spargel_add_application)
+    if (SPARGEL_IS_ANDROID)
+        cmake_parse_arguments(ARGS
+            "" # options
+            "NAME" # one value
+            "PRIVATE;DEPS;PRIVATE_ANDROID" # multi value
+            ${ARGN})
+
+        add_library(${ARGS_NAME} SHARED)
+        spargel_target_common(${ARGS_NAME})
+        target_sources(${ARGS_NAME} PRIVATE ${ARGS_PRIVATE})
+        if (SPARGEL_IS_ANDROID)
+            target_sources(${ARGS_NAME} PRIVATE ${ARGS_PRIVATE_ANDROID})
+        endif ()
+        target_link_libraries(${ARGS_NAME} PRIVATE ${ARGS_DEPS})
+        # Mark the top-level symbol as used, otherwise the library will be optimized out.
+        target_link_options(${ARGS_NAME} PRIVATE -u Java_com_google_androidgamesdk_GameActivity_initializeNativeCode)
+        set_target_properties(${ARGS_NAME} PROPERTIES OUTPUT_NAME spargeldemo)
+    else ()
+        spargel_add_executable(${ARGN})
+    endif ()
+endfunction()
+
 function(spargel_add_library)
     cmake_parse_arguments(ARGS
         "" # options
