@@ -22,11 +22,11 @@ static void onAppCmd(struct android_app* app, int32_t cmd) {
         data->can_render = true;
         break;
     case APP_CMD_TERM_WINDOW:
-        window->delegate()->on_close_requested();
+        if (window) window->delegate()->on_close_requested();
         data->can_render = false;
         break;
     case APP_CMD_DESTROY:
-        window->delegate()->on_closed();
+        if (window) window->delegate()->on_closed();
         break;
     default:
         break;
@@ -46,6 +46,22 @@ void android_main(struct android_app* app) {
     auto platform = spargel::base::make_unique<spargel::ui::platform_android>(app);
     entry_data.window = platform->generate_window_handle();
     entry_data.platform = spargel::base::move(platform);
+
+    // FIXME: wait until surface is ready
+    while (!app->destroyRequested) {
+        android_poll_source* source;
+        auto result = ALooper_pollOnce(-1, nullptr, nullptr, (void**)&source);
+        if (result == ALOOPER_POLL_ERROR) {
+            spargel_log_error("ALooper_pollOnce returned an error");
+            spargel_panic_here();
+        }
+
+        if (source != nullptr) {
+            source->process(app, source);
+        }
+
+        if (data->can_render) break;
+    }
 
     simple_entry(&entry_data);
 

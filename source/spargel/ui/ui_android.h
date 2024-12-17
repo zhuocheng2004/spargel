@@ -27,13 +27,13 @@ namespace spargel::ui {
         void start_loop() override;
 
         base::unique_ptr<window> make_window(int width, int height) override {
-            spargel_log_fatal("should not call platform_android::make_window");
+            spargel_log_fatal("platform_android::make_window should not be called");
             spargel_panic_here();
         }
 
         base::unique_ptr<window_android> generate_window_handle();
 
-        window_android* window_handle() { return window; }
+        inline window_android* window_handle() { return window; }
 
     private:
         struct android_app* _app;

@@ -30,6 +30,9 @@ VULKAN_INSTANCE_PROC(vkGetDeviceProcAddr)
 VULKAN_INSTANCE_PROC(vkCreateDebugUtilsMessengerEXT)
 VULKAN_INSTANCE_PROC(vkDestroyDebugUtilsMessengerEXT)
 
+#if SPARGEL_IS_ANDROID
+VULKAN_INSTANCE_PROC(vkCreateAndroidSurfaceKHR)
+#endif
 #if SPARGEL_IS_LINUX
 VULKAN_INSTANCE_PROC(vkCreateXcbSurfaceKHR)
 VULKAN_INSTANCE_PROC(vkCreateWaylandSurfaceKHR)

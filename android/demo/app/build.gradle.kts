@@ -18,10 +18,10 @@ android {
             cmake {
                 targets(property("spargel_cmake_target").toString())
                 arguments(
-                    "-DSPARGEL_ANDROID_TARGET=" + property("spargel_cmake_target").toString(),
                     "-DANDROID_STL=c++_shared",
+                    "-DSPARGEL_ANDROID_TARGET=" + property("spargel_cmake_target").toString(),
                     "-DSPARGEL_ENABLE_SANITIZER_ADDRESS=OFF",
-                    "-DSPARGEL_GPU_ENABLE_VULKAN=OFF",
+                    "-DSPARGEL_GPU_ENABLE_VULKAN=ON",
                     "-DSPARGEL_TRACE_ALLOCATION=OFF",
                 )
             }

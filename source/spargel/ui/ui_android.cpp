@@ -18,7 +18,7 @@ namespace spargel::ui {
 
         while (!_app->destroyRequested) {
             android_poll_source* source;
-            auto result = ALooper_pollOnce(-1, nullptr, nullptr, (void**)&source);
+            auto result = ALooper_pollOnce(0, nullptr, nullptr, (void**)&source);
             if (result == ALOOPER_POLL_ERROR) {
                 spargel_log_error("ALooper_pollOnce returned an error");
                 spargel_panic_here();
@@ -28,7 +28,7 @@ namespace spargel::ui {
                 source->process(_app, source);
             }
 
-            if (data->can_render) {
+            if (data->can_render && window) {
                 window->delegate()->on_render();
             }
         }
@@ -48,6 +48,10 @@ namespace spargel::ui {
         spargel_log_debug("TODO: window_android::set_title");
     }
 
-    window_handle window_android::handle() { return {}; }
+    window_handle window_android::handle() {
+        window_handle handle{};
+        handle.android.window = _platform._app->window;
+        return handle;
+    }
 
 }  // namespace spargel::ui

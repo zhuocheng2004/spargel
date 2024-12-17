@@ -17,6 +17,10 @@ spargel_add_library(
     DEPS spargel_config
 )
 
+if (SPARGEL_IS_ANDROID OR SPARGEL_IS_LINUX)
+    target_link_libraries(base PUBLIC m)
+endif ()
+
 spargel_add_executable(
     NAME executable_path_demo
     PRIVATE executable_path_demo.cpp

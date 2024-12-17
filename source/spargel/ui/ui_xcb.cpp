@@ -141,7 +141,7 @@ namespace spargel::ui {
     }
 
     window_handle window_xcb::handle() {
-        window_handle handle;
+        window_handle handle{};
         handle.xcb.connection = _platform._connection;
         handle.xcb.window = _id;
         return handle;

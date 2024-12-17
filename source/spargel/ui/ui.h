@@ -20,6 +20,9 @@ namespace spargel::ui {
     struct window_handle {
         union {
             struct {
+                void* window;
+            } android;
+            struct {
                 void* layer;
             } apple;
             struct {
@@ -27,12 +30,12 @@ namespace spargel::ui {
                 void* surface;
             } wayland;
             struct {
+                void* hwnd;
+            } win32;
+            struct {
                 void* connection;
                 int window;
             } xcb;
-            struct {
-                void* hwnd;
-            } win32;
         };
     };
 

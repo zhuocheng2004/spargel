@@ -13,7 +13,7 @@
 #include <string.h>
 
 /* platform */
-#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
 #include <dlfcn.h>
 #endif
 
@@ -21,8 +21,9 @@
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan_core.h>
 
-#if SPARGEL_IS_MACOS
-#include <vulkan/vulkan_metal.h>
+#if SPARGEL_IS_ANDROID
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_android.h>
 #endif
 
 #if SPARGEL_IS_LINUX
@@ -32,7 +33,13 @@
 #include <vulkan/vulkan_xcb.h>
 #endif
 
-#if SPARGEL_IS_LINUX
+#if SPARGEL_IS_MACOS
+#include <vulkan/vulkan_metal.h>
+#endif
+
+#if SPARGEL_IS_ANDROID
+#define VULKAN_LIB_FILENAME "libvulkan.so"
+#elif SPARGEL_IS_LINUX
 #define VULKAN_LIB_FILENAME "libvulkan.so.1"
 #elif SPARGEL_IS_MACOS
 #define VULKAN_LIB_FILENAME "libvulkan.dylib"
@@ -139,7 +146,7 @@ namespace spargel::gpu {
         }                                                                \
     } while (0)
 
-    static VkBool32 vulkan_debug_messenger_callback(
+    static VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_messenger_callback(
         VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
         VkDebugUtilsMessengerCallbackDataEXT const* data, void* user_data) {
         fprintf(stderr, "validator: %s\n", data->pMessage);
@@ -157,7 +164,7 @@ namespace spargel::gpu {
                                      device_id* device) {
         alloc_object(vulkan_device, d);
         d->backend = BACKEND_VULKAN;
-#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
         d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
 #else
 #error unimplemented
@@ -238,12 +245,15 @@ namespace spargel::gpu {
         bool has_surface = false;
         bool has_portability = false;
         bool has_debug_utils = false;
-#if SPARGEL_IS_MACOS
-        bool has_metal_surface = false;
+#if SPARGEL_IS_ANDROID
+        bool has_android_surface = false;
 #endif
 #if SPARGEL_IS_LINUX
         bool has_xcb_surface = false;
         bool has_wayland_surface = false;
+#endif
+#if SPARGEL_IS_MACOS
+        bool has_metal_surface = false;
 #endif
         for (ssize i = 0; i < all_exts.count(); i++) {
             char const* name = all_exts[i].extensionName;
@@ -260,11 +270,11 @@ namespace spargel::gpu {
                 has_debug_utils = true;
                 spargel_log_info("use instance extension VK_EXT_debug_utils");
             }
-#if SPARGEL_IS_MACOS
-            else if (strcmp(name, "VK_EXT_metal_surface") == 0) {
-                use_exts.push("VK_EXT_metal_surface");
-                has_metal_surface = true;
-                spargel_log_info("use instance extension VK_EXT_metal_surface");
+#if SPARGEL_IS_ANDROID
+            else if (strcmp(name, "VK_KHR_android_surface") == 0) {
+                use_exts.push("VK_KHR_android_surface");
+                has_android_surface = true;
+                spargel_log_info("use instance extension VK_KHR_android_surface");
             }
 #endif
 #if SPARGEL_IS_LINUX
@@ -278,14 +288,21 @@ namespace spargel::gpu {
                 spargel_log_info("use instance extension VK_KHR_wayland_surface");
             }
 #endif
+#if SPARGEL_IS_MACOS
+            else if (strcmp(name, "VK_EXT_metal_surface") == 0) {
+                use_exts.push("VK_EXT_metal_surface");
+                has_metal_surface = true;
+                spargel_log_info("use instance extension VK_EXT_metal_surface");
+            }
+#endif
         }
         if (!has_surface) {
             spargel_log_fatal("VK_KHR_surface is required");
             spargel_panic_here();
         }
-#if SPARGEL_IS_MACOS
-        if (!has_metal_surface) {
-            spargel_log_fatal("VK_EXT_metal_surface is required");
+#if SPARGEL_IS_ANDROID
+        if (!has_android_surface) {
+            spargel_log_fatal("VK_KHR_android_surface is required");
             spargel_panic_here();
         }
 #endif
@@ -296,6 +313,12 @@ namespace spargel::gpu {
         }
         if (descriptor->platform == ui::platform_kind::wayland && !has_wayland_surface) {
             spargel_log_fatal("VK_KHR_wayland_surface is required");
+            spargel_panic_here();
+        }
+#endif
+#if SPARGEL_IS_MACOS
+        if (!has_metal_surface) {
+            spargel_log_fatal("VK_EXT_metal_surface is required");
             spargel_panic_here();
         }
 #endif
@@ -646,14 +669,15 @@ namespace spargel::gpu {
 
         spargel::ui::window_handle wh = descriptor->window->handle();
         VkSurfaceKHR surf;
-#if SPARGEL_IS_MACOS
-        VkMetalSurfaceCreateInfoEXT info;
-        info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+#if SPARGEL_IS_ANDROID
+        VkAndroidSurfaceCreateInfoKHR info;
+        info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
         info.pNext = 0;
         info.flags = 0;
-        info.pLayer = wh.apple.layer;
-        CHECK_VK_RESULT(d->procs.vkCreateMetalSurfaceEXT(d->instance, &info, 0, &surf));
-#elif SPARGEL_IS_LINUX /* todo: wayland */
+        info.window = (ANativeWindow*)wh.android.window;
+        CHECK_VK_RESULT(d->procs.vkCreateAndroidSurfaceKHR(d->instance, &info, 0, &surf));
+#endif
+#if SPARGEL_IS_LINUX /* todo: wayland */
         VkXcbSurfaceCreateInfoKHR info;
         info.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
         info.pNext = 0;
@@ -661,6 +685,14 @@ namespace spargel::gpu {
         info.connection = (xcb_connection_t*)wh.xcb.connection;
         info.window = wh.xcb.window;
         CHECK_VK_RESULT(d->procs.vkCreateXcbSurfaceKHR(d->instance, &info, 0, &surf));
+#endif
+#if SPARGEL_IS_MACOS
+        VkMetalSurfaceCreateInfoEXT info;
+        info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+        info.pNext = 0;
+        info.flags = 0;
+        info.pLayer = wh.apple.layer;
+        CHECK_VK_RESULT(d->procs.vkCreateMetalSurfaceEXT(d->instance, &info, 0, &surf));
 #endif
 
         s->surface = surf;

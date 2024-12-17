@@ -77,7 +77,11 @@ endif ()
 #### External Libraries ####
 
 if (SPARGEL_GPU_ENABLE_VULKAN)
+  if (SPARGEL_IS_ANDROID)
+    find_package(Vulkan REQUIRED)
+  else ()
     find_package(Vulkan REQUIRED glslangValidator)
+  endif ()
 endif ()
 
 if (SPARGEL_IS_ANDROID)
