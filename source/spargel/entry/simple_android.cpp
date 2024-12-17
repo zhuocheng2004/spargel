@@ -46,6 +46,7 @@ void android_main(struct android_app* app) {
     auto platform = spargel::base::make_unique<spargel::ui::platform_android>(app);
     entry_data.window = platform->generate_window_handle();
     entry_data.platform = spargel::base::move(platform);
+    entry_data.app = app;
 
     // FIXME: wait until surface is ready
     while (!app->destroyRequested) {

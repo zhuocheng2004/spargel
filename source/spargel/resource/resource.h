@@ -51,7 +51,4 @@ namespace spargel::resource {
     class empty_resource_manager : public resource_manager {
         resource* open(const resource_id& id) override { return nullptr; }
     };
-
-    resource_manager* default_resource_manager();
-
 }  // namespace spargel::resource

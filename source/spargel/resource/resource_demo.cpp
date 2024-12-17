@@ -1,5 +1,6 @@
 
 #include <spargel/base/base.h>
+#include <spargel/base/logging.h>
 #include <spargel/base/platform.h>
 #include <spargel/entry/simple.h>
 #include <spargel/resource/resource.h>
@@ -16,20 +17,20 @@ static void put_hex(u8 ch) {
 
 int simple_entry(spargel::entry::simple_entry_data* data) {
     spargel::resource::resource_manager* resource_manager =
-        spargel::resource::default_resource_manager();
+        spargel::entry::get_resource_manager(data);
 
     spargel::base::string path = spargel::base::string_from_cstr("abc.txt");
 
     spargel::resource::resource* resource =
         resource_manager->open(spargel::resource::resource_id(path));
     if (!resource) {
-        fprintf(stderr, "Cannot open resource \"%s\"\n", path.data());
+        spargel_log_error("Cannot open resource \"%s\"", path.data());
         return 1;
     }
 
     size_t size = resource->size();
-    printf("Size of \"%s\": %ld\n", path.data(), size);
-    puts("================");
+    spargel_log_info("Size of \"%s\": %ld", path.data(), size);
+    spargel_log_info("================");
 
     char* buf = new char[size];
     resource->get_data(buf);

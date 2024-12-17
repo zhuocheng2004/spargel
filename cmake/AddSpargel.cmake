@@ -58,12 +58,13 @@ function(spargel_add_executable)
 endfunction()
 
 function(spargel_add_application)
+    cmake_parse_arguments(ARGS
+        "" # options
+        "NAME" # one value
+        "PRIVATE;PRIVATE_ANDROID;DEPS" # multi value
+        ${ARGN})
+
     if (SPARGEL_IS_ANDROID)
-        cmake_parse_arguments(ARGS
-            "" # options
-            "NAME" # one value
-            "PRIVATE;PRIVATE_ANDROID;DEPS" # multi value
-            ${ARGN})
 
         add_library(${ARGS_NAME} SHARED)
         spargel_target_common(${ARGS_NAME})
@@ -132,8 +133,17 @@ function(spargel_target_add_resources)
 endfunction()
 
 function(spargel_application_add_resources)
+    cmake_parse_arguments(ARGS
+        "" # options
+        "TARGET;SRC;DST" # one value
+        "DEPS" # multi value
+        ${ARGN})
+
     if (SPARGEL_IS_ANDROID)
-        message("TODO")
+        add_custom_target(${ARGS_TARGET}_copy_resources
+            COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${ARGS_SRC} ${PROJECT_SOURCE_DIR}/android/demo/app/src/generated/assets/${ARGS_DST})
+        add_dependencies(${ARGS_TARGET}_copy_resources ${ARGS_DEPS})
+        add_dependencies(${ARGS_TARGET} ${ARGS_TARGET}_copy_resources)
     else ()
         spargel_target_add_resources(${ARGN})
     endif ()

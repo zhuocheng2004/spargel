@@ -57,6 +57,10 @@ android {
             version = "3.31.1"
         }
     }
+
+    sourceSets.getByName("main") {
+        assets.setSrcDirs(listOf("src/generated/assets"))
+    }
 }
 
 dependencies {

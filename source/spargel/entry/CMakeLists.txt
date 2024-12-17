@@ -7,7 +7,9 @@ spargel_add_library(
         simple_android.cpp
     DEPS
         base
+        resource
         ui
+        util
 )
 
 if (SPARGEL_IS_ANDROID)

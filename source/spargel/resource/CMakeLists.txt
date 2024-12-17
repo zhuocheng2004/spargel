@@ -4,6 +4,8 @@ spargel_add_library(
     PRIVATE
         resource.cpp
         directory.cpp
+    PRIVATE_ANDROID
+        android_asset.cpp
     DEPS
         base
 )
@@ -13,7 +15,6 @@ spargel_add_application(
     PRIVATE resource_demo.cpp
     DEPS
         resource
-        util
         entry
 )
 spargel_application_add_resources(
