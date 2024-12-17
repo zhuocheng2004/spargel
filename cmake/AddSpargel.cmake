@@ -29,7 +29,7 @@ function(spargel_add_executable)
     cmake_parse_arguments(ARGS
         "" # options
         "NAME" # one value
-        "PRIVATE;DEPS;PRIVATE_ANDROID;PRIVATE_LINUX;PRIVATE_MACOS;PRIVATE_WINDOWS" # multi value
+        "PRIVATE;PRIVATE_ANDROID;PRIVATE_LINUX;PRIVATE_MACOS;PRIVATE_WINDOWS;DEPS" # multi value
         ${ARGN})
 
     add_executable(${ARGS_NAME})
@@ -62,7 +62,7 @@ function(spargel_add_application)
         cmake_parse_arguments(ARGS
             "" # options
             "NAME" # one value
-            "PRIVATE;DEPS;PRIVATE_ANDROID" # multi value
+            "PRIVATE;PRIVATE_ANDROID;DEPS" # multi value
             ${ARGN})
 
         add_library(${ARGS_NAME} SHARED)
@@ -117,6 +117,28 @@ function(spargel_add_option name doc value)
         message(STATUS "${name}: OFF")
     endif()
 endfunction()
+
+function(spargel_target_add_resources)
+    cmake_parse_arguments(ARGS
+        "" # options
+        "TARGET;SRC;DST" # one value
+        "DEPS" # multi value
+        ${ARGN})
+
+        add_custom_target(${ARGS_TARGET}_copy_resources
+            COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${ARGS_SRC} $<TARGET_PROPERTY:${ARGS_TARGET},BINARY_DIR>/resources/${ARGS_DST})
+        add_dependencies(${ARGS_TARGET}_copy_resources ${ARGS_DEPS})
+        add_dependencies(${ARGS_TARGET} ${ARGS_TARGET}_copy_resources)
+endfunction()
+
+function(spargel_application_add_resources)
+    if (SPARGEL_IS_ANDROID)
+        message("TODO")
+    else ()
+        spargel_target_add_resources(${ARGN})
+    endif ()
+endfunction()
+
 
 function(spargel_target_add_resources_dir name)
     add_custom_target(${name}_copy_resources

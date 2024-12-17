@@ -1,21 +1,24 @@
+
 spargel_add_library(
     NAME resource
     PRIVATE
         resource.cpp
-        empty.cpp
         directory.cpp
     DEPS
         base
 )
 
-spargel_add_executable(
-    NAME demo_resource_empty
-    PRIVATE demo_empty.cpp
-    DEPS resource base
+spargel_add_application(
+    NAME resource_demo
+    PRIVATE resource_demo.cpp
+    DEPS
+        resource
+        util
+        entry
 )
-
-spargel_add_executable(
-    NAME demo_resource_directory
-    PRIVATE demo_directory.cpp
-    DEPS resource base
+spargel_application_add_resources(
+    TARGET resource_demo
+    SRC ${CMAKE_CURRENT_SOURCE_DIR}/demo_assets
+    DST
+    DEPS resource
 )

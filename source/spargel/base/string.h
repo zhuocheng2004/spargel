@@ -23,6 +23,10 @@ namespace spargel::base {
 
         friend bool operator==(string const& lhs, string const& rhs);
 
+        friend string operator+(const string& lhs, const string& rhs);
+
+        friend string operator+(const string& s, char ch);
+
         ssize _length = 0;
         char* _data = nullptr;
     };

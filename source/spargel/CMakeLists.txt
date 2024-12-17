@@ -5,6 +5,7 @@ add_subdirectory(entry)
 add_subdirectory(gpu)
 add_subdirectory(resource)
 add_subdirectory(ui)
+add_subdirectory(util)
 
 configure_file(autoconfig.h.in autoconfig.h @ONLY)
 

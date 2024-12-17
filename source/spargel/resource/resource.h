@@ -1,73 +1,57 @@
 #pragma once
 
-#include <spargel/base/base.h>
 #include <spargel/base/string.h>
-
-/* defines */
-#define RESOURCE_DEFAULT_NS "core"
-
-#define REOURCE_ID_WITH_NS(ns, path)                           \
-    ((struct resource_id){spargel::base::string_from_cstr(ns), \
-                          spargel::base::string_from_cstr(path)})
-
-#define RESOURCE_ID(path) REOURCE_ID_WITH_NS(RESOURCE_DEFAULT_NS, path)
 
 namespace spargel::resource {
 
-    /* types */
+    const base::string DEFAULT_NS = base::string_from_cstr("core");
 
-    typedef int resource_err;
+    class resource_id {
+    public:
+        resource_id(const base::string& ns, const base::string& path) : _ns(ns), _path(path) {}
+        resource_id(const base::string& path) : resource_id(DEFAULT_NS, path) {}
 
-    struct resource_id {
-        spargel::base::string ns;
-        spargel::base::string path;
+        resource_id(const char* ns, const char* path)
+            : resource_id(base::string_from_cstr(ns), base::string_from_cstr(path)) {}
+        resource_id(const char* path) : resource_id(base::string_from_cstr(path)) {}
+
+        const base::string& ns() const { return _ns; }
+        const base::string& path() const { return _path; }
+
+    private:
+        base::string _ns;
+        base::string _path;
     };
 
-    struct resource {
-        ssize size;
-        int ref_cnt;
-        struct resource_operations* op;
+    class resource;
 
-        void* data;
+    class resource_manager {
+    public:
+        virtual ~resource_manager() = default;
+
+        virtual void close() {}
+
+        virtual resource* open(const resource_id& id) = 0;
     };
 
-    struct resource_operations {
-        void (*close)(struct resource*);
-        resource_err (*get_data)(struct resource*, void* addr);
+    class resource {
+    public:
+        virtual ~resource() = default;
+
+        virtual void close() {}
+
+        virtual size_t size() = 0;
+
+        virtual void get_data(void* buf) = 0;
+
+        // virtual void* map_data() = 0;
     };
 
-    struct resource_manager {
-        struct resource_manager_operations* op;
-
-        void* data;
+    // The most trivial example
+    class empty_resource_manager : public resource_manager {
+        resource* open(const resource_id& id) override { return nullptr; }
     };
 
-    struct resource_manager_operations {
-        void (*close)(struct resource_manager*);
-        struct resource* (*open_resource)(struct resource_manager*, struct resource_id id);
-    };
-
-    /* functions */
-
-    /* reference +1 */
-    inline void resource_get(struct resource* resource) { resource->ref_cnt++; }
-
-    /* reference -1 ; close resource if there are no references */
-    void resource_put(struct resource* resource);
-
-    inline ssize resource_size(struct resource* resource) { return resource->size; }
-
-    inline resource_err resource_get_data(struct resource* resource, void* addr) {
-        return resource->op->get_data(resource, addr);
-    }
-
-    inline struct resource* resource_open_resource(struct resource_manager* manager,
-                                                   struct resource_id id) {
-        return manager->op->open_resource(manager, id);
-    }
-
-    inline void resource_close_manager(struct resource_manager* manager) {
-        manager->op->close(manager);
-    }
+    resource_manager* default_resource_manager();
 
 }  // namespace spargel::resource

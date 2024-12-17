@@ -62,4 +62,16 @@ namespace spargel::base {
         return str;
     }
 
+    string operator+(const string& lhs, const string& rhs) { return string_concat(lhs, rhs); }
+
+    string operator+(const string& s, char ch) {
+        string str;
+        str._length = s._length + 1;
+        str._data = (char*)allocate(str._length + 1, ALLOCATION_BASE);
+        memcpy(str._data, s._data, s._length);
+        str._data[s._length] = ch;
+        str._data[s._length + 1] = '\0';
+        return str;
+    }
+
 }  // namespace spargel::base

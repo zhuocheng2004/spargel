@@ -1,59 +1,33 @@
-#include <spargel/base/base.h>
+
 #include <spargel/base/const.h>
 #include <spargel/resource/directory.h>
 
-/* libc */
-#include <stdlib.h>
-
 namespace spargel::resource {
 
-    extern struct resource_manager_operations directory_manager_operations;
+    void directory_resource::close() { fclose(_fp); }
 
-    struct directory_manager_data {
-        spargel::base::string base;
-    };
-
-    const auto DOT = base::string_from_cstr(".");
-
-    static void normalize_path(spargel::base::string* path) {
-        if (path->length() == 0) {
-            path->~string();
-            *path = DOT;
-        } else {
-            ssize len = path->length();
-            // FIXME
-            path->_data = (char*)spargel::base::reallocate(path->_data, len + 1, len + 2,
-                                                           spargel::base::ALLOCATION_BASE);
-            path->_data[len] = PATH_SPLIT;
-            path->_data[len + 1] = '\0';
-            path->_length = len + 1;
-        }
+    size_t directory_resource::size() {
+        fseek(_fp, 0, SEEK_END);
+        long size = ftell(_fp);
+        return size;
     }
 
-    void resource_directory_manager_init(struct resource_manager* manager,
-                                         spargel::base::string base_path) {
-        struct directory_manager_data* data =
-            (struct directory_manager_data*)malloc(sizeof(struct directory_manager_data));
-        data->base = base_path;
-        normalize_path(&data->base);
-        manager->data = data;
-        manager->op = &directory_manager_operations;
+    void directory_resource::get_data(void* buf) {
+        size_t s = size();
+        fseek(_fp, 0, SEEK_SET);
+        fread(buf, s, 1, _fp);
     }
 
-    static void directory_manager_close(struct resource_manager* manager) {
-        struct directory_manager_data* data = (struct directory_manager_data*)manager->data;
-        data->base.~string();
-        free(data);
+    directory_resource* directory_resource_manager::open(const resource_id& id) {
+        base::string real_path = _real_path(id);
+
+        FILE* fp = fopen(real_path.data(), "rb");
+        return fp ? new directory_resource(fp) : nullptr;
     }
 
-    static struct resource* directory_manager_open_resource(struct resource_manager* manager,
-                                                            struct resource_id id) {
-        return NULL;
+    base::string directory_resource_manager::_real_path(const resource_id& id) {
+        base::string root = _root_path.length() == 0 ? base::string_from_cstr(".") : _root_path;
+        return root + PATH_SPLIT + id.path();
     }
-
-    struct resource_manager_operations directory_manager_operations = {
-        .close = directory_manager_close,
-        .open_resource = directory_manager_open_resource,
-    };
 
 }  // namespace spargel::resource
