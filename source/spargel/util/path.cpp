@@ -9,12 +9,13 @@ namespace spargel::util {
 
         const char* data = path.data();
 
-        int end;
-        for (end = path.length() - 1; end >= 0; end--) {
-            if (data[end] == PATH_SPLIT) break;
+        char const* cur = path.end() - 1;
+        // path.length() > 0, so path.begin() != nullptr
+        for (; cur >= path.begin(); cur--) {
+            if (*cur == PATH_SPLIT) break;
         }
 
-        return base::string_from_range(data, data + end);
+        return base::string_from_range(data, cur);
     }
 
 }  // namespace spargel::util

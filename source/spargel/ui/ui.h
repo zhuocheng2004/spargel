@@ -97,7 +97,7 @@ namespace spargel::ui {
 
         virtual void start_loop() = 0;
 
-        virtual base::unique_ptr<window> make_window(int width, int height) = 0;
+        virtual base::unique_ptr<window> make_window(u32 width, u32 height) = 0;
 
     protected:
         explicit platform(platform_kind k) : _kind{k} {}

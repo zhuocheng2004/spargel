@@ -6,7 +6,7 @@
 
 namespace spargel::base {
 
-    ssize _get_executable_path(char* buf, ssize buf_size) {
+    usize _get_executable_path(char* buf, usize buf_size) {
         return readlink("/proc/self/exe", buf, buf_size);
     }
 

@@ -26,7 +26,7 @@ namespace spargel::ui {
 
         void start_loop() override;
 
-        base::unique_ptr<window> make_window(int width, int height) override {
+        base::unique_ptr<window> make_window(u32 width, u32 height) override {
             spargel_log_fatal("platform_android::make_window should not be called");
             spargel_panic_here();
         }

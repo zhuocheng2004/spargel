@@ -16,7 +16,7 @@ namespace spargel::base {
     /**
      * > the total bufsize needed could be more than MAXPATHLEN
      */
-    ssize _get_executable_path(char* buf, ssize buf_size) {
+    usize _get_executable_path(char* buf, usize buf_size) {
         int result = _NSGetExecutablePath(buf, (uint32_t*)&buf_size);
         if (result != 0) return 0;
         return strlen(buf);
@@ -24,7 +24,7 @@ namespace spargel::base {
 
     namespace {
 
-        void write_stderr(char const* buf, ssize len) {
+        void write_stderr(char const* buf, usize len) {
             ssize_t result;
             do {
                 result = write(STDERR_FILENO, buf, len);
@@ -43,7 +43,7 @@ namespace spargel::base {
             write_stderr(buf, 16);
         }
 
-        bool symbolize(void* pc, char* buf, ssize size) {
+        bool symbolize(void* pc, char* buf, usize size) {
             Dl_info info;
             if (dladdr(pc, &info)) {
                 if (strlen(info.dli_sname) < size) {

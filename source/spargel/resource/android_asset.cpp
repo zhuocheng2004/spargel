@@ -8,7 +8,7 @@ namespace spargel::resource {
         resource::close();
     }
 
-    size_t android_asset_resource::size() { return AAsset_getLength(_asset); }
+    usize android_asset_resource::size() { return AAsset_getLength(_asset); }
 
     void android_asset_resource::get_data(void* buf) { AAsset_read(_asset, buf, size()); }
 

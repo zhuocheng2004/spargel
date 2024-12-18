@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spargel/base/compiler.h>
+#include <spargel/base/types.h>
 
 namespace spargel::base {
 
@@ -9,7 +10,7 @@ namespace spargel::base {
     spargel_has_builtin(__builtin_LINE)
         static constexpr source_location current(char const* file = __builtin_FILE(),
                                                  char const* func = __builtin_FUNCTION(),
-                                                 int line = __builtin_LINE()) {
+                                                 u32 line = __builtin_LINE()) {
             return {file, func, line};
         }
 #else
@@ -17,7 +18,7 @@ namespace spargel::base {
 #endif
         char const* _file;
         char const* _func;
-        int _line;
+        u32 _line;
     };
 
 }  // namespace spargel::base

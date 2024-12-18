@@ -1,5 +1,6 @@
 #pragma once
 
+#include <spargel/base/types.h>
 #include <spargel/resource/resource.h>
 
 #if SPARGEL_FILE_MMAP
@@ -24,25 +25,25 @@ namespace spargel::resource {
     public:
         void close() override;
 
-        size_t size() override { return _size; }
+        usize size() override { return _size; }
 
         void get_data(void* buf) override;
 
         void* map_data() override;
 
     private:
-        size_t _size;
+        usize _size;
 #if SPARGEL_FILE_MMAP
         int _fd;
         void* _mapped;
 
-        directory_resource(size_t size, int fd) : _size(size), _fd(fd), _mapped(nullptr) {}
+        directory_resource(usize size, int fd) : _size(size), _fd(fd), _mapped(nullptr) {}
 
         void* _map_data();
 #else
         FILE* _fp;
 
-        directory_resource(size_t size, FILE* fp) : _size(size), _fp(fp) {}
+        directory_resource(usize size, FILE* fp) : _size(size), _fp(fp) {}
 #endif
     };
 

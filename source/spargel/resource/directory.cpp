@@ -1,4 +1,4 @@
-
+#include <spargel/base/assert.h>
 #include <spargel/base/const.h>
 #include <spargel/resource/directory.h>
 
@@ -73,7 +73,15 @@ namespace spargel::resource {
         resource::close();
     }
 
+    usize directory_resource::size() {
+        fseek(_fp, 0, SEEK_END);
+        auto size = ftell(_fp);
+        spargel_assert(size >= 0);
+        return size;
+    }
+
     void directory_resource::get_data(void* buf) {
+        auto s = size();
         fseek(_fp, 0, SEEK_SET);
         fread(buf, _size, 1, _fp);
     }

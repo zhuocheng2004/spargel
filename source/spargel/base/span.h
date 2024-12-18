@@ -12,9 +12,9 @@ namespace spargel::base {
         explicit constexpr span(T const* begin, T const* end) : _begin{begin}, _end{end} {}
         constexpr span(initializer_list<T> l) : _begin{l.begin()}, _end{l.end()} {}
 
-        constexpr T const& operator[](ssize i) const { return _begin[i]; }
+        constexpr T const& operator[](usize i) const { return _begin[i]; }
 
-        constexpr ssize count() const { return _end - _begin; }
+        constexpr usize count() const { return _end - _begin; }
         constexpr T const* data() const { return _begin; }
 
     private:
@@ -23,13 +23,13 @@ namespace spargel::base {
     };
 
     template <typename T>
-    span<T> make_span(ssize count, T const* begin) {
+    span<T> make_span(usize count, T const* begin) {
         return span<T>(begin, begin + count);
     }
 
-    template <typename T, ssize N>
+    template <typename T, usize N>
     span<T> make_span(T const (&arr)[N]) {
         return span<T>(arr, arr + N);
     }
 
-}
+}  // namespace spargel::base

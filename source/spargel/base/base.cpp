@@ -10,9 +10,9 @@
 namespace spargel::base {
 
     /* there is no need to report allocation or check memory leaks if the program panics */
-    void panic_at(char const* file, char const* func, ssize line) {
+    void panic_at(char const* file, char const* func, u32 line) {
         /* todo: rewrite fprintf */
-        fprintf(stderr, "======== PANIC [%s:%s:%ld] ========\n", file, func, line);
+        fprintf(stderr, "======== PANIC [%s:%s:%u] ========\n", file, func, line);
         print_backtrace();
 #if defined(SPARGEL_IS_CLANG) || defined(SPARGEL_IS_GCC)
         __builtin_trap();
@@ -26,8 +26,8 @@ namespace spargel::base {
     void panic() { panic_at("<unknown>", "<unknown>", 0); }
 
     struct alloc_stat {
-        ssize current;
-        ssize total;
+        usize current;
+        usize total;
     };
 
     static struct alloc_stat alloc_stats[_ALLOCATION_COUNT] = {};
@@ -36,7 +36,7 @@ namespace spargel::base {
         "/spargel/gpu",  "/spargel/ui",    "/spargel/resource",
     };
 
-    void* allocate(ssize size, int tag) {
+    void* allocate(usize size, int tag) {
         spargel_assert(tag >= 0 && tag < _ALLOCATION_COUNT);
         void* ptr = malloc(size);
         alloc_stats[tag].current += size;
@@ -47,7 +47,7 @@ namespace spargel::base {
         return ptr;
     }
 
-    void* reallocate(void* ptr, ssize old_size, ssize new_size, int tag) {
+    void* reallocate(void* ptr, usize old_size, usize new_size, int tag) {
         spargel_assert(tag >= 0 && tag < _ALLOCATION_COUNT);
         void* new_ptr = realloc(ptr, new_size);
         alloc_stats[tag].current += new_size - old_size;
@@ -62,7 +62,7 @@ namespace spargel::base {
         return new_ptr;
     }
 
-    void deallocate(void* ptr, ssize size, int tag) {
+    void deallocate(void* ptr, usize size, int tag) {
         spargel_assert(tag >= 0 && tag < _ALLOCATION_COUNT);
         free(ptr);
         alloc_stats[tag].current -= size;

@@ -29,7 +29,7 @@ namespace spargel::base {
     };
 
     SPARGEL_ATTRIBUTE_PRINTF_FORMAT(5, 6)
-    void log(int level, char const* file, char const* func, ssize line, char const* format, ...);
+    void log(int level, char const* file, char const* func, u32 line, char const* format, ...);
 
     struct logger {};
 

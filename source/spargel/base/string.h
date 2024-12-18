@@ -15,10 +15,14 @@ namespace spargel::base {
 
         ~string();
 
-        char& operator[](ssize i) { return _data[i]; }
-        char const& operator[](ssize i) const { return _data[i]; }
+        char& operator[](usize i) { return _data[i]; }
+        char const& operator[](usize i) const { return _data[i]; }
 
-        ssize length() const { return _length; }
+        usize length() const { return _length; }
+        char* begin() { return _data; }
+        char const* begin() const { return _data; }
+        char* end() { return _data + _length; }
+        char const* end() const { return _data + _length; }
         char* data() { return _data; }
         char const* data() const { return _data; }
         string_view view() const { return string_view(_data, _data + _length); }
@@ -29,7 +33,7 @@ namespace spargel::base {
 
         friend string operator+(const string& s, char ch);
 
-        ssize _length = 0;
+        usize _length = 0;
         char* _data = nullptr;
     };
 

@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 int main() {
-    spargel::base::string path = spargel::base::get_executable_path();
+    auto path = spargel::base::get_executable_path();
     printf("Current executable path: \"%s\" \n", path.data());
     printf("Path length: %ld\n", path.length());
 

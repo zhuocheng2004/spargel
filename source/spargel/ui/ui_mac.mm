@@ -5,8 +5,8 @@
 
 // platform
 #import <AppKit/AppKit.h>
-#import <QuartzCore/QuartzCore.h>
 #include <Carbon/Carbon.h>
+#import <QuartzCore/QuartzCore.h>
 
 @implementation SpargelApplicationDelegate
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender {
@@ -19,14 +19,15 @@
     CAMetalLayer* _layer;
     spargel::ui::window_appkit* _bridge;
 }
-- (instancetype)initWithSpargelUIWindow:(spargel::ui::window_appkit*)w metalLayer:(CAMetalLayer*)layer {
+- (instancetype)initWithSpargelUIWindow:(spargel::ui::window_appkit*)w
+                             metalLayer:(CAMetalLayer*)layer {
     [super init];
     _bridge = w;
     _layer = layer;
     self.layer = _layer;
     self.wantsLayer = YES;
-        // view.layer = _layer;
-        // view.wantsLayer = YES;  // layer-hosting view
+    // view.layer = _layer;
+    // view.wantsLayer = YES;  // layer-hosting view
     return self;
 }
 - (void)viewDidMoveToWindow {
@@ -70,7 +71,8 @@
     if (newSize.width <= 0 || newSize.width <= 0) {
         return;
     }
-    if (newSize.width == _layer.drawableSize.width && newSize.height == _layer.drawableSize.height) {
+    if (newSize.width == _layer.drawableSize.width &&
+        newSize.height == _layer.drawableSize.height) {
         return;
     }
     _layer.drawableSize = newSize;
@@ -118,7 +120,7 @@ namespace spargel::ui {
 
     void platform_appkit::start_loop() { [_app run]; }
 
-    base::unique_ptr<window> platform_appkit::make_window(int width, int height) {
+    base::unique_ptr<window> platform_appkit::make_window(u32 width, u32 height) {
         spargel_assert(width > 0 && height > 0);
         return base::make_unique<window_appkit>(width, height);
     }
@@ -165,7 +167,8 @@ namespace spargel::ui {
 
         _layer = [[CAMetalLayer alloc] init];
 
-        SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this metalLayer:_layer];
+        SpargelMetalView* view = [[SpargelMetalView alloc] initWithSpargelUIWindow:this
+                                                                        metalLayer:_layer];
         // view.layer = _layer;
         // view.wantsLayer = YES;  // layer-hosting view
 

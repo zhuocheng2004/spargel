@@ -2,6 +2,7 @@
 
 #include <spargel/base/string.h>
 #include <spargel/base/string_view.h>
+#include <spargel/base/types.h>
 
 namespace spargel::resource {
 
@@ -39,7 +40,7 @@ namespace spargel::resource {
 
         virtual void close();
 
-        virtual size_t size() = 0;
+        virtual usize size() = 0;
 
         virtual void get_data(void* buf) = 0;
 

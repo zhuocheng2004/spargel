@@ -108,11 +108,11 @@ namespace spargel::ui {
         }
     }
 
-    base::unique_ptr<window> platform_xcb::make_window(int width, int height) {
+    base::unique_ptr<window> platform_xcb::make_window(u32 width, u32 height) {
         return base::make_unique<window_xcb>(*this, width, height);
     }
 
-    window_xcb::window_xcb(platform_xcb& platform, int width, int height) : _platform(platform) {
+    window_xcb::window_xcb(platform_xcb& platform, u32 width, u32 height) : _platform(platform) {
         _id = xcb_generate_id(platform._connection);
 
         uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;

@@ -10,27 +10,27 @@ namespace spargel::gpu {
 
     namespace {
 
-        MTLCullMode translate_cull_mode(cull_mode mode) {
-            using enum cull_mode;
-            switch (mode) {
-            case none:
-                return MTLCullModeNone;
-            case front:
-                return MTLCullModeFront;
-            case back:
-                return MTLCullModeBack;
-            }
-        }
+        // MTLCullMode translate_cull_mode(cull_mode mode) {
+        //     using enum cull_mode;
+        //     switch (mode) {
+        //     case none:
+        //         return MTLCullModeNone;
+        //     case front:
+        //         return MTLCullModeFront;
+        //     case back:
+        //         return MTLCullModeBack;
+        //     }
+        // }
 
-        MTLWinding translate_orientation(orientation o) {
-            using enum orientation;
-            switch (o) {
-            case clockwise:
-                return MTLWindingClockwise;
-            case counter_clockwise:
-                return MTLWindingCounterClockwise;
-            }
-        }
+        // MTLWinding translate_orientation(orientation o) {
+        //     using enum orientation;
+        //     switch (o) {
+        //     case clockwise:
+        //         return MTLWindingClockwise;
+        //     case counter_clockwise:
+        //         return MTLWindingCounterClockwise;
+        //     }
+        // }
 
         MTLPrimitiveTopologyClass translate_primitive_type(primitive_kind kind) {
             using enum primitive_kind;

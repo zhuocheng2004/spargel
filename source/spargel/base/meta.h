@@ -145,7 +145,7 @@ namespace spargel::base {
         struct is_array<T[]> {
             static constexpr bool value = true;
         };
-        template <typename T, ssize N>
+        template <typename T, usize N>
         struct is_array<T[N]> {
             static constexpr bool value = true;
         };
@@ -167,7 +167,7 @@ namespace spargel::base {
         struct remove_extent<T[]> {
             using type = T;
         };
-        template <typename T, ssize N>
+        template <typename T, usize N>
         struct remove_extent<T[N]> {
             using type = T;
         };

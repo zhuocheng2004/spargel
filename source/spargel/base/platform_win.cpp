@@ -13,7 +13,7 @@ __declspec(dllimport) DWORD
 
 namespace spargel::base {
 
-    ssize _get_executable_path(char* buf, ssize buf_size) {
+    usize _get_executable_path(char* buf, usize buf_size) {
         return GetModuleFileNameA(NULL, buf, buf_size);
     }
 

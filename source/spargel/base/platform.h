@@ -20,7 +20,7 @@ namespace spargel::base {
      * @param buf_size the size of the buffer
      * @return the length of the path string; zero if the path cannot be got
      */
-    ssize _get_executable_path(char* buf, ssize buf_size);
+    usize _get_executable_path(char* buf, usize buf_size);
 
     string get_executable_path();
 

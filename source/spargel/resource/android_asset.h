@@ -1,5 +1,6 @@
 #pragma once
 
+#include <spargel/base/types.h>
 #include <spargel/resource/resource.h>
 
 // Android
@@ -13,7 +14,7 @@ namespace spargel::resource {
     public:
         void close() override;
 
-        size_t size() override;
+        usize size() override;
 
         void get_data(void* buf) override;
 

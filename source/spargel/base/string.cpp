@@ -42,7 +42,7 @@ namespace spargel::base {
     }
 
     string string_from_cstr(char const* str) {
-        ssize len = strlen(str);
+        usize len = strlen(str);
         return string_from_range(str, str + len);
     }
 

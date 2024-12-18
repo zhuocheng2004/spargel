@@ -10,7 +10,7 @@ namespace spargel::base {
 
     [[noreturn]] void panic();
 
-    [[noreturn]] void panic_at(char const* file, char const* func, ssize line);
+    [[noreturn]] void panic_at(char const* file, char const* func, u32 line);
 
 #define spargel_panic_here() ::spargel::base::panic_at(__FILE__, __func__, __LINE__)
 
@@ -31,9 +31,9 @@ namespace spargel::base {
         _ALLOCATION_COUNT,
     };
 
-    void* allocate(ssize size, int tag);
-    void* reallocate(void* ptr, ssize old_size, ssize new_size, int tag);
-    void deallocate(void* ptr, ssize size, int tag);
+    void* allocate(usize size, int tag);
+    void* reallocate(void* ptr, usize old_size, usize new_size, int tag);
+    void deallocate(void* ptr, usize size, int tag);
 
     void report_allocation();
     void check_leak();

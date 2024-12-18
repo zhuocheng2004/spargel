@@ -46,23 +46,23 @@ namespace spargel::gpu {
 
     class render_task {
     private:
-        class callback_shape {
-        public:
-            virtual ~callback_shape() = default;
-            virtual void execute(render_encoder& encoder) = 0;
-        };
+        // class callback_shape {
+        // public:
+        //     virtual ~callback_shape() = default;
+        //     virtual void execute(render_encoder& encoder) = 0;
+        // };
 
-        template <typename F>
-        class callback final : public callback_shape {
-        public:
-            callback(F&& f) : _f(base::move(f)) {}
-            ~callback() override = default;
+        // template <typename F>
+        // class callback final : public callback_shape {
+        // public:
+        //     callback(F&& f) : _f(base::move(f)) {}
+        //     ~callback() override = default;
 
-            void execute(render_encoder& encoder) override { _f(encoder); }
+        //     void execute(render_encoder& encoder) override { _f(encoder); }
 
-        private:
-            F _f;
-        };
+        // private:
+        //     F _f;
+        // };
 
     public:
         void set_name(char const* name) {}
@@ -72,13 +72,16 @@ namespace spargel::gpu {
         // write to color attachment
         void add_write(texture_handle handle, load_action load, store_action store) {}
 
-        template <typename F>
-        void set_execute(F&& f) {
-            _execute = base::make_unique<callback<F>>(base::move(f));
-        }
+        // template <typename F>
+        // void set_execute(F&& f) {
+        //     _execute = base::make_unique<callback<F>>(base::move(f));
+        // }
+
+        void set_execute(void (*f)(render_encoder&)) { _execute = f; }
 
     private:
-        base::unique_ptr<callback_shape> _execute;
+        // base::unique_ptr<callback_shape> _execute;
+        void (*_execute)(render_encoder&);
     };
 
     class task_graph {

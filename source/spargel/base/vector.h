@@ -61,28 +61,28 @@ namespace spargel::base {
                 _end = _begin;
             }
 
-            void reserve(ssize capacity) {
+            void reserve(usize capacity) {
                 if (_begin + capacity > _capacity) {
                     grow(capacity);
                 }
             }
 
             // unsafe;
-            void set_count(ssize count) { _end = _begin + count; }
+            void set_count(usize count) { _end = _begin + count; }
 
-            T& operator[](ssize i) {
+            T& operator[](usize i) {
                 spargel_assert(_begin + i < _end);
                 return _begin[i];
             }
-            T const& operator[](ssize i) const {
+            T const& operator[](usize i) const {
                 spargel_assert(_begin + i < _end);
                 return _begin[i];
             }
 
             T* data() { return _begin; }
             T const* data() const { return _begin; }
-            ssize count() const { return _end - _begin; }
-            ssize capacity() const { return _capacity - _begin; }
+            usize count() const { return _end - _begin; }
+            usize capacity() const { return _capacity - _begin; }
 
             T* begin() { return _begin; }
             T const* begin() const { return _begin; }
@@ -96,7 +96,7 @@ namespace spargel::base {
             }
 
         private:
-            ssize next_capacity(ssize count) {
+            usize next_capacity(usize count) {
                 auto new_capacity = capacity() * 2;
                 if (new_capacity < count) {
                     new_capacity = count;
@@ -104,8 +104,8 @@ namespace spargel::base {
                 return new_capacity;
             }
 
-            void grow(ssize need) {
-                ssize old_count = count();
+            void grow(usize need) {
+                usize old_count = count();
                 auto new_capacity = next_capacity(need);
                 T* new_begin = static_cast<T*>(_alloc->alloc(sizeof(T) * new_capacity));
                 if (_begin != nullptr) {
@@ -130,7 +130,7 @@ namespace spargel::base {
                 }
             }
 
-            void allocate(ssize capacity) {
+            void allocate(usize capacity) {
                 _begin = static_cast<T*>(_alloc->alloc(sizeof(T) * capacity));
                 _end = _begin;
                 _capacity = _begin + capacity;
