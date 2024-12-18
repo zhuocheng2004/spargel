@@ -44,27 +44,30 @@ static void xxd_print(char* data, size_t size) {
     }
 }
 
-int simple_entry(spargel::entry::simple_entry_data* entry_data) {
-    auto resource_manager = spargel::entry::make_resource_manager(entry_data);
+namespace spargel::entry {
 
-    spargel::base::string_view path = "abc.txt";
+    int simple_entry(simple_entry_data* entry_data) {
+        base::string_view path = "abc.txt";
 
-    auto resource = resource_manager->open(spargel::resource::resource_id(path));
-    if (!resource) {
-        spargel_log_error("Cannot open resource \"%s\"", path.data());
-        return 1;
+        auto resource = entry_data->resource_manager->open(resource::resource_id(path));
+        if (!resource) {
+            spargel_log_error("Cannot open resource \"%s\"", path.data());
+            return 1;
+        }
+
+        size_t size = resource->size();
+        spargel_log_info("Size of \"%s\": %ld", path.data(), size);
+        spargel_log_info("================");
+
+        char* data = (char*)resource->map_data();
+        xxd_print(data, size);
+
+        resource->close();
+        delete resource;
+
+        entry_data->resource_manager->close();
+
+        return 0;
     }
 
-    size_t size = resource->size();
-    spargel_log_info("Size of \"%s\": %ld", path.data(), size);
-    spargel_log_info("================");
-
-    char* data = (char*)resource->map_data();
-    xxd_print(data, size);
-
-    resource->close();
-    delete resource;
-
-    resource_manager->close();
-    return 0;
-}
+}  // namespace spargel::entry

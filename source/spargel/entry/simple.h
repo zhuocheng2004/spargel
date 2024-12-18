@@ -3,24 +3,14 @@
 #include <spargel/resource/resource.h>
 #include <spargel/ui/ui.h>
 
-#if SPARGEL_IS_ANDROID
-struct android_app;
-#endif
-
 namespace spargel::entry {
 
     struct simple_entry_data {
-        base::unique_ptr<spargel::ui::platform> platform;
-        base::unique_ptr<spargel::ui::window> window;
-#if SPARGEL_IS_ANDROID
-        android_app* app;
-#endif
+        base::unique_ptr<ui::platform> platform;
+        base::unique_ptr<ui::window> window;
+        base::unique_ptr<resource::resource_manager> resource_manager;
     };
 
-    base::unique_ptr<resource::resource_manager> make_resource_manager(simple_entry_data* data);
+    int simple_entry(spargel::entry::simple_entry_data* entry_data);
 
 }  // namespace spargel::entry
-
-extern "C" {
-int simple_entry(spargel::entry::simple_entry_data* data);
-}

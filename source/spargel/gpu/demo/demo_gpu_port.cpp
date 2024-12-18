@@ -119,7 +119,7 @@ static int create(int backend, char const* title, renderer* r, spargel::ui::plat
     return 0;
 }
 
-int simple_entry(spargel::entry::simple_entry_data* data) {
+int spargel::entry::simple_entry(spargel::entry::simple_entry_data* data) {
     auto platform = spargel::base::move(data->platform);
 
 #if USE_VULKAN

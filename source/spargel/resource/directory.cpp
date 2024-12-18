@@ -1,15 +1,19 @@
+
 #include <spargel/base/assert.h>
 #include <spargel/base/const.h>
+#include <spargel/base/platform.h>
 #include <spargel/resource/directory.h>
+#include <spargel/util/path.h>
 
 // libc
 #include <string.h>
 
 #if SPARGEL_FILE_MMAP
 
-#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_POSIX
 // POSIX
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
@@ -27,29 +31,35 @@ namespace spargel::resource {
 
     void directory_resource::close() {
         if (_mapped) {
-            munmap(_mapped, _size);
+            _unmap(_mapped, _size);
         }
+#if SPARGEL_IS_POSIX
         ::close(_fd);
+#else
+#error unimplemented
+#endif
         resource::close();
     }
 
     void directory_resource::get_data(void* buf) {
         if (!_mapped) {
-            _mapped = _map_data();
+            _mapped = _map();
         }
         memcpy(buf, _mapped, _size);
     }
 
     void* directory_resource::map_data() {
         if (!_mapped) {
-            _mapped = _map_data();
+            _mapped = _map();
         }
         return _mapped;
     }
 
-    void* directory_resource::_map_data() {
-        return mmap(NULL, _size, PROT_READ, MAP_PRIVATE, _fd, 0);
-    }
+#if SPARGEL_IS_POSIX
+
+    void* directory_resource::_map() { return mmap(NULL, _size, PROT_READ, MAP_PRIVATE, _fd, 0); }
+
+    void directory_resource::_unmap(void* ptr, usize size) { munmap(ptr, size); }
 
     directory_resource* directory_resource_manager::open(const resource_id& id) {
         base::string real_path = _real_path(id);
@@ -66,6 +76,10 @@ namespace spargel::resource {
         return new directory_resource(sb.st_size, fd);
     }
 
+#else
+#error unimplemented
+#endif
+
 #else  // SPARGEL_FILE_MMAP
 
     void directory_resource::close() {
@@ -73,15 +87,7 @@ namespace spargel::resource {
         resource::close();
     }
 
-    usize directory_resource::size() {
-        fseek(_fp, 0, SEEK_END);
-        auto size = ftell(_fp);
-        spargel_assert(size >= 0);
-        return size;
-    }
-
     void directory_resource::get_data(void* buf) {
-        auto s = size();
         fseek(_fp, 0, SEEK_SET);
         fread(buf, _size, 1, _fp);
     }
@@ -104,6 +110,12 @@ namespace spargel::resource {
     base::string directory_resource_manager::_real_path(const resource_id& id) {
         base::string root = _root_path.length() == 0 ? base::string(".") : _root_path;
         return root + PATH_SPLIT + id.path();
+    }
+
+    base::unique_ptr<directory_resource_manager> make_relative_manager() {
+        base::string root_path =
+            util::dirname(base::get_executable_path()) + PATH_SPLIT + base::string("resources");
+        return base::make_unique<directory_resource_manager>(root_path.view());
     }
 
 }  // namespace spargel::resource

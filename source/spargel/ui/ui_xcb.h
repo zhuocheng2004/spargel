@@ -36,7 +36,7 @@ namespace spargel::ui {
         friend platform_xcb;
 
     public:
-        window_xcb(platform_xcb& platform, int width, int height);
+        window_xcb(platform_xcb& platform, u32 width, u32 height);
         ~window_xcb() override;
 
         void set_title(char const* title) override;

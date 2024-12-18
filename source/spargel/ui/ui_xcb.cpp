@@ -1,3 +1,4 @@
+
 #include <spargel/base/base.h>
 #include <spargel/base/logging.h>
 #include <spargel/ui/ui_xcb.h>

@@ -13,7 +13,7 @@
 #include <string.h>
 
 /* platform */
-#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_POSIX
 #include <dlfcn.h>
 #endif
 
@@ -164,7 +164,7 @@ namespace spargel::gpu {
                                      device_id* device) {
         alloc_object(vulkan_device, d);
         d->backend = BACKEND_VULKAN;
-#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_POSIX
         d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
 #else
 #error unimplemented
