@@ -33,15 +33,21 @@ namespace spargel::resource {
 
     class resource {
     public:
+        resource() : _mapped(nullptr) {}
+
         virtual ~resource() = default;
 
-        virtual void close() {}
+        virtual void close();
 
         virtual size_t size() = 0;
 
         virtual void get_data(void* buf) = 0;
 
-        // virtual void* map_data() = 0;
+        virtual void* map_data();
+
+    private:
+        void* _mapped;
+        size_t _mapped_size;
     };
 
     // The most trivial example

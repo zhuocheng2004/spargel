@@ -5,20 +5,43 @@
 // libc
 #include <stdio.h>
 
+#if SPARGEL_FILE_MMAP
+
+#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+// POSIX
+#include <sys/mman.h>
+#endif
+
+#endif  // SPARGEL_FILE_MMAP
+
 namespace spargel::resource {
 
     class directory_resource : public resource {
-    public:
-        directory_resource(FILE* fp) : _fp(fp) {}
+        friend class directory_resource_manager;
 
+    public:
         void close() override;
 
-        size_t size() override;
+        size_t size() override { return _size; }
 
         void get_data(void* buf) override;
 
+        void* map_data() override;
+
     private:
+        size_t _size;
+#if SPARGEL_FILE_MMAP
+        int _fd;
+        void* _mapped;
+
+        directory_resource(size_t size, int fd) : _size(size), _fd(fd), _mapped(nullptr) {}
+
+        void* _map_data();
+#else
         FILE* _fp;
+
+        directory_resource(size_t size, FILE* fp) : _size(size), _fp(fp) {}
+#endif
     };
 
     class directory_resource_manager : public resource_manager {

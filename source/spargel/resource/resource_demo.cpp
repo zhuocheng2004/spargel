@@ -15,31 +15,14 @@ static void put_hex(u8 ch) {
     putchar(hex_digits[ch & 0xf]);
 }
 
-int simple_entry(spargel::entry::simple_entry_data* data) {
-    auto resource_manager = spargel::entry::make_resource_manager(data);
-
-    spargel::base::string_view path = "abc.txt";
-
-    auto resource =
-        resource_manager->open(spargel::resource::resource_id(path));
-    if (!resource) {
-        spargel_log_error("Cannot open resource \"%s\"", path.data());
-        return 1;
-    }
-
-    size_t size = resource->size();
-    spargel_log_info("Size of \"%s\": %ld", path.data(), size);
-    spargel_log_info("================");
-
-    char* buf = new char[size];
-    resource->get_data(buf);
+static void xxd_print(char* data, size_t size) {
     int last_line = (size + 1) / 16;
     for (int i = 0; i <= last_line; i++) {
         printf("%08x: ", 16 * i);
         int cnt = i == last_line ? size - 16 * i : 16;
         for (int j = 0; j < 16; j++) {
             if (j < cnt) {
-                put_hex(buf[16 * i + j]);
+                put_hex(data[16 * i + j]);
             } else {
                 putchar(' ');
                 putchar(' ');
@@ -50,7 +33,7 @@ int simple_entry(spargel::entry::simple_entry_data* data) {
         putchar(' ');
 
         for (int j = 0; j < cnt; j++) {
-            char ch = buf[16 * i + j];
+            char ch = data[16 * i + j];
             if (ch >= ' ' && ch <= '~')
                 putchar(ch);
             else
@@ -59,7 +42,25 @@ int simple_entry(spargel::entry::simple_entry_data* data) {
 
         putchar('\n');
     }
-    delete[] buf;
+}
+
+int simple_entry(spargel::entry::simple_entry_data* entry_data) {
+    auto resource_manager = spargel::entry::make_resource_manager(entry_data);
+
+    spargel::base::string_view path = "abc.txt";
+
+    auto resource = resource_manager->open(spargel::resource::resource_id(path));
+    if (!resource) {
+        spargel_log_error("Cannot open resource \"%s\"", path.data());
+        return 1;
+    }
+
+    size_t size = resource->size();
+    spargel_log_info("Size of \"%s\": %ld", path.data(), size);
+    spargel_log_info("================");
+
+    char* data = (char*)resource->map_data();
+    xxd_print(data, size);
 
     resource->close();
     delete resource;

@@ -32,7 +32,8 @@ namespace spargel::base {
 
     static struct alloc_stat alloc_stats[_ALLOCATION_COUNT] = {};
     static char const* alloc_names[_ALLOCATION_COUNT] = {
-        "/spargel/base", "/spargel/codec", "/spargel/ecs", "/spargel/gpu", "/spargel/ui",
+        "/spargel/base", "/spargel/codec", "/spargel/ecs",
+        "/spargel/gpu",  "/spargel/ui",    "/spargel/resource",
     };
 
     void* allocate(ssize size, int tag) {

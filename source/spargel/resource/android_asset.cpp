@@ -3,7 +3,10 @@
 
 namespace spargel::resource {
 
-    void android_asset_resource::close() { AAsset_close(_asset); }
+    void android_asset_resource::close() {
+        AAsset_close(_asset);
+        resource::close();
+    }
 
     size_t android_asset_resource::size() { return AAsset_getLength(_asset); }
 

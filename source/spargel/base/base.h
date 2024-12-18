@@ -26,6 +26,7 @@ namespace spargel::base {
         ALLOCATION_ECS,
         ALLOCATION_GPU,
         ALLOCATION_UI,
+        ALLOCATION_RESOURCE,
 
         _ALLOCATION_COUNT,
     };

@@ -8,9 +8,9 @@
 namespace spargel::resource {
 
     class android_asset_resource : public resource {
-    public:
-        explicit android_asset_resource(AAsset* asset) : _asset(asset) {}
+        friend class android_asset_resource_manager;
 
+    public:
         void close() override;
 
         size_t size() override;
@@ -19,6 +19,8 @@ namespace spargel::resource {
 
     private:
         AAsset* _asset;
+
+        explicit android_asset_resource(AAsset* asset) : _asset(asset) {}
     };
 
     class android_asset_resource_manager : public resource_manager {
