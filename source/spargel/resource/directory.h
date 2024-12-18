@@ -2,15 +2,17 @@
 
 #include <spargel/resource/resource.h>
 
-// libc
-#include <stdio.h>
-
 #if SPARGEL_FILE_MMAP
 
 #if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
 // POSIX
 #include <sys/mman.h>
 #endif
+
+#else  // SPARGEL_FILE_MMAP
+
+// libc
+#include <stdio.h>
 
 #endif  // SPARGEL_FILE_MMAP
 
