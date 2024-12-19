@@ -1,4 +1,3 @@
-
 spargel_add_library(
     NAME entry
     PRIVATE
@@ -10,6 +9,24 @@ spargel_add_library(
         resource
         ui
         util
+)
+
+spargel_add_executable(
+    NAME launcher
+    PRIVATE_MACOS
+        launcher_mac.cpp
+    DEPS
+        base
+        ui
+)
+
+spargel_add_component(
+    NAME component_demo
+    PRIVATE
+        component_demo.cpp
+    DEPS
+        base
+        ui
 )
 
 if (SPARGEL_IS_ANDROID)

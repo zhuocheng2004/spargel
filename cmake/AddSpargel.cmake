@@ -104,6 +104,33 @@ function(spargel_add_library)
     target_link_libraries(${ARGS_NAME} PRIVATE ${ARGS_DEPS})
 endfunction()
 
+function(spargel_add_component)
+    cmake_parse_arguments(ARGS
+        "" # options
+        "NAME" # one value
+        "PUBLIC;PRIVATE;DEPS;PRIVATE_ANDROID;PRIVATE_LINUX;PRIVATE_MACOS;PRIVATE_WINDOWS" # multi value
+        ${ARGN})
+    add_library(${ARGS_NAME} SHARED)
+    spargel_target_common(${ARGS_NAME})
+    target_sources(${ARGS_NAME} PUBLIC ${ARGS_PUBLIC} PRIVATE ${ARGS_PRIVATE})
+    if (SPARGEL_IS_ANDROID)
+        target_sources(${ARGS_NAME} PRIVATE ${ARGS_PRIVATE_ANDROID})
+    endif ()
+    if (SPARGEL_IS_LINUX)
+        target_sources(${ARGS_NAME} PRIVATE ${ARGS_PRIVATE_LINUX})
+    endif ()
+    if (SPARGEL_IS_MACOS)
+        target_sources(${ARGS_NAME} PRIVATE ${ARGS_PRIVATE_MACOS})
+    endif ()
+    if (SPARGEL_IS_WINDOWS)
+        target_sources(${ARGS_NAME} PRIVATE ${ARGS_PRIVATE_WINDOWS})
+    endif ()
+    if(${SPARGEL_ENABLE_SANITIZER_ADDRESS})
+        target_link_options(${ARGS_NAME} PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-fsanitize=address>)
+    endif()
+    target_link_libraries(${ARGS_NAME} PRIVATE ${ARGS_DEPS})
+endfunction()
+
 function(spargel_add_test name)
     spargel_add_executable(NAME ${name})
     add_test(NAME ${name} COMMAND ${name})
