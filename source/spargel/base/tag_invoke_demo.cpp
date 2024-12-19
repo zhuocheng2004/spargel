@@ -5,7 +5,7 @@ namespace A {
     namespace __foo {
         struct foo {
             template <typename T>
-            constexpr auto operator()(T t) const {
+            constexpr void operator()(T t) const {
                 spargel::base::tag_invoke(foo{}, t);
             }
         };
@@ -18,6 +18,7 @@ namespace A {
 }  // namespace A
 
 namespace B {
+    static_assert(spargel::base::is_same<spargel::base::tag<A::foo>, A::__foo::foo>);
     struct bar {};
     void tag_invoke(spargel::base::tag<A::foo>, bar b) { spargel_log_info("special impl for bar"); }
 }  // namespace B

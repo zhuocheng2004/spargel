@@ -75,12 +75,14 @@ namespace spargel::base {
     template <typename T>
     using remove_reference = __remove_reference_t(T);
 #elif spargel_has_builtin(__remove_reference)
+    namespace _remove_reference {
+        template <typename T>
+        struct remove_reference {
+            using type = __remove_reference(T);
+        };
+    }  // namespace _remove_reference
     template <typename T>
-    struct remove_reference_impl {
-        using type = __remove_reference(T);
-    };
-    template <typename T>
-    using remove_reference = remove_reference_impl<T>::type;
+    using remove_reference = _remove_reference::remove_reference<T>::type;
 #else
     namespace _remove_reference {
         template <typename T>
@@ -208,7 +210,7 @@ namespace spargel::base {
     namespace _add_pointer {
         template <typename T, bool = is_referenceable<T> || is_void<T>>
         struct add_pointer {
-            using type = remove_reference<T>;
+            using type = remove_reference<T>*;
         };
         template <typename T>
         struct add_pointer<T, false> {
@@ -232,7 +234,7 @@ namespace spargel::base {
         };
     }  // namespace _conditional
     template <bool b, typename S, typename T>
-    using conditional = _conditional::conditional<b, S, T>;
+    using conditional = _conditional::conditional<b, S, T>::type;
 
 #if spargel_has_builtin(__is_const)
 #else
@@ -283,8 +285,10 @@ namespace spargel::base {
     using decay = __decay(T);
 #else
     template <typename T>
-    using decay = conditional<is_array<T>, add_pointer<remove_extent<T>>,
-                              conditional<is_function<T>, add_pointer<T>, remove_cv<T>>>;
+    using decay =
+        conditional<is_array<remove_reference<T>>, add_pointer<remove_extent<remove_reference<T>>>,
+                    conditional<is_function<remove_reference<T>>, add_pointer<remove_reference<T>>,
+                                remove_cv<remove_reference<T>>>>;
 #endif
 
 #if spargel_has_builtin(__add_rvalue_reference)

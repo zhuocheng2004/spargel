@@ -3,6 +3,7 @@ spargel_add_library(
     PRIVATE
         gpu.cpp
         gpu3.cpp
+        #task_graph.cpp
     DEPS
         base
         spargel_config

@@ -13,6 +13,8 @@ namespace spargel::ui {
 
 namespace spargel::gpu {
 
+    class task_graph;
+
     enum class texture_format {
         bgra8_unorm,
         bgra8_srgb,
@@ -27,77 +29,6 @@ namespace spargel::gpu {
     enum class store_action {
         dont_care,
         store,
-    };
-
-    class device;
-
-    template <typename T>
-    struct resource_handle {};
-
-    class texture_tag;
-
-    using texture_handle = resource_handle<texture_tag>;
-
-    class render_encoder {
-    public:
-        void set_pipeline() {}
-        void draw() {}
-    };
-
-    class render_task {
-    private:
-        // class callback_shape {
-        // public:
-        //     virtual ~callback_shape() = default;
-        //     virtual void execute(render_encoder& encoder) = 0;
-        // };
-
-        // template <typename F>
-        // class callback final : public callback_shape {
-        // public:
-        //     callback(F&& f) : _f(base::move(f)) {}
-        //     ~callback() override = default;
-
-        //     void execute(render_encoder& encoder) override { _f(encoder); }
-
-        // private:
-        //     F _f;
-        // };
-
-    public:
-        void set_name(char const* name) {}
-
-        void add_read(texture_handle handle) {}
-
-        // write to color attachment
-        void add_write(texture_handle handle, load_action load, store_action store) {}
-
-        // template <typename F>
-        // void set_execute(F&& f) {
-        //     _execute = base::make_unique<callback<F>>(base::move(f));
-        // }
-
-        void set_execute(void (*f)(render_encoder&)) { _execute = f; }
-
-    private:
-        // base::unique_ptr<callback_shape> _execute;
-        void (*_execute)(render_encoder&);
-    };
-
-    class task_graph {
-    public:
-        explicit task_graph(device* d) : _device{d} {}
-
-        texture_handle current_surface() { return {}; }
-        texture_handle add_texture(int width, int height) { return {}; }
-        render_task* add_render_task();
-        void add_present_task(texture_handle handle) {}
-
-        void execute();
-
-    private:
-        device* _device;
-        base::vector<render_task> _tasks;
     };
 
     enum class device_kind {
@@ -261,35 +192,6 @@ namespace spargel::gpu {
         always,
     };
 
-    //     fragment: {
-    //         function: fragment_shader,
-    //         targets: [
-    //             {
-    //                 format: bgra8_unorm, // enum texture_format
-    //                 write_mask: r | g | b | a, // bitmask write_mask
-    //                 blend: {
-    //                     color: {
-    //                         operation: add, // enum blend_action
-    //                         src_factor: one, // enum blend_factor
-    //                         dst_factor: zero, // enum blend_factor
-    //                     },
-    //                     alpha: {
-    //                         operation: add, // enum blend_action
-    //                         src_factor: one, // enum blend_factor
-    //                         dst_factor: zero, // enum blend_factor
-    //                     },
-    //                 },
-    //             },
-    //         ]
-    //     },
-    //     depth_stencil: {
-    //         depth_compare: less, // enum depth_compare,
-    //         depth_write_enable: true,
-    //         // todo
-    //     }
-    // }
-    //
-
     template <typename T>
     class object_ptr {
     public:
@@ -336,10 +238,17 @@ namespace spargel::gpu {
     }
 
     class shader_library {};
-
     class render_pipeline {};
-
+    class bind_group {};
+    class bind_group_layout {};
     class buffer {};
+    class texture {};
+    class surface {
+    public:
+        virtual object_ptr<texture> next_texture() = 0;
+        virtual float width() = 0;
+        virtual float height() = 0;
+    };
 
     struct shader_library_descriptor {
         base::span<u8> bytes;
@@ -412,9 +321,6 @@ namespace spargel::gpu {
         // TODO: step rate is not supported by vulkan.
     };
 
-    class bind_group {};
-    class bind_group_layout {};
-
     /// @brief description of a render pipeline
     ///
     /// directx:
@@ -446,15 +352,6 @@ namespace spargel::gpu {
         shader_function fragment_shader;
     };
 
-    class texture {};
-
-    class surface {
-    public:
-        virtual object_ptr<texture> next_texture() = 0;
-        virtual float width() = 0;
-        virtual float height() = 0;
-    };
-
     struct viewport {
         float x;
         float y;
@@ -473,6 +370,35 @@ namespace spargel::gpu {
         } vulkan;
     };
 
+    class task_graph {
+    public:
+        void add_render_task() {}
+        void add_host_task() {}
+        void add_present_task() {}
+    };
+
+    struct prepared_graph {
+        enum class node_kind {
+            render,
+            present,
+            texture,
+            buffer,
+        };
+        struct node_info {
+            node_kind kind;
+            u32 index;
+        };
+        struct render_node {};
+        struct present_node {};
+        struct texture_node {};
+        struct buffer_node {};
+        base::vector<node_info> nodes;
+        base::vector<render_node> renders;
+        base::vector<present_node> presents;
+        base::vector<texture_node> textures;
+        base::vector<buffer_node> buffers;
+    };
+
     class device {
     public:
         virtual ~device() = default;
@@ -483,10 +409,12 @@ namespace spargel::gpu {
             shader_library_descriptor const& descriptor) = 0;
         virtual object_ptr<render_pipeline> make_render_pipeline(
             render_pipeline_descriptor const& descriptor) = 0;
+        virtual object_ptr<surface> make_surface(ui::window* w) = 0;
+        virtual void destroy_shader_library(object_ptr<shader_library> library) = 0;
+        virtual void destroy_render_pipeline(object_ptr<render_pipeline> pipeline) = 0;
 
         virtual object_ptr<buffer> make_buffer_with_bytes(base::span<u8> bytes) = 0;
-
-        virtual object_ptr<surface> make_surface(ui::window* w) = 0;
+        virtual void destroy_buffer(object_ptr<buffer> b) = 0;
 
         virtual void begin_render_pass(object_ptr<texture> t) = 0;
         virtual void set_render_pipeline(object_ptr<render_pipeline> p) = 0;
@@ -497,10 +425,6 @@ namespace spargel::gpu {
                           int instance_count) = 0;
         virtual void end_render_pass() = 0;
         virtual void present(object_ptr<surface> s) = 0;
-
-        virtual void destroy_shader_library(object_ptr<shader_library> library) = 0;
-        virtual void destroy_render_pipeline(object_ptr<render_pipeline> pipeline) = 0;
-        virtual void destroy_buffer(object_ptr<buffer> b) = 0;
 
         virtual void execute(task_graph& graph) = 0;
 

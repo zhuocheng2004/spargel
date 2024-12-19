@@ -8,8 +8,8 @@ namespace spargel::base {
         void tag_invoke();
         struct tag_invoke_impl {
             template <typename Tag, typename... Args>
-            constexpr auto operator()(Tag tag, Args&&... args) const {
-                return tag_invoke(tag, forward<Args>(args)...);
+            constexpr decltype(auto) operator()(Tag&& tag, Args&&... args) const {
+                return tag_invoke(forward<Tag>(tag), forward<Args>(args)...);
             }
         };
     }  // namespace __tag_invoke

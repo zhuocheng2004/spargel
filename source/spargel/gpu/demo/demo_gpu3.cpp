@@ -31,37 +31,6 @@ struct vertex_shader_info {
     };
 };
 
-struct renderer final : public spargel::ui::window_delegate {
-    void on_render() override {
-        // task_graph graph(_device);
-        // auto surface = graph.current_surface();
-        // auto my_pass = graph.add_render_task();
-        // my_pass->set_name("my_pass");
-        // my_pass->add_write(surface, load_action::clear, store_action::store);
-        // my_pass->set_execute([=](render_encoder& encoder) {
-        //     encoder.set_pipeline();
-        //     encoder.draw();
-        //     surface;
-        // });
-        // graph.add_present_task(surface);
-        // graph.execute();
-        auto tex = _surface->next_texture();
-        _device->begin_render_pass(tex);
-        _device->set_viewport({0, 0, _surface->width(), _surface->height(), 0, 1});
-        _device->set_render_pipeline(_pipeline);
-        _device->set_vertex_buffer(_positions, vertex_shader_info::position_buffer);
-        _device->set_vertex_buffer(_colors, vertex_shader_info::color_buffer);
-        _device->draw(0, 6);
-        _device->end_render_pass();
-        _device->present(_surface);
-    }
-    device* _device;
-    object_ptr<render_pipeline> _pipeline;
-    object_ptr<buffer> _positions;
-    object_ptr<buffer> _colors;
-    object_ptr<surface> _surface;
-};
-
 struct vertex_position {
     float x;
     float y;
@@ -72,6 +41,19 @@ struct vertex_color {
     float b;
     float a;
 };
+
+struct renderer final : public spargel::ui::window_delegate {
+    void on_render() override {
+        task_graph graph;
+        _device->execute(graph);
+    }
+    device* _device;
+    object_ptr<render_pipeline> _pipeline;
+    object_ptr<buffer> _positions;
+    object_ptr<buffer> _colors;
+    object_ptr<surface> _surface;
+};
+
 static constexpr vertex_position positions[] = {
     {-0.5, -0.5}, {0.5, 0.5}, {0.5, -0.5}, {-0.5, -0.5}, {-0.5, 0.5}, {0.5, 0.5},
 };
@@ -81,13 +63,13 @@ static constexpr vertex_color colors[] = {
 };
 
 int main() {
+#if USE_METAL
     auto platform = spargel::ui::make_platform();
     auto window = platform->make_window(500, 500);
     window->set_title("Spargel Engine - GPU3");
 
     renderer r;
     window->set_delegate(&r);
-
     auto device = make_device(device_kind::metal);
 
     auto shader = device->make_shader_library({
@@ -154,5 +136,6 @@ int main() {
     // device->destroy_shader_library(shader);
 
     platform->start_loop();
+#endif
     return 0;
 }

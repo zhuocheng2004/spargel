@@ -56,3 +56,9 @@ spargel_add_executable(
     PRIVATE vector_test.cpp
     DEPS base
 )
+
+spargel_add_executable(
+    NAME meta_test
+    PRIVATE meta_test.cpp
+    DEPS base
+)
