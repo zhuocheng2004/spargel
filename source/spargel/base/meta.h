@@ -76,7 +76,11 @@ namespace spargel::base {
     using remove_reference = __remove_reference_t(T);
 #elif spargel_has_builtin(__remove_reference)
     template <typename T>
-    using remove_reference = __remove_reference(T);
+    struct remove_reference_impl {
+        using type = __remove_reference(T);
+    };
+    template <typename T>
+    using remove_reference = remove_reference_impl<T>::type;
 #else
     namespace _remove_reference {
         template <typename T>

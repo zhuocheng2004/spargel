@@ -12,5 +12,7 @@ int main() {
 
     int ret = spargel::entry::simple_entry(&data);
 
+    data.resource_manager->close();
+
     return ret;
 }

@@ -71,6 +71,8 @@ void android_main(struct android_app* app) {
 
     simple_entry(&entry_data);
 
+    entry_data.resource_manager->close();
+
     // empty loop
     while (!app->destroyRequested) {
         android_poll_source* source;

@@ -65,7 +65,7 @@ namespace spargel::entry {
         resource->close();
         delete resource;
 
-        entry_data->resource_manager->close();
+        // Entry-provided resource manager will be closed automatically after returning.
 
         return 0;
     }

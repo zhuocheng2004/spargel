@@ -10,7 +10,7 @@
 #include <time.h>
 
 // platform
-#if SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_POSIX
 #include <sys/time.h>
 #endif
 
@@ -34,7 +34,7 @@ namespace spargel::base {
     };
 
     static void log_get_time(struct log_timestamp* time) {
-#if SPARGEL_IS_ANDROID || SPARGEL_IS_LINUX || SPARGEL_IS_MACOS
+#if SPARGEL_IS_POSIX
         struct timeval tv;
         gettimeofday(&tv, NULL);
         time_t t = tv.tv_sec;
@@ -61,17 +61,17 @@ namespace spargel::base {
 #if SPARGEL_ENABLE_LOG_ANSI_COLOR
         switch (level) {
         case 0:
-            fputs("\033[34m", stderr);
-            break;
-        case 1:
             fputs("\033[36m", stderr);
             break;
+        case 1:
+            fputs("\033[32m", stderr);
+            break;
         case 2:
-            fputs("\033[93m", stderr);
+            fputs("\033[1;93m", stderr);
             break;
         case 3:
         case 4:
-            fputs("\033[91m", stderr);
+            fputs("\033[1;31m", stderr);
             break;
         default:
             fputs("\033[0m", stderr);
