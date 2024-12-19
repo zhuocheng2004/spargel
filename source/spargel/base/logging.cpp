@@ -18,6 +18,10 @@
 #include <android/log.h>
 #endif
 
+#if SPARGEL_IS_WINDOWS
+#include <spargel/base/win_procs.h>
+#endif
+
 namespace spargel::base {
 
     static char const* log_names[_LOG_COUNT] = {
@@ -47,6 +51,15 @@ namespace spargel::base {
         time->min = tm_time->tm_min;
         time->sec = tm_time->tm_sec;
         time->usec = tv.tv_usec;
+#elif SPARGEL_IS_WINDOWS
+        SYSTEMTIME system_time;
+        GetSystemTime(&system_time);
+        time->mon = system_time.wMonth;
+        time->day = system_time.wDay;
+        time->hour = system_time.wHour;
+        time->min = system_time.wMinute;
+        time->sec = system_time.wSecond;
+        time->usec = system_time.wMilliseconds * 1000;
 #else
 #error unimplemented
 #endif

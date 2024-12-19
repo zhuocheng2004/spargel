@@ -1,8 +1,11 @@
 #pragma once
 
+// config first
+#include <spargel/config.h>
+//
+
 #include <spargel/base/const.h>
 #include <spargel/base/types.h>
-#include <spargel/config.h>
 
 namespace spargel::base {
 

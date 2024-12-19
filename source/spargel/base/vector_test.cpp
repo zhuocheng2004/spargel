@@ -8,7 +8,7 @@ int main() {
     vector<int> v1;
     spargel_assert(v1.count() == 0);
     spargel_assert(v1.capacity() == 0);
-    for (int i = 1; i <= 100; i++) {
+    for (u32 i = 1; i <= 100; i++) {
         v1.push(i);
         spargel_assert(v1.count() == i);
     }

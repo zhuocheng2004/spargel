@@ -8,6 +8,7 @@ spargel_add_library(
         android_asset.cpp
     DEPS
         base
+        util
 )
 
 spargel_add_application(
@@ -21,5 +22,5 @@ spargel_application_add_resources(
     TARGET resource_demo
     SRC ${CMAKE_CURRENT_SOURCE_DIR}/demo_assets
     DST
-    DEPS resource
+    DEPS
 )

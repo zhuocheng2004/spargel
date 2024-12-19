@@ -37,7 +37,7 @@ namespace spargel::resource {
         ::close(_fd);
 #else
 #error unimplemented
-#endif
+#endif  // SPARGEL_IS_POSIX
         resource::close();
     }
 
@@ -78,7 +78,7 @@ namespace spargel::resource {
 
 #else
 #error unimplemented
-#endif
+#endif  // SPARGEL_IS_POSIX
 
 #else  // SPARGEL_FILE_MMAP
 

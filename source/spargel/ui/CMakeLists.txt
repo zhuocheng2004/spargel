@@ -2,6 +2,7 @@ spargel_add_library(
     NAME ui
     PRIVATE
         ui.cpp
+        ui_dummy.cpp
     PRIVATE_ANDROID
         ui_android.cpp
     PRIVATE_LINUX
@@ -9,7 +10,6 @@ spargel_add_library(
     PRIVATE_MACOS
         ui_mac.mm
     PRIVATE_WINDOWS
-        dummy.cpp
     DEPS base
 )
 

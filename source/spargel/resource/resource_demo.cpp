@@ -56,7 +56,7 @@ namespace spargel::entry {
         }
 
         size_t size = resource->size();
-        spargel_log_info("Size of \"%s\": %ld", path.data(), size);
+        spargel_log_info("Size of \"%s\": %zu", path.data(), size);
         spargel_log_info("================");
 
         char* data = (char*)resource->map_data();

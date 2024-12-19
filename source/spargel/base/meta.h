@@ -309,9 +309,15 @@ namespace spargel::base {
     using add_rvalue_reference = _add_rvalue_reference::add_rvalue_reference<T>::type;
 #endif
 
+    // need this workaround for some compilers
+    template <typename>
+    inline constexpr bool always_false = false;
+
     template <typename T>
     consteval add_rvalue_reference<T> declval() {
-        static_assert(false);
+        // This doesn't work for some compilers:
+        // static_assert(false);
+        static_assert(always_false<T>);
     }
 
 #if spargel_has_builtin(__is_convertible)

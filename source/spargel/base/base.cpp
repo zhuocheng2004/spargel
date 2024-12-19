@@ -42,7 +42,7 @@ namespace spargel::base {
         alloc_stats[tag].current += size;
         alloc_stats[tag].total += size;
 #if SPARGEL_TRACE_ALLOCATION
-        spargel_log_info("allocated %ld bytes with tag %s", size, alloc_names[tag]);
+        spargel_log_info("allocated %zu bytes with tag %s", size, alloc_names[tag]);
 #endif
         return ptr;
     }
@@ -56,7 +56,7 @@ namespace spargel::base {
         }
         spargel_assert(alloc_stats[tag].current >= 0);
 #if SPARGEL_TRACE_ALLOCATION
-        spargel_log_info("reallocated %ld -> %ld bytes with tag %s", old_size, new_size,
+        spargel_log_info("reallocated %zu -> %zu bytes with tag %s", old_size, new_size,
                          alloc_names[tag]);
 #endif
         return new_ptr;
@@ -68,14 +68,14 @@ namespace spargel::base {
         alloc_stats[tag].current -= size;
         spargel_assert(alloc_stats[tag].current >= 0);
 #if SPARGEL_TRACE_ALLOCATION
-        spargel_log_info("deallocated %ld bytes with tag %s", size, alloc_names[tag]);
+        spargel_log_info("deallocated %zu bytes with tag %s", size, alloc_names[tag]);
 #endif
     }
 
     void report_allocation() {
         fprintf(stderr, "======== Allocation Report ========\n");
         for (int i = 0; i < _ALLOCATION_COUNT; i++) {
-            fprintf(stderr, "  %s [ current = %ld bytes, total = %ld bytes ]\n", alloc_names[i],
+            fprintf(stderr, "  %s [ current = %zu bytes, total = %zu bytes ]\n", alloc_names[i],
                     alloc_stats[i].current, alloc_stats[i].total);
         }
     }

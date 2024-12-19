@@ -1,15 +1,8 @@
 #include <spargel/base/base.h>
+#include <spargel/base/win_procs.h>
 
 /* libc */
 #include <stdio.h>
-
-typedef void* HMODULE;
-typedef unsigned long DWORD;
-typedef char* LPSTR;
-typedef const char* LPCSTR;
-
-__declspec(dllimport) DWORD
-    __stdcall GetModuleFileNameA(HMODULE hModule, LPSTR lpFilename, DWORD nSize);
 
 namespace spargel::base {
 

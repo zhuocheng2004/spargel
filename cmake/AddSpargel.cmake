@@ -155,7 +155,9 @@ function(spargel_target_add_resources)
 
         add_custom_target(${ARGS_TARGET}_copy_resources
             COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${ARGS_SRC} $<TARGET_PROPERTY:${ARGS_TARGET},BINARY_DIR>/resources/${ARGS_DST})
-        add_dependencies(${ARGS_TARGET}_copy_resources ${ARGS_DEPS})
+        if (${ARGS_DEPS})
+            add_dependencies(${ARGS_TARGET}_copy_resources ${ARGS_DEPS})
+        endif ()
         add_dependencies(${ARGS_TARGET} ${ARGS_TARGET}_copy_resources)
 endfunction()
 

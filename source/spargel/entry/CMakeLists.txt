@@ -8,7 +8,6 @@ spargel_add_library(
         base
         resource
         ui
-        util
 )
 
 spargel_add_executable(

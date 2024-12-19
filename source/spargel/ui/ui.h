@@ -10,6 +10,7 @@ namespace spargel::ui {
     enum class platform_kind {
         android,
         appkit,
+        dummy,
         uikit,
         wayland,
         win32,

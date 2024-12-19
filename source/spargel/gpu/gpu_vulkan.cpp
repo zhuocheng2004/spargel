@@ -37,6 +37,11 @@
 #include <vulkan/vulkan_metal.h>
 #endif
 
+#if SPARGEL_IS_WINDOWS
+#include <spargel/base/win_procs.h>
+#include <vulkan/vulkan_win32.h>
+#endif
+
 #if SPARGEL_IS_ANDROID
 #define VULKAN_LIB_FILENAME "libvulkan.so"
 #elif SPARGEL_IS_LINUX
@@ -166,6 +171,8 @@ namespace spargel::gpu {
         d->backend = BACKEND_VULKAN;
 #if SPARGEL_IS_POSIX
         d->library = dlopen(VULKAN_LIB_FILENAME, RTLD_NOW | RTLD_LOCAL);
+#elif SPARGEL_IS_WINDOWS
+        d->library = LoadLibraryA(VULKAN_LIB_FILENAME);
 #else
 #error unimplemented
 #endif
@@ -173,9 +180,16 @@ namespace spargel::gpu {
             dealloc_object(vulkan_device, d);
             return RESULT_NO_BACKEND;
         }
-
+#if SPARGEL_IS_POSIX
         PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr =
             (PFN_vkGetInstanceProcAddr)dlsym(d->library, "vkGetInstanceProcAddr");
+#elif SPARGEL_IS_WINDOWS
+        PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr =
+            (PFN_vkGetInstanceProcAddr)GetProcAddress(d->library, "vkGetInstanceProcAddr");
+#else
+#error unimplemented
+#endif
+
         d->procs.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
 #define VULKAN_GENERAL_PROC(name) d->procs.name = (PFN_##name)vkGetInstanceProcAddr(NULL, #name);
 #include <spargel/gpu/vulkan_procs.inc>
@@ -192,8 +206,8 @@ namespace spargel::gpu {
             all_layers.set_count(count);
         }
 
-        for (ssize i = 0; i < all_layers.count(); i++) {
-            spargel_log_info("layer #%ld = %s", i, all_layers[i].layerName);
+        for (usize i = 0; i < all_layers.count(); i++) {
+            spargel_log_info("layer #%zu = %s", i, all_layers[i].layerName);
         }
 
         /* step 2. enumerate instance extensions */
@@ -207,14 +221,14 @@ namespace spargel::gpu {
             all_exts.set_count(count);
         }
 
-        for (ssize i = 0; i < all_exts.count(); i++) {
-            spargel_log_info("instance extension #%ld = %s", i, all_exts[i].extensionName);
+        for (usize i = 0; i < all_exts.count(); i++) {
+            spargel_log_info("instance extension #%zu = %s", i, all_exts[i].extensionName);
         }
 
         /* step 3. select layers */
         /* we need VK_LAYER_KHRONOS_validation */
         base::vector<char const*> use_layers;
-        for (ssize i = 0; i < all_layers.count(); i++) {
+        for (usize i = 0; i < all_layers.count(); i++) {
             if (strcmp(all_layers[i].layerName, "VK_LAYER_KHRONOS_validation") == 0) {
                 use_layers.push("VK_LAYER_KHRONOS_validation");
                 spargel_log_info("use layer VK_LAYER_KHRONOS_validation");
@@ -255,7 +269,7 @@ namespace spargel::gpu {
 #if SPARGEL_IS_MACOS
         bool has_metal_surface = false;
 #endif
-        for (ssize i = 0; i < all_exts.count(); i++) {
+        for (usize i = 0; i < all_exts.count(); i++) {
             char const* name = all_exts[i].extensionName;
             if (strcmp(name, "VK_KHR_surface") == 0) {
                 use_exts.push("VK_KHR_surface");
@@ -423,7 +437,7 @@ namespace spargel::gpu {
         VkPhysicalDevice adapter;
         ssize queue_family_index;
 
-        for (ssize i = 0; i < adapters.count(); i++) {
+        for (usize i = 0; i < adapters.count(); i++) {
             queue_families.clear();
 
             adapter = adapters[i];
@@ -443,7 +457,7 @@ namespace spargel::gpu {
                 queue_families.set_count(count);
             }
             queue_family_index = -1;
-            for (ssize j = 0; j < queue_families.count(); j++) {
+            for (usize j = 0; j < queue_families.count(); j++) {
                 VkQueueFamilyProperties* prop = &queue_families[j];
                 /**
                  * Spec:
@@ -477,7 +491,7 @@ namespace spargel::gpu {
                 procs->vkEnumerateDeviceExtensionProperties(adapter, 0, &count, all_exts.data()));
             all_exts.set_count(count);
         }
-        for (ssize i = 0; i < all_exts.count(); i++) {
+        for (usize i = 0; i < all_exts.count(); i++) {
             spargel_log_info("device extension #%ld = %s", i, all_exts[i].extensionName);
         }
 
@@ -487,7 +501,7 @@ namespace spargel::gpu {
 
         bool has_swapchain = false;
 
-        for (ssize i = 0; i < all_exts.count(); i++) {
+        for (usize i = 0; i < all_exts.count(); i++) {
             struct VkExtensionProperties* prop = &all_exts[i];
             if (strcmp(prop->extensionName, "VK_KHR_swapchain") == 0) {
                 use_exts.push("VK_KHR_swapchain");
@@ -568,7 +582,13 @@ namespace spargel::gpu {
             procs->vkDestroyDebugUtilsMessengerEXT(d->instance, d->debug_messenger, 0);
         procs->vkDestroyInstance(d->instance, 0);
 
+#if SPARGEL_IS_POSIX
         dlclose(d->library);
+#elif SPARGEL_IS_WINDOWS
+        FreeLibrary(d->library);
+#else
+#error unimplemented
+#endif
         dealloc_object(vulkan_device, d);
     }
 
@@ -738,7 +758,7 @@ namespace spargel::gpu {
         }
 
         VkSurfaceFormatKHR* chosen_format = &formats[0];
-        for (ssize i = 0; i < formats.count(); i++) {
+        for (usize i = 0; i < formats.count(); i++) {
             VkSurfaceFormatKHR* fmt = &formats[i];
             if (fmt->format == VK_FORMAT_B8G8R8A8_SRGB &&
                 fmt->colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -801,7 +821,7 @@ namespace spargel::gpu {
             info.subresourceRange.levelCount = 1;
             info.subresourceRange.baseArrayLayer = 0;
             info.subresourceRange.layerCount = 1;
-            for (ssize i = 0; i < image_count; i++) {
+            for (usize i = 0; i < image_count; i++) {
                 info.image = sw->images[i];
                 CHECK_VK_RESULT(procs->vkCreateImageView(d->device, &info, 0, &sw->image_views[i]));
             }
@@ -871,7 +891,7 @@ namespace spargel::gpu {
             info.width = descriptor->width;
             info.height = descriptor->height;
             info.layers = 1;
-            for (ssize i = 0; i < image_count; i++) {
+            for (usize i = 0; i < image_count; i++) {
                 info.pAttachments = &sw->image_views[i];
                 CHECK_VK_RESULT(
                     procs->vkCreateFramebuffer(d->device, &info, 0, &sw->framebuffers[i]));
