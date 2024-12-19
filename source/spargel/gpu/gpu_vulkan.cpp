@@ -269,6 +269,9 @@ namespace spargel::gpu {
 #if SPARGEL_IS_MACOS
         bool has_metal_surface = false;
 #endif
+#if SPARGEL_IS_WINDOWS
+        bool has_win32_surface = false;
+#endif
         for (usize i = 0; i < all_exts.count(); i++) {
             char const* name = all_exts[i].extensionName;
             if (strcmp(name, "VK_KHR_surface") == 0) {
@@ -309,6 +312,13 @@ namespace spargel::gpu {
                 spargel_log_info("use instance extension VK_EXT_metal_surface");
             }
 #endif
+#if SPARGEL_IS_WINDOWS
+            else if (strcmp(name, "VK_KHR_win32_surface") == 0) {
+                use_exts.push("VK_KHR_win32_surface");
+                has_win32_surface = true;
+                spargel_log_info("use instance extension VK_KHR_win32_surface");
+            }
+#endif
         }
         if (!has_surface) {
             spargel_log_fatal("VK_KHR_surface is required");
@@ -333,6 +343,12 @@ namespace spargel::gpu {
 #if SPARGEL_IS_MACOS
         if (!has_metal_surface) {
             spargel_log_fatal("VK_EXT_metal_surface is required");
+            spargel_panic_here();
+        }
+#endif
+#if SPARGEL_IS_WINDOWS
+        if (!has_win32_surface) {
+            spargel_log_fatal("VK_KHR_win32_surface is required");
             spargel_panic_here();
         }
 #endif
@@ -713,6 +729,15 @@ namespace spargel::gpu {
         info.flags = 0;
         info.pLayer = wh.apple.layer;
         CHECK_VK_RESULT(d->procs.vkCreateMetalSurfaceEXT(d->instance, &info, 0, &surf));
+#endif
+#if SPARGEL_IS_WINDOWS
+        VkWin32SurfaceCreateInfoKHR info;
+        info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+        info.pNext = 0;
+        info.flags = 0;
+        info.hinstance = wh.win32.hinstance;
+        info.hwnd = wh.win32.hwnd;
+        CHECK_VK_RESULT(d->procs.vkCreateWin32SurfaceKHR(d->instance, &info, 0, &surf));
 #endif
 
         s->surface = surf;

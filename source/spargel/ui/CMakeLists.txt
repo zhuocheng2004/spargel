@@ -10,6 +10,7 @@ spargel_add_library(
     PRIVATE_MACOS
         ui_mac.mm
     PRIVATE_WINDOWS
+        ui_win32.cpp
     DEPS base
 )
 

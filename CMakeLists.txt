@@ -40,7 +40,7 @@ endif()
 
 #### UI ####
 
-spargel_add_option(SPARGEL_UI_DUMMY "nogui" OFF)
+spargel_add_option(SPARGEL_UI_DUMMY "nogui" ON)
 
 #### GPU Backend ####
 

@@ -4,6 +4,7 @@ spargel_add_executable(
     DEPS codec ui
 )
 
+if(SPARGEL_IS_MACOS)
 spargel_add_executable(
     NAME node_editor
     PRIVATE_MACOS
@@ -12,6 +13,7 @@ spargel_add_executable(
         base
         ui
 )
+endif()
 
 if(SPARGEL_IS_MACOS)
   add_custom_command(

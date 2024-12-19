@@ -110,29 +110,29 @@ namespace spargel::ui {
     }
 
     base::unique_ptr<window> platform_xcb::make_window(u32 width, u32 height) {
-        return base::make_unique<window_xcb>(*this, width, height);
-    }
-
-    window_xcb::window_xcb(platform_xcb& platform, u32 width, u32 height) : _platform(platform) {
-        _id = xcb_generate_id(platform._connection);
+        xcb_window_t id = xcb_generate_id(_connection);
 
         uint32_t mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-        uint32_t values[2] = {platform._screen->white_pixel,
+        uint32_t values[2] = {_screen->white_pixel,
                               XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY};
 
-        xcb_create_window(platform._connection, XCB_COPY_FROM_PARENT, /* depth*/
-                          _id, platform._screen->root,                /* parent window */
-                          0, 0,                                       /* x, y */
-                          width, height,                              /* width, height */
-                          10,                                         /* border width */
-                          XCB_WINDOW_CLASS_INPUT_OUTPUT,              /* class */
-                          platform._screen->root_visual,              /* visual */
+        xcb_create_window(_connection, XCB_COPY_FROM_PARENT, /* depth*/
+                          id, _screen->root,                 /* parent window */
+                          0, 0,                              /* x, y */
+                          width, height,                     /* width, height */
+                          10,                                /* border width */
+                          XCB_WINDOW_CLASS_INPUT_OUTPUT,     /* class */
+                          _screen->root_visual,              /* visual */
                           mask, values);
 
-        xcb_map_window(platform._connection, _id);
-        xcb_flush(platform._connection);
+        xcb_map_window(_connection, id);
+        xcb_flush(_connection);
 
-        platform._windows.push(this);
+        return base::make_unique<window_xcb>(this, id);
+    }
+
+    window_xcb::window_xcb(platform_xcb* platform, xcb_window_t id) : _platform(platform), _id(id) {
+        platform->_windows.push(this);
     }
 
     window_xcb::~window_xcb() { spargel_log_debug("TODO: window_xcb::~window_xcb"); }
@@ -143,7 +143,7 @@ namespace spargel::ui {
 
     window_handle window_xcb::handle() {
         window_handle handle{};
-        handle.xcb.connection = _platform._connection;
+        handle.xcb.connection = _platform->_connection;
         handle.xcb.window = _id;
         return handle;
     }

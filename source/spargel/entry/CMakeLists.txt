@@ -10,6 +10,7 @@ spargel_add_library(
         ui
 )
 
+if(SPARGEL_IS_MACOS)
 spargel_add_executable(
     NAME launcher
     PRIVATE_MACOS
@@ -27,6 +28,7 @@ spargel_add_component(
         base
         ui
 )
+endif()
 
 if (SPARGEL_IS_ANDROID)
     get_target_property(ANDROID_GAME_ACTIVITY_INCLUDE game-activity::game-activity INTERFACE_INCLUDE_DIRECTORIES)

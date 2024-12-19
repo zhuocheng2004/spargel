@@ -31,6 +31,7 @@ namespace spargel::ui {
                 void* surface;
             } wayland;
             struct {
+                void* hinstance;
                 void* hwnd;
             } win32;
             struct {
