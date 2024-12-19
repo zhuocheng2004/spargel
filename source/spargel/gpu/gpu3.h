@@ -4,6 +4,7 @@
 #include <spargel/base/meta.h>
 #include <spargel/base/object.h>
 #include <spargel/base/span.h>
+#include <spargel/base/string_view.h>
 #include <spargel/base/unique_ptr.h>
 #include <spargel/base/vector.h>
 
@@ -385,8 +386,16 @@ namespace spargel::gpu {
             buffer,
         };
         struct node_info {
+            node_info(node_kind k, u32 i, base::string_view n) : kind{k}, index{i}, name{n} {}
+
             node_kind kind;
             u32 index;
+            base::string_view name;
+            u32 refcount = 0;
+            bool culled = false;
+            bool target = false;
+            base::vector<u32> inputs;
+            base::vector<u32> outputs;
         };
         struct render_node {};
         struct present_node {};

@@ -41,6 +41,8 @@ namespace spargel::base {
                 }
             }
 
+            bool empty() const { return _end == _begin; }
+
             // construct and push back
             template <typename... Args>
             void push(Args&&... args) {

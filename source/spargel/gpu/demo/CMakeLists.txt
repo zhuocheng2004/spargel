@@ -16,6 +16,12 @@ spargel_add_executable(
     DEPS gpu ui
 )
 
+spargel_add_executable(
+    NAME demo_graph
+    PRIVATE demo_graph.cpp
+    DEPS gpu ui
+)
+
 if (SPARGEL_GPU_ENABLE_VULKAN)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vertex_shader.spirv
@@ -84,4 +90,3 @@ if (SPARGEL_GPU_ENABLE_METAL)
     add_dependencies(demo_gpu demo_gpu_metal_shaders)
     add_dependencies(demo_gpu3 demo_gpu_metal_shaders)
 endif ()
-
